@@ -1,21 +1,23 @@
 name: run_all_tests
 on: [push]
 jobs:
-  clone-iverilog:
+  install-iverilog:
     runs-on: ubuntu-latest
     steps:
       - run: sudo apt install bison flex g++ gcc
       - run: git clone https://github.com/steveicarus/iverilog.git
 
-  install-iverilog:
-    runs-on: ubuntu-latest
-    needs: clone-iverilog
-    defaults:
-      run:
-        working_directory: iverilog
-    steps:
-      - run: sh ./autoconf.sh
-      - run: ./configure
-      - run: make
+      - name: autoconfigure
+        run: sh ./autoconf.sh
+        working-directory: iverilog/
+
+      - name: configure
+        run: ./configure
+        working-directory: iverilog/
+
+      - name: build
+        run: make
+        working-directory: iverilog/
+        
       - run: make check
       - run: sudo make install
