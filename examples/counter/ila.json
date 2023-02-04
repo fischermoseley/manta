@@ -1,0 +1,25 @@
+{
+    "probes": {
+      "larry" : 1,
+      "curly" : 1,
+      "moe"   : 1,
+      "shemp" : 3
+    },
+  
+    "triggers": [
+      "larry && curly && ~moe"
+    ],
+  
+    "uart": {
+      "baudrate" : 115200,
+      "data" : 8,
+      "parity" : "none",
+      "stop" : 1,
+      "port" : "/dev/tty.usbserial-2102926963071",
+      "timeout" : 1
+    },
+
+    "sample_depth": 4096,
+    "output_dir" : "src/ila.svh",
+    "clock_freq" : 100e6
+  }
