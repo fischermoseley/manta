@@ -1,0 +1,10 @@
+name: formal_verification
+on: [push]
+jobs:
+  uart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt install iverilog
+      - run: iverilog -g2012 -o sim.out test/formal_uart_tb.sv src/uart_tx.sv src/uart_rx.sv
+      - run: vvp sim.out
