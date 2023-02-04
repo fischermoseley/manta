@@ -1,4 +1,4 @@
-name: run_all_tests
+name: cross_platform_tests
 on: [push]
 jobs:
   install-iverilog-source:
