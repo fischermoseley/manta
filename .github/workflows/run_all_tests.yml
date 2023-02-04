@@ -16,7 +16,7 @@ jobs:
         working-directory: iverilog/
 
       - name: make
-        run: make
+        run: make -j`nproc`
         working-directory: iverilog/
 
       - name: make check
