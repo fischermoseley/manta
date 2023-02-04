@@ -1,7 +1,7 @@
 name: run_all_tests
 on: [push]
 jobs:
-  install-iverilog:
+  install-iverilog-source:
     runs-on: ubuntu-latest
     steps:
       - run: sudo apt install bison flex g++ gcc gperf
@@ -16,7 +16,7 @@ jobs:
         working-directory: iverilog/
 
       - name: make
-        run: make -j`nproc`
+        run: make -j$(nproc)
         working-directory: iverilog/
 
       - name: make check
@@ -26,3 +26,8 @@ jobs:
       - name: sudo make install
         run: sudo make install
         working-directory: iverilog/
+  
+  install-iverilog-apt:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt install iverilog
