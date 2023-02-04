@@ -11,5 +11,5 @@ jobs:
       - run: sh ./autoconf.sh
       - run: ./configure
       - run: make
-      = run: make check
+      - run: make check
       - run: sudo make install
