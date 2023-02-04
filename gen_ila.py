@@ -1,4 +1,5 @@
 import json
+import yaml
 from datetime import datetime
 import os
 
@@ -42,8 +43,6 @@ concat = [name for name in config['probes']]
 concat = ', '.join(concat)
 concat = '{' + concat + '};'
 ila_template = splice(ila_template, '@CONCAT', concat);
-
-
 
 # add probes to ila module definition
 probe_verilog = []

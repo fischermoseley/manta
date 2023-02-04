@@ -1,0 +1,21 @@
+---
+downlink:
+  sample_depth: 4096
+  clock_freq: 100000000
+
+  probes:
+    larry: 1
+    curly: 1
+    moe: 1
+    shemp: 3
+    
+  triggers:
+  - larry && curly && ~moe
+
+uart:
+  baudrate: 115200
+  port: "/dev/tty.usbserial-2102926963071"
+  data: 8
+  parity: none
+  stop: 1
+  timeout: 1
