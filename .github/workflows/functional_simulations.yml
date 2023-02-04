@@ -1,0 +1,10 @@
+name: functional_simulations
+on: [push]
+jobs:
+  uart:
+    runs-on: ubuntu-latest
+    uses: actions/checkout@v3
+    uses: install-iverilog-apt
+    steps:
+      - run: iverilog -g2012 -o sim.out test/uart_tb.sv src/uart_tx.sv src/uart_rx.sv
+      - run: vvp sim.out

@@ -1,7 +1,8 @@
 ![](assets/manta.png)
 
-![Functional Simulation](https://github.com/fischermoseley/manta/actions/workflows/run_all_tests.yml/badge.svg)
-![Formal Verification](https://github.com/fischermoseley/manta/actions/workflows/run_all_tests.yml/badge.svg)
+![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
+![formal_verification](https://github.com/fischermoseley/manta/actions/workflows/formal_verification.yml/badge.svg)
+![cross_platform_tests](https://github.com/fischermoseley/manta/actions/workflows/cross_platform_tests.yml/badge.svg)
 
 Manta is a tool for debugging FPGA designs over UART. It has two modes for doing this, downlink and uplink. The downlink mode feels similar to a logic analyzer, in that Manta provides a waveform view of a configurable set of signals, which get captured when some trigger condition is met. The uplink mode allows a host machine to remotely set values of registers on the FPGA via a python interface. This permits rapid prototyping of logic in Python, and a means of incrementally migrating it to HDL. A more detailed description of each mode is below.
 
