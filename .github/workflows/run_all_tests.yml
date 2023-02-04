@@ -7,7 +7,9 @@ jobs:
       - run: sudo apt install bison flex g++ gcc
       - run: git clone https://github.com/steveicarus/iverilog.git
       - run: cd iverilog/
-      - run: sh autoconf.sh
+      - run: ls -lai
+      - run: sh ./autoconf.sh
       - run: ./configure
       - run: make
+      = run: make check
       - run: sudo make install
