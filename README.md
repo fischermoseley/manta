@@ -1,5 +1,7 @@
 ![](assets/manta.png)
 
+## Manta: An In-Situ Debugging Tool for Programmable Hardware
+
 ![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
 ![formal_verification](https://github.com/fischermoseley/manta/actions/workflows/formal_verification.yml/badge.svg)
 ![cross_platform_tests](https://github.com/fischermoseley/manta/actions/workflows/cross_platform_tests.yml/badge.svg)
