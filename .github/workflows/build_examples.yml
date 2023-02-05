@@ -11,5 +11,4 @@ jobs:
       - run: python3 manta.py gen examples/counter/ila.yaml examples/counter/src/debug.sv
       - name: build
         working-directory: examples/counter
-        run: mkdir obj
-        run: python3 lab-bc.py
+        run: mkdir obj && python3 lab-bc.py
