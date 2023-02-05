@@ -278,7 +278,7 @@ def make_widths(config):
     # [12, 1, 3] should produce
     # [ (11,0) , (12, 12), (15,13) ]
 
-    widths = list(config["probes"].values())
+    widths = list(config["downlink"]["probes"].values())
 
     parts = []
     for i, width in enumerate(widths):
@@ -306,7 +306,7 @@ def export_waveform(config, data, path):
         ) as writer:
             # add probes to vcd file
             vcd_probes = []
-            for name, width in config["probes"].items():
+            for name, width in config["downlink"]["probes"].items():
                 probe = writer.register_var("ila", name, "wire", size=width)
                 vcd_probes.append(probe)
 
