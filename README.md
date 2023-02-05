@@ -23,7 +23,7 @@ This is similar to Xilinx's Integrated Logic Analyzer (ILA) and Intel/Altera's S
 Since Manta is designed to be both cross-platform and unintrusive to your project source, it's packaged as a single python file with the HDL templates built in. This isn't the cleanest thing to develop with, so it's developed as a set of files that are stitched together into a single Python script. This isn't compilation since we're not going to machine code - we're just building a script, not a binary.
 
 ### Using a prebuilt script
-Copy `ila.py` into the root of your project directory. You'll also need a configuration file - check out `examples/` if you need some help putting one of those together.
+Copy `manta.py` into the root of your project directory. You'll also need a configuration file - check out `examples/` if you need some help putting one of those together.
 
 ### Building from source
 Clone the repo, and then run `build.py`. This will output a `manta.py`, which you're free to use.
