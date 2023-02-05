@@ -3,7 +3,6 @@
 ## Manta: An In-Situ Debugging Tool for Programmable Hardware
 ![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
 ![formal_verification](https://github.com/fischermoseley/manta/actions/workflows/formal_verification.yml/badge.svg)
-![cross_platform_tests](https://github.com/fischermoseley/manta/actions/workflows/cross_platform_tests.yml/badge.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
