@@ -5,9 +5,25 @@ import yaml
 from datetime import datetime
 import serial
 
+
 debug = True
 version = '0.0.0'
-downlink_template = ''
+
+
+def load_source_files(path):
+    """concatenates the list of files provided into a single string"""
+    source_files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    source_files = [f for f in source_files if f.split('.')[-1] in ['sv', 'v']]
+
+    buf = ""
+    for source_file in source_files:
+        with open(path + source_file, 'r') as f:
+            buf += f.read()
+
+    return buf
+
+
+downlink_template = load_source_files('src/')
 
 def load_config(path):
     """Take path to configuration file, and retun the configuration as a python list/dict object."""
@@ -109,15 +125,15 @@ def gen_downlink_core(config):
 
     # add sample width
     sample_width = sum([width for name, width in dl['probes'].items()])
-    buf = buf.replace('@SAMPLE_WIDTH', sample_width)
+    buf = buf.replace('@SAMPLE_WIDTH', str(sample_width))
 
     # add sample depth
-    buf = buf.replace('@SAMPLE_DEPTH', dl['sample_depth'])
+    buf = buf.replace('@SAMPLE_DEPTH', str(dl['sample_depth']))
 
     # uart config
     buf = buf.replace('@DATA_WIDTH', str(config['uart']['data']))
     buf = buf.replace('@BAUDRATE', str(config['uart']['baudrate']))
-    buf = buf.replace('@CLK_FREQ_HZ', str(config['uart']['clock_freq']))
+    buf = buf.replace('@CLK_FREQ_HZ', str(dl['clock_freq']))
 
     return buf
 
