@@ -11,4 +11,4 @@ jobs:
       - run: python3 manta.py gen examples/counter/ila.yaml examples/counter/src/debug.sv
       - name: build
         working-directory: examples/counter
-        run: python3 lab-bc.py
+        run: python3 lab-bc.py -o
