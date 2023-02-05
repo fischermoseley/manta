@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from sys import argv
 import os
 import json
@@ -136,21 +137,22 @@ Supported commands:
     print(help)
 
 def print_ray():
-    color_ray = f"""
-\033[96m               (\.-./)
-\033[96m               /     \\
-\033[96m             .'   :   '.
-\033[96m        _.-'`     '     `'-._       \033[34;49;1m |  Manta v{version} \033[00m
-\033[96m     .-'          :          '-.    \033[34;49;3m |  An In-Situ Debugging Tool for Programmable Hardware\033[00m
-\033[96m   ,'_.._         .         _.._',  \033[34;49m |  https://github.com/fischermoseley/manta\033[00m
-\033[96m   '`    `'-.     '     .-'`
-\033[96m             '.   :   .'            \033[34;49;3m |  fischerm [at] mit.edu\033[00m
-\033[96m               \_. ._/
-\033[96m         \       |^|
-\033[96m          |      | ;
-\033[96m          \\'.___.' /
-\033[96m           '-....-'  \033[00m"""
-    print(color_ray)
+    ray = f"""
+               (\.-./)
+               /     \\
+             .'   :   '.
+        _.-'`     '     `'-._       |   Manta v{version}
+     .-'          :          '-.    |   An In-Situ Debugging Tool for Programmable Hardware
+   ,'_.._         .         _.._',  |   https://github.com/fischermoseley/manta
+   '`    `'-.     '     .-'`    `'
+             '.   :   .'            |   fischerm [at] mit.edu
+               \_. ._/
+         \       |^|
+          |      | ;
+          \\'.___.' /
+           '-....-'  """
+
+    print(ray)
 
 def setup_serial(ser, config):
     ser.baudrate = config['uart']['baudrate']
