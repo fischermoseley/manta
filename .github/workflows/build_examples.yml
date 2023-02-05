@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - run: python3 manta.py gen examples/counter/ila.yaml
+      - run: python3 manta.py gen examples/counter/ila.yaml examples/counter/src/debug.sv
       - name: build
         working-directory: examples/counter
         run: python3 lab-bc.py
