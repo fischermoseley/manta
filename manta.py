@@ -140,11 +140,11 @@ def print_ray():
 \033[96m               (\.-./)
 \033[96m               /     \\
 \033[96m             .'   :   '.
-\033[96m        _.-'`     '     `'-._       \033[34;49;1m |  Manta v{version} \033[00m
-\033[96m     .-'          :          '-.    \033[34;49;3m |  An In-Situ Debugging Tool for Programmable Hardware\033[00m
-\033[96m   ,'_.._         .         _.._',  \033[34;49m |  https://github.com/fischermoseley/manta\033[00m
+\033[96m        _.-'`     '     `'-._       \033[34;49;1m | \033[34;49;1m Manta v{version} \033[00m
+\033[96m     .-'          :          '-.    \033[34;49;1m | \033[34;49;3m An In-Situ Debugging Tool for Programmable Hardware \033[00m
+\033[96m   ,'_.._         .         _.._',  \033[34;49;1m | \033[34;49m https://github.com/fischermoseley/manta \033[00m
 \033[96m   '`    `'-.     '     .-'`
-\033[96m             '.   :   .'            \033[34;49;3m |  fischerm [at] mit.edu\033[00m
+\033[96m             '.   :   .'            \033[34;49;1m | \033[34;49;3m fischerm [at] mit.edu \033[00m
 \033[96m               \_. ._/
 \033[96m         \       |^|
 \033[96m          |      | ;
