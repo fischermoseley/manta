@@ -26,7 +26,7 @@ Since Manta is designed to be both cross-platform and unintrusive to your projec
 Copy `manta.py` into the root of your project directory. You'll also need a configuration file - check out `examples/` if you need some help putting one of those together.
 
 ### Building from source
-Clone the repo, and then run `build.py`. This will output a `manta.py`, which you're free to use.
+Clone the repo, and then run `build.py`. This will output an executable `manta` with no file extension, which you're free to use.
 
 ## Examples
 Examples can be found under `examples/`.
