@@ -11,6 +11,7 @@ jobs:
 
       - name: Add SSH Keys
         run: |
+          mkdir ~/.ssh
           touch ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo "${{ secrets.LAB_BC_PRIVATE_KEY }}" > ~/.ssh/id_rsa
