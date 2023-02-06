@@ -8,7 +8,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - run: python3 manta.py gen examples/counter/ila.yaml examples/counter/src/debug.sv
-      - name: build
+
+      - name: Add SSH Keys
+        run: |
+          touch ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.LAB_BC_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Generate Core
+        run: python3 manta.py gen examples/counter/ila.yaml examples/counter/src/debug.sv
+      
+      - name: Build Verilog
         working-directory: examples/counter
         run: mkdir obj && python3 lab-bc.py
