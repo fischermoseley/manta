@@ -284,10 +284,10 @@ def make_widths(config):
     s = sum(widths)
     slices = []
     for width in widths:
-        slices.append( (s-1, s-width) )
+        slices.append((s - 1, s - width))
         s = s - width
-    
-    assert s == 0, 'Probe sizes are weird, cannot slice bits properly'
+
+    assert s == 0, "Probe sizes are weird, cannot slice bits properly"
     return slices
 
 
@@ -298,7 +298,7 @@ def export_waveform(config, data, path):
         from vcd import VCDWriter
 
         vcd_file = open(path, "w")
-        
+
         # Use the datetime format that iVerilog uses
         timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
 
