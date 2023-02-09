@@ -18,9 +18,10 @@ def load_source_files(path):
     source_files = [f for f in source_files if f.split(".")[-1] in ["sv", "v"]]
 
     # bring manta_template.sv to the top, if it exists
-    print(source_files)
     if "manta_template.sv" in source_files:
-        source_files.insert(0, source_files.pop(source_files.index("manta_template.sv")))
+        source_files.insert(
+            0, source_files.pop(source_files.index("manta_template.sv"))
+        )
 
     buf = ""
     for source_file in source_files:
@@ -172,21 +173,6 @@ def gen_downlink_core(config):
 
 def print_help():
     help = f"""
-Manta v{version} - An In-Situ Debugging Tool for Programmable Hardware
-
-Supported commands:
-    gen [config file]       generate the core specified in the config file
-    run [config file]       run the core specified in the config file
-    terminal [config file]  present a minicom-like serial terminal with the UART settings in the config file
-    ports                   list all available serial ports
-    help                    display this help message
-    ray                     display a splash screen (hehe...splash screen)
-    """
-    print(help)
-
-
-def print_ray():
-    color_ray = f"""
 \033[96m               (\.-./)
 \033[96m               /     \\
 \033[96m             .'   :   '.
@@ -199,8 +185,16 @@ def print_ray():
 \033[96m         \       |^|
 \033[96m          |      | ;
 \033[96m          \\'.___.' /
-\033[96m           '-....-'  \033[00m"""
-    print(color_ray)
+\033[96m           '-....-'  \033[00m
+
+Supported commands:
+    gen [config file]       generate the core specified in the config file
+    run [config file]       run the core specified in the config file
+    terminal [config file]  present a minicom-like serial terminal with the UART settings in the config file
+    ports                   list all available serial ports
+    help, ray               display this splash screen (hehe...splash screen)
+"""
+    print(help)
 
 
 def setup_serial(ser, config):
@@ -333,7 +327,7 @@ def export_waveform(config, data, path):
 
 if __name__ == "__main__":
     # print help menu if no args passed or help menu requested
-    if len(argv) == 1 or argv[1] == "help":
+    if len(argv) == 1 or argv[1] == "help" or argv[1] == "ray" or argv[1] == "bae":
         print_help()
         exit()
 
@@ -353,11 +347,6 @@ if __name__ == "__main__":
 
         for info in serial.tools.list_ports.comports():
             print(info)
-
-    # show splash screen
-    elif argv[1] == "ray":
-        print_ray()
-        exit()
 
     # generate the specified core
     elif argv[1] == "gen":
