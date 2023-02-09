@@ -133,7 +133,7 @@ module manta (
     /* Downlink State Machine Controller */
     /*
 
-    - ila enters the downlink state
+    - manta enters the downlink state
     - set fifo_output_request high for a clock cycle
     - when fifo_output_valid goes high, send fifo_data_out across the line
     - do nothing until tx_busy goes low
