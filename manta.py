@@ -11,11 +11,16 @@ version = "0.0.0"
 
 
 def load_source_files(path):
-    """concatenates the list of files provided into a single string"""
+    """concatenates the contents of the list of files provided into a single string"""
     source_files = [
         f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))
     ]
     source_files = [f for f in source_files if f.split(".")[-1] in ["sv", "v"]]
+
+    # bring manta_template.sv to the top, if it exists
+    print(source_files)
+    if "manta_template.sv" in source_files:
+        source_files.insert(0, source_files.pop(source_files.index("manta_template.sv")))
 
     buf = ""
     for source_file in source_files:

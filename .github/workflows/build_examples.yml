@@ -18,7 +18,7 @@ jobs:
           echo "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
       - name: Generate Core
-        run: python3 manta.py gen examples/counter/ila.yaml examples/counter/src/debug.sv
+        run: python3 manta.py gen examples/counter/manta.yaml examples/counter/src/debug.sv
       
       - name: Build Verilog
         working-directory: examples/counter

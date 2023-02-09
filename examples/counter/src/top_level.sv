@@ -16,9 +16,8 @@ module top_level (
     logic [7:0] count;
     always_ff @(posedge clk) count <= count + 1;
 
-    // ILA
-    // later make this a #ILA that gets loaded from a svh file that the python script generates
-    ila ila(
+    // debugger
+    manta manta(
         .clk(clk),
         .rst(btnc),
         .larry(count[0]),
