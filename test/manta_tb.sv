@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-module ila_tb();
+module manta_tb();
     logic clk;
     logic rst;
     logic rxd;
@@ -13,9 +13,9 @@ module ila_tb();
     assign probe1 = count[1];
     assign probe2 = count[2];
 
-    // ILA
-    // later make this a `ILA that gets loaded from a svh file that the python script generates
-    ila #(.FIFO_DEPTH(64)) ila(
+    // manta
+    // later make this a `MANTA that gets loaded from a svh file that the python script generates
+    manta #(.FIFO_DEPTH(64)) manta(
         .clk(clk),
         .rst(rst),
         .probe0(probe0),
@@ -40,8 +40,8 @@ module ila_tb();
     logic [9:0] uart_data;
 
   	initial begin
-    	$dumpfile("ila.vcd");
-    	$dumpvars(0, ila_tb);
+    	$dumpfile("manta.vcd");
+    	$dumpvars(0, manta_tb);
 		clk = 0;
 		rst = 1;
         rxd = 1;
