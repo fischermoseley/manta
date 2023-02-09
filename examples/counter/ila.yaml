@@ -7,7 +7,7 @@ downlink:
     larry: 1
     curly: 1
     moe: 1
-    shemp: 3
+    shemp: 4
     
   triggers:
   - larry && curly && ~moe

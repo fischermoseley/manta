@@ -24,7 +24,7 @@ module top_level (
         .larry(count[0]),
         .curly(count[1]),
         .moe(count[2]),
-        .shemp(count[5:3]),
+        .shemp(count[3:0]),
         
         .rxd(uart_txd_in),
         .txd(uart_rxd_out));

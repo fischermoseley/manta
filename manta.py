@@ -120,7 +120,7 @@ def gen_downlink_core(config):
     dl = config["downlink"]
 
     # add timestamp
-    timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
     buf = buf.replace("@TIMESTAMP", timestamp)
 
     # add user
@@ -135,7 +135,7 @@ def gen_downlink_core(config):
     # add concat
     concat = [name for name in dl["probes"]]
     concat = ", ".join(concat)
-    concat = "{" + concat + "};"
+    concat = "{" + concat + "}"
     buf = buf.replace("@CONCAT", concat)
 
     # add probes
@@ -147,7 +147,7 @@ def gen_downlink_core(config):
         else:
             probe_verilog.append(f"input wire [{width-1}:0] {name},")
 
-    probe_verilog = "\n\t".join(probe_verilog)
+    probe_verilog = "\n\t\t".join(probe_verilog)
     buf = buf.replace("@PROBES", probe_verilog)
 
     # add sample width
@@ -276,20 +276,19 @@ def part_select(data, width):
 def make_widths(config):
     # {probe0, probe1, probe2}
     # [12, 1, 3] should produce
-    # [ (11,0) , (12, 12), (15,13) ]
+    # [ (15, 4) (3, 3) (2,0) ]
 
     widths = list(config["downlink"]["probes"].values())
 
-    parts = []
-    for i, width in enumerate(widths):
-        if i == 0:
-            parts.append((width - 1, 0))
-
-        else:
-            parts.append(((parts[i - 1][1] + width), (parts[i - 1][1] + 1)))
-
-    # reversing this list is a little bit of a hack, should fix/document
-    return parts[::-1]
+    # easiest to make by summing them and incrementally subtracting
+    s = sum(widths)
+    slices = []
+    for width in widths:
+        slices.append( (s-1, s-width) )
+        s = s - width
+    
+    assert s == 0, 'Probe sizes are weird, cannot slice bits properly'
+    return slices
 
 
 def export_waveform(config, data, path):
@@ -299,7 +298,9 @@ def export_waveform(config, data, path):
         from vcd import VCDWriter
 
         vcd_file = open(path, "w")
-        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        # Use the datetime format that iVerilog uses
+        timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
 
         with VCDWriter(
             vcd_file, timescale="10 ns", date=timestamp, version="manta"
@@ -307,7 +308,7 @@ def export_waveform(config, data, path):
             # add probes to vcd file
             vcd_probes = []
             for name, width in config["downlink"]["probes"].items():
-                probe = writer.register_var("ila", name, "wire", size=width)
+                probe = writer.register_var("manta", name, "wire", size=width)
                 vcd_probes.append(probe)
 
             # calculate bit widths for part selecting
