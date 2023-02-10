@@ -310,15 +310,24 @@ def export_waveform(config, data, path):
                 probe = writer.register_var("manta", name, "wire", size=width)
                 vcd_probes.append(probe)
 
+            # add clock to vcd file
+            clock = writer.register_var("manta", "clk", "wire", size=1)
+
             # calculate bit widths for part selecting
             widths = make_widths(config)
 
             # slice data, and dump to vcd file
-            for timestamp, value in enumerate(data):
+            for timestamp in range(2 * len(data)):
+                value = data[timestamp // 2]
+
+                # dump clock values to vcd file
+                # note: this assumes logic is triggered
+                # on the rising edge of the clock, @TODO fix this
+                writer.change(clock, timestamp, timestamp % 2 == 0)
+
                 for probe_num, probe in enumerate(vcd_probes):
                     val = part_select(value, widths[probe_num])
                     writer.change(probe, timestamp, val)
-
         vcd_file.close()
 
     else:
