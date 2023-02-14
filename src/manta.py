@@ -4,6 +4,7 @@ import json
 import yaml
 from datetime import datetime
 import serial
+import pkgutil
 
 
 debug = True
@@ -12,26 +13,16 @@ version = "0.0.0"
 
 def load_source_files(path):
     """concatenates the contents of the list of files provided into a single string"""
-    source_files = [
-        f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))
-    ]
-    source_files = [f for f in source_files if f.split(".")[-1] in ["sv", "v"]]
 
-    # bring manta_template.sv to the top, if it exists
-    if "manta_template.sv" in source_files:
-        source_files.insert(
-            0, source_files.pop(source_files.index("manta_template.sv"))
-        )
+    downlink_template = pkgutil.get_data(__name__, "hdl/manta_template.sv")
+    downlink_template += pkgutil.get_data(__name__, "hdl/fifo.sv")
+    downlink_template += pkgutil.get_data(__name__, "hdl/uart_tx.sv")
+    downlink_template += pkgutil.get_data(__name__, "hdl/uart_rx.sv")
+    downlink_template += pkgutil.get_data(
+        __name__, "hdl/xilinx_true_dual_port_read_first_2_clock_ram.v"
+    )
 
-    buf = ""
-    for source_file in source_files:
-        with open(path + source_file, "r") as f:
-            buf += f.read()
-
-    return buf
-
-
-downlink_template = load_source_files("src/")
+    return downlink_template
 
 
 def load_config(path):

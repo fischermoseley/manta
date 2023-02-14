@@ -2,3 +2,4 @@
 *.bit
 *.vcd
 *.out
+dist/
