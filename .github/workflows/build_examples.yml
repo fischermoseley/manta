@@ -19,8 +19,7 @@ jobs:
 
       - name: Install Manta from Source
         run: |
-          pip3 install build
-          python -m build
+          pip install setuptools --upgrade
           python3 -m pip install .
 
       - name: Generate Core
