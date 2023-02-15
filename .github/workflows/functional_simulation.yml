@@ -20,5 +20,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt install iverilog
-      - run: iverilog -g2012 -o sim.out test/fifo_tb.sv src/fifo.sv src/xilinx_true_dual_port_read_first_2_clock_ram.v
+      - run: iverilog -g2012 -o sim.out test/fifo_tb.sv src/manta/fifo.sv src/manta/xilinx_true_dual_port_read_first_2_clock_ram.v
       - run: vvp sim.out

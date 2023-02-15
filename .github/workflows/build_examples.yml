@@ -17,8 +17,11 @@ jobs:
           echo "${{ secrets.LAB_BC_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           echo "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
+      - name: Install Manta from Source
+        run: python3 -m pip install -e .
+
       - name: Generate Core
-        run: python3 manta.py gen examples/counter/manta.yaml examples/counter/src/debug.sv
+        run: manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
       
       - name: Build Verilog
         working-directory: examples/counter

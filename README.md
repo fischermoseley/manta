@@ -10,22 +10,17 @@ Manta is a tool for debugging FPGA designs over an interface like UART or Ethern
 
 Manta is written in Python, and generates SystemVerilog HDL. It's cross-platform, and its only dependencies are pySerial and pyYAML. The SystemVerilog templates are included in the Python source, so only a single python file must be included in your project.
 
+## Design Philosophy
+- Things that are easy to break should be easy to fix. For instance, it's pretty easy to put the wrong number of clock cycles of holdoff in your configuration, but it's a lot harder to accidentally put the wrong number of stop bits in your serial port. Manta supports changing the former post-upload, but not the latter.
+- Features are added when they're needed. We won't add features until there's been a use case shown that would benefit from them. This keeps manta lightweight.
+
 ## Downlink
-Manta's downlink mode works by taking a JSON file describing the ILA configuration, and autogenerating a debug core with SystemVerilog. This gets included in the rest of the project's HDL, and is synthesized and flashed on the FPGA. It can then be controlled by a host machine connected over a serial port. The host can arm the core, and then when a trigger condition is met, the debug output is wired back to the host, where it's saved as a waveform file. This can then be opened and inspected in a waveform viewer like GTKWave.
+Manta's downlink mode works by taking a YAML/JSON file describing the ILA configuration, and autogenerating a debug core with SystemVerilog. This gets included in the rest of the project's HDL, and is synthesized and flashed on the FPGA. It can then be controlled by a host machine connected over a serial port. The host can arm the core, and then when a trigger condition is met, the debug output is wired back to the host, where it's saved as a waveform file. This can then be opened and inspected in a waveform viewer like GTKWave.
 
 This is similar to Xilinx's Integrated Logic Analyzer (ILA) and Intel/Altera's SignalTap utility.
 
-## Uplink:
-
-
 ## Getting Started
-Since Manta is designed to be both cross-platform and unintrusive to your project source, it's packaged as a single python file with the HDL templates built in. This isn't the cleanest thing to develop with, so it's developed as a set of files that are stitched together into a single Python script. This isn't compilation since we're not going to machine code - we're just building a script, not a binary.
-
-### Using a prebuilt script
-Copy `manta.py` into the root of your project directory. You'll also need a configuration file - check out `examples/` if you need some help putting one of those together.
-
-### Building from source
-Clone the repo, and then run `build.py`. This will output an executable `manta` with no file extension, which you're free to use.
+Manta is installed with `pip3 install mantaray`. Or at least it will be, once it's out of alpha. For now, it's installable with `pip install -i https://test.pypi.org/simple/ mantaray`, which just pulls from the PyPI testing registry.
 
 ## Examples
 Examples can be found under `examples/`. These target the [Nexys4 DDR](https://digilent.com/reference/programmable-logic/nexys-4-ddr/start) and [Nexys A7-100T](https://digilent.com/reference/programmable-logic/nexys-a7/start) from Digilent, which are functionally equivalent.
