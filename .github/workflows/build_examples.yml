@@ -16,8 +16,7 @@ jobs:
       - name: Install Manta from Source
         run: |
           pip install setuptools --upgrade
-          sudo apt install -y tree
-          tree
+          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
           python3 -m pip install .
 
       - name: Generate Core
