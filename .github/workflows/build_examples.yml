@@ -16,7 +16,7 @@ jobs:
       - name: Install Manta from Source
         run: |
           pip install setuptools --upgrade
-          apt install -y tree
+          sudo apt install -y tree
           tree
           python3 -m pip install .
 
