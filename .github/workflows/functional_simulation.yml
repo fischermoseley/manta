@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt install iverilog
-      - run: iverilog -g2012 -o sim.out test/uart_tb.sv src/uart_tx.sv src/uart_rx.sv
+      - run: iverilog -g2012 -o sim.out test/uart_tb.sv src/manta/uart_tx.sv src/manta/uart_rx.sv
       - run: vvp sim.out
   
   fifo:
