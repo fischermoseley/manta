@@ -37,7 +37,7 @@ module fifo (
 	logic output_valid_pip_0;
 	logic output_valid_pip_1;
 
-	always @(posedge clk) begin
+	always_ff @(posedge clk) begin
 		if (input_ready && ~full)
 			write_pointer <= write_pointer + 1'd1;
 

@@ -2,13 +2,9 @@ name: build_examples
 on: [push]
 jobs:
   counter:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, ubuntu-22.04, ubuntu-20.04]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Add SSH Keys
         run: |
           mkdir ~/.ssh
