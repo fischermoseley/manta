@@ -16,10 +16,12 @@ jobs:
       - name: Install Manta from Source
         run: |
           pip install setuptools --upgrade
+          apt install -y tree
+          tree
           python3 -m pip install .
 
       - name: Generate Core
-        run: python3 -m manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
+        run: manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
       
       - name: Build Verilog
         working-directory: examples/counter
