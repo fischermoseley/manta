@@ -18,7 +18,10 @@ jobs:
           echo "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
       - name: Install Manta from Source
-        run: python -m build && python3 -m pip install .
+        run: |
+          pip3 install build
+          python -m build
+          python3 -m pip install .
 
       - name: Generate Core
         run: manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
