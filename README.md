@@ -28,7 +28,7 @@ Copy `manta.py` into the root of your project directory. You'll also need a conf
 Clone the repo, and then run `build.py`. This will output an executable `manta` with no file extension, which you're free to use.
 
 ## Examples
-Examples can be found under `examples/`.
+Examples can be found under `examples/`. These target the [Nexys4 DDR](https://digilent.com/reference/programmable-logic/nexys-4-ddr/start) and [Nexys A7-100T](https://digilent.com/reference/programmable-logic/nexys-a7/start) from Digilent, which are functionally equivalent.
 
 ## About
 Manta was originally developed as part of my [Master's Thesis at MIT](dspace.mit.edu) in 2023, done under the supervision of Joe Steinmeyer. But I think it's a neat tool, so I'm still working on it :)
