@@ -3,3 +3,4 @@
 *.vcd
 *.out
 dist/
+*.egg-info

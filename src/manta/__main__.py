@@ -1,0 +1,2 @@
+import manta
+manta.main()

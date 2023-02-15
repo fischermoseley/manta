@@ -11,16 +11,16 @@ debug = True
 version = "0.0.0"
 
 
-def load_source_files(path):
-    """concatenates the contents of the list of files provided into a single string"""
+def load_source_files():
+    """loads source files and returns a string of their contents concatenated together"""
 
-    downlink_template = pkgutil.get_data(__name__, "hdl/manta_template.sv")
-    downlink_template += pkgutil.get_data(__name__, "hdl/fifo.sv")
-    downlink_template += pkgutil.get_data(__name__, "hdl/uart_tx.sv")
-    downlink_template += pkgutil.get_data(__name__, "hdl/uart_rx.sv")
+    downlink_template = pkgutil.get_data(__name__, "manta_template.sv").decode()
+    downlink_template += pkgutil.get_data(__name__, "fifo.sv").decode()
+    downlink_template += pkgutil.get_data(__name__, "uart_tx.sv").decode()
+    downlink_template += pkgutil.get_data(__name__, "uart_rx.sv").decode()
     downlink_template += pkgutil.get_data(
         __name__, "hdl/xilinx_true_dual_port_read_first_2_clock_ram.v"
-    )
+    ).decode()
 
     return downlink_template
 
@@ -113,7 +113,7 @@ def check_config(config):
 
 
 def gen_downlink_core(config):
-    buf = downlink_template
+    buf = load_source_files()
     dl = config["downlink"]
 
     # add timestamp
@@ -325,7 +325,7 @@ def export_waveform(config, data, path):
         raise NotImplementedError("More file formats to come!")
 
 
-if __name__ == "__main__":
+def main():
     # print help menu if no args passed or help menu requested
     if len(argv) == 1 or argv[1] == "help" or argv[1] == "ray" or argv[1] == "bae":
         print_help()
@@ -373,3 +373,7 @@ if __name__ == "__main__":
     else:
         print("Option not recognized.")
         print_help()
+
+
+if __name__ == "__main__":
+    main()
