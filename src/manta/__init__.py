@@ -19,7 +19,7 @@ def load_source_files():
     downlink_template += pkgutil.get_data(__name__, "uart_tx.sv").decode()
     downlink_template += pkgutil.get_data(__name__, "uart_rx.sv").decode()
     downlink_template += pkgutil.get_data(
-        __name__, "hdl/xilinx_true_dual_port_read_first_2_clock_ram.v"
+        __name__, "xilinx_true_dual_port_read_first_2_clock_ram.v"
     ).decode()
 
     return downlink_template
