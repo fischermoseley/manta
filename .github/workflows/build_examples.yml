@@ -19,7 +19,7 @@ jobs:
           python3 -m pip install .
 
       - name: Generate Core
-        run: manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
+        run: python3 -m manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
       
       - name: Build Verilog
         working-directory: examples/counter
