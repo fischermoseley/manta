@@ -1,4 +1,4 @@
-name: build_examples
+name: build_nexys_a7_examples
 on: [push]
 jobs:
   counter:

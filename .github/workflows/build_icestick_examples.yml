@@ -1,0 +1,35 @@
+name: build_icestick_examples
+on: [push]
+jobs:
+  install-toolchain:
+    runs-on: ubuntu-latest
+    steps:
+    - name: install yosys
+      run: |
+        git clone https://github.com/cliffordwolf/yosys.git yosys
+        cd yosys
+        make -j$(nproc)
+        sudo make install
+
+    - name: install nextpnr
+      run: |
+        git clone git@github.com:YosysHQ/nextpnr.git nextpnr
+        sudo apt install libboost-all-dev libeigen3-dev
+        cmake . -DARCH=ice40
+        make -j$(nproc)
+        sudo make install
+
+    - name: install icestorm
+      run: |
+        git clone https://github.com/cliffordwolf/icestorm.git icestorm
+        cd icestorm
+        make -j$(nproc)
+        sudo make install
+  
+  uart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+        cd examples/icestick/uart
+        make
