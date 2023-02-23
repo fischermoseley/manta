@@ -11,4 +11,4 @@ jobs:
         tar -xzf oss-cad-suite-linux-x64-20230223.tgz 
         export PATH="$(pwd)/oss-cad-suite/bin/:$PATH"
         cd examples/icestick/uart
-        make
+        ./make.sh
