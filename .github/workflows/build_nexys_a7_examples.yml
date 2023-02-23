@@ -27,12 +27,12 @@ jobs:
           python3 -m pip install .
 
       - name: Generate Core
-        run: manta gen examples/counter/manta.yaml examples/counter/src/debug.sv
+        run: manta gen examples/nexys_a7/counter/manta.yaml examples/nexys_a7/counter/src/debug.sv
 
       - name: Build Verilog
-        working-directory: examples/counter
+        working-directory: examples/nexys_a7/counter
         run: mkdir obj && python3 lab-bc.py
 
       - name: Print build.log
-        working-directory: examples/counter
+        working-directory: examples/nexys_a7/counter
         run: cat obj/build.log
