@@ -50,8 +50,8 @@ set_io LED4 95
 #set_io DTRn 3
 #set_io CTSn 4
 #set_io RTSn 7
-set_io RS232_Tx_TTL 8
-set_io RS232_Rx_TTL 9
+set_io rs232_tx_ttl 8
+set_io rs232_rx_ttl 9
 
 # SPI
 #set_io SPI_SCK 70
@@ -64,4 +64,4 @@ set_io RS232_Rx_TTL 9
 #set_io CRESET_B 66
 
 # 12 MHz clock
-set_io iCE_CLK 21
+set_io clk 21

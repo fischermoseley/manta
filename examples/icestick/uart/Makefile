@@ -3,8 +3,8 @@ PNR = nextpnr-ice40
 GEN = icepack
 PROG = iceprog
 
-TOP = uart_demo.v
-PCF = icestick.pcf
+TOP = src/top_level.sv
+PCF = pcf/top_level.pcf
 PNR_FLAGS = --hx1k
 
 OUTPUT = $(patsubst %.v,%.bin,$(TOP))
