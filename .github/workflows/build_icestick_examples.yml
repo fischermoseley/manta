@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
-        cd examples/icestick/uart
-        make
+      - name: build uart
+        run: |
+          cd examples/icestick/uart
+          make
