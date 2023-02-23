@@ -9,13 +9,6 @@ jobs:
         wget https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-02-23/oss-cad-suite-linux-x64-20230223.tgz
         tar -xzf oss-cad-suite-linux-x64-20230223.tgz 
         export PATH="$(pwd)/oss-cad-suite/bin/:$PATH"
-
-  uart:
-    runs-on: ubuntu-latest
-    needs: install-toolchain
-    steps:
-      - uses: actions/checkout@v3
-      - name: build uart
-        run: |
-          cd examples/icestick/uart
-          make
+        ls
+        cd examples/icestick/uart
+        make
