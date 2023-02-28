@@ -1,0 +1,67 @@
+[*]
+[*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
+[*] Tue Feb 28 22:40:21 2023
+[*]
+[dumpfile] "/Users/fischerm/fpga/manta/lut_mem.vcd"
+[dumpfile_mtime] "Tue Feb 28 22:39:27 2023"
+[dumpfile_size] 5116
+[savefile] "/Users/fischerm/fpga/manta/lut_mem.gtkw"
+[timestart] 0
+[size] 1710 994
+[pos] -1 -1
+*-45.675117 63700000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] lut_mem_tb.
+[sst_width] 193
+[signals_width] 308
+[sst_expanded] 1
+[sst_vpaned_height] 305
+@28
+lut_mem_tb.clk
+@200
+-
+-tb --> mem_1
+@28
+lut_mem_tb.tb_mem_1_valid
+@22
+lut_mem_tb.tb_mem_1_addr[15:0]
+lut_mem_tb.tb_mem_1_wdata[15:0]
+lut_mem_tb.tb_mem_1_rdata[15:0]
+@28
+lut_mem_tb.tb_mem_1_rw
+@200
+-
+-mem_1 --> mem_2
+@28
+lut_mem_tb.mem_1_mem_2_valid
+@22
+lut_mem_tb.mem_1_mem_2_addr[15:0]
+lut_mem_tb.mem_1_mem_2_wdata[15:0]
+lut_mem_tb.mem_1_mem_2_rdata[15:0]
+@28
+lut_mem_tb.mem_1_mem_2_rw
+@200
+-
+-
+-mem_2 --> mem_3
+@28
+lut_mem_tb.mem_2_mem_3_valid
+@22
+lut_mem_tb.mem_2_mem_3_addr[15:0]
+lut_mem_tb.mem_2_mem_3_wdata[15:0]
+lut_mem_tb.mem_2_mem_3_rdata[15:0]
+@28
+lut_mem_tb.mem_2_mem_3_rw
+@200
+-
+-
+-mem_3 --> tb
+@28
+lut_mem_tb.mem_3_tb_valid
+@22
+lut_mem_tb.mem_3_tb_addr[15:0]
+lut_mem_tb.mem_3_tb_wdata[15:0]
+lut_mem_tb.mem_3_tb_rdata[15:0]
+@28
+lut_mem_tb.mem_3_tb_rw
+[pattern_trace] 1
+[pattern_trace] 0
