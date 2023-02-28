@@ -1,39 +1,39 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-
 module uart_tx(
 	input wire clk,
 	input wire rst,
-	input wire [DATA_WIDTH-1:0] data,
-	input wire start,
 	
-	output logic busy,
-	output logic txd
+	input wire [DATA_WIDTH-1:0] axiid,
+	input wire axiiv,
+	output reg axiir,
+
+	output reg txd
 	);
-
-	// Just going to stick to 8N1 for now, we'll come back and
-	// parameterize this later.
 	
-	parameter DATA_WIDTH = 8;
-	parameter CLK_FREQ_HZ = 100_000_000;
-	parameter BAUDRATE = 115200;
+	parameter DATA_WIDTH = 0;
+	parameter CLK_FREQ_HZ = 0;
+	parameter BAUDRATE = 0;
 
-	localparam PRESCALER = CLK_FREQ_HZ / BAUDRATE;
+	localparam BAUD_PERIOD = CLK_FREQ_HZ / BAUDRATE;
 
-	logic [$clog2(PRESCALER) - 1:0] baud_counter;
-	logic [$clog2(DATA_WIDTH + 2):0] bit_index;
-	logic [DATA_WIDTH - 1:0] data_buf;
+	reg busy;
+	assign axiir = ~busy; 
+
+	reg [$clog2(BAUD_PERIOD) - 1:0] baud_counter;
+	reg [$clog2(DATA_WIDTH + 2):0] bit_index;
+	reg [DATA_WIDTH - 1:0] data_buf;
 
 	// make secondary logic for baudrate
-	always_ff @(posedge clk) begin
+	always @(posedge clk) begin
 		if(rst) baud_counter <= 0;
 		else begin
-			baud_counter <= (baud_counter == PRESCALER - 1) ? 0 : baud_counter + 1;
+			baud_counter <= (baud_counter == BAUD_PERIOD - 1) ? 0 : baud_counter + 1;
 		end
 	end
 	
-	always_ff @(posedge clk) begin
+	always @(posedge clk) begin
 		
 		// reset logic
 		if(rst) begin
@@ -45,9 +45,9 @@ module uart_tx(
 		// enter transmitting state logic
 		// don't allow new requests to interrupt current
 		// transfers
-		if(start && ~busy) begin
+		if(axiiv && ~busy) begin
 			busy <= 1;
-			data_buf <= data;
+			data_buf <= axiid;
 		end
 
 
