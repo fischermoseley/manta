@@ -6,35 +6,32 @@ module uart_rx(
     input wire rst,
     input wire rxd,
 
-    output logic [DATA_WIDTH - 1:0] data,
-    output logic ready,
-    output logic busy
+    output reg [DATA_WIDTH - 1:0] axiod,
+    output reg axiov
     );
-
-    // Just going to stick to 8N1 for now, we'll come back and
-	// parameterize this later.
 	
-	parameter DATA_WIDTH = 8;
-	parameter CLK_FREQ_HZ = 100_000_000;
-	parameter BAUDRATE = 115200;
+	parameter DATA_WIDTH = 0;
+	parameter CLK_FREQ_HZ = 0;
+	parameter BAUDRATE = 0;
 
-	localparam PRESCALER = CLK_FREQ_HZ / BAUDRATE;
+	localparam BAUD_PERIOD = CLK_FREQ_HZ / BAUDRATE;
 
-	logic [$clog2(PRESCALER) - 1:0] baud_counter;
-	logic [$clog2(DATA_WIDTH + 2):0] bit_index;
-    logic [DATA_WIDTH + 2 : 0] data_buf;
+	reg [$clog2(BAUD_PERIOD) - 1:0] baud_counter;
+	reg [$clog2(DATA_WIDTH + 2):0] bit_index;
+    reg [DATA_WIDTH + 2 : 0] data_buf;
 
-    logic prev_rxd;
+    reg prev_rxd;
+    reg busy;
 
 	always_ff @(posedge clk) begin
         prev_rxd <= rxd;
-        ready <= 0;
-        baud_counter <= (baud_counter == PRESCALER - 1) ? 0 : baud_counter + 1;
+        axiov <= 0;
+        baud_counter <= (baud_counter == BAUD_PERIOD - 1) ? 0 : baud_counter + 1;
 	
 		// reset logic
 		if(rst) begin
 			bit_index <= 0;
-            data <= 0;
+            axiod <= 0;
             busy <= 0;
             baud_counter <= 0;
 		end
@@ -48,7 +45,7 @@ module uart_rx(
 
         // if we're actually receiving
         else if (busy) begin
-            if (baud_counter == PRESCALER / 2) begin
+            if (baud_counter == BAUD_PERIOD / 2) begin
                 data_buf[bit_index] <= rxd;
                 bit_index <= bit_index + 1;
 
@@ -58,8 +55,8 @@ module uart_rx(
                     
 
                     if (rxd && ~data_buf[0]) begin
-                        data <= data_buf[DATA_WIDTH : 1];
-                        ready <= 1;
+                        axiod <= data_buf[DATA_WIDTH : 1];
+                        axiov <= 1;
                     end
                 end
             end    
