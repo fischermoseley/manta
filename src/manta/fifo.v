@@ -9,35 +9,35 @@ module fifo (
 	input wire input_ready,
 
 	input wire request_output,
-	output logic [WIDTH - 1:0] data_out,
-	output logic output_valid,
+	output reg [WIDTH - 1:0] data_out,
+	output reg output_valid,
 
-	output logic [AW:0] size,
-	output logic empty,
-	output logic full
+	output reg [AW:0] size,
+	output reg empty,
+	output reg full
 	);
 
 	parameter WIDTH = 8;
 	parameter DEPTH = 4096;
 	localparam AW = $clog2(DEPTH);
 
-	logic [AW:0] write_pointer;
-	logic [AW:0] read_pointer;
+	reg [AW:0] write_pointer;
+	reg [AW:0] read_pointer;
 
-	logic empty_int;
+	reg empty_int;
 	assign empty_int = (write_pointer[AW] == read_pointer[AW]);
 
-	logic full_or_empty;
+	reg full_or_empty;
 	assign full_or_empty = (write_pointer[AW-1:0] ==	read_pointer[AW-1:0]);
 
 	assign full = full_or_empty & !empty_int;
 	assign empty = full_or_empty & empty_int;
 	assign size = write_pointer - read_pointer;
 
-	logic output_valid_pip_0;
-	logic output_valid_pip_1;
+	reg output_valid_pip_0;
+	reg output_valid_pip_1;
 
-	always_ff @(posedge clk) begin
+	always @(posedge clk) begin
 		if (input_ready && ~full)
 			write_pointer <= write_pointer + 1'd1;
 
