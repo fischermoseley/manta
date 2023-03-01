@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
-[*] Tue Feb 28 23:56:47 2023
+[*] Wed Mar  1 02:04:43 2023
 [*]
 [dumpfile] "/Users/fischerm/fpga/manta/bus.vcd"
-[dumpfile_mtime] "Tue Feb 28 23:52:25 2023"
-[dumpfile_size] 6844
+[dumpfile_mtime] "Wed Mar  1 02:00:40 2023"
+[dumpfile_size] 91134
 [savefile] "/Users/fischerm/fpga/manta/bus.gtkw"
-[timestart] 18600000000000
+[timestart] 0
 [size] 1710 994
 [pos] -1 -1
-*-46.201744 327700000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-21.981709 8420000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] bus_tb.
 [sst_width] 353
 [signals_width] 276
@@ -23,11 +23,19 @@ bus_tb.test_num
 @200
 -
 -
--tb --> bridge_rx
-@820
-bus_tb.tb_brx_axid[7:0]
+-tb --> uart_rx
 @28
-bus_tb.tb_brx_axiv
+bus_tb.tb_urx_rxd
+@200
+-
+-
+-uart_rx --> bridge_rx
+@820
+bus_tb.urx_brx_axid[7:0]
+@28
+bus_tb.urx_brx_axiv
+@22
+bus_tb.urx.bit_index[4:0]
 @200
 -
 -
@@ -65,14 +73,29 @@ bus_tb.mem_2_mem_3_wdata[15:0]
 @200
 -
 -
--mem_3 --> tb
+-mem_3 --> bridge_tx
 @22
-bus_tb.mem_3_tb_addr[15:0]
-bus_tb.mem_3_tb_rdata[15:0]
-@23
-bus_tb.mem_3_tb_wdata[15:0]
+bus_tb.mem_3_btx_addr[15:0]
+bus_tb.mem_3_btx_rdata[15:0]
 @28
-bus_tb.mem_3_tb_rw
-bus_tb.mem_3_tb_valid
+bus_tb.mem_3_btx_rw
+bus_tb.mem_3_btx_valid
+@22
+bus_tb.mem_3_btx_wdata[15:0]
+@200
+-
+-
+-bridge_tx --> uart_tx
+@23
+bus_tb.btx_utx_axid[7:0]
+@28
+bus_tb.btx_utx_axir
+bus_tb.btx_utx_axiv
+@200
+-
+-
+-uart_tx --> tb
+@28
+bus_tb.utx_tb_txd
 [pattern_trace] 1
 [pattern_trace] 0
