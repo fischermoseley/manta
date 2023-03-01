@@ -1,15 +1,19 @@
 `default_nettype none
+`timescale 1ns/1ps
 
 `define CP 10
 `define HCP 5
 
-`define SEND_MESSAGE(MESSAGE) \
-   tb_brx_axiv = 1; \
-    for(int i=0; i < $size(MESSAGE); i++) begin \
-        tb_brx_axid = MESSAGE[i]; \
-        #`CP; \
-    end \
-    tb_brx_axiv = 0; \
+`define SEND_MSG_BITS(MSG) \
+    for(int j=0; j < $size(msg); j++) begin                 \
+        char = msg[j];                                      \
+        for(int i=0; i < 10; i++) begin                     \
+            if (i == 0) tb_urx_rxd = 0;                            \
+            else if ((i > 0) & (i < 9)) tb_urx_rxd = char[i-1];    \
+            else if (i == 9) tb_urx_rxd = 1;                       \
+            #(10*`CP);                                         \
+        end                                                 \
+    end                                                     \
 
 module bus_tb;
     // https://www.youtube.com/watch?v=WCOAr-96bGc
@@ -18,21 +22,36 @@ module bus_tb;
     logic clk;
     logic rst;
     integer test_num;
-    string message;
+    string msg;
+    logic [7:0] char;
 
-    // tb --> bridge_rx signals
-    logic [7:0] tb_brx_axid;
-    logic tb_brx_axiv;
+    // tb --> uart_rx signals
+    logic tb_urx_rxd;
+    uart_rx #(
+        .DATA_WIDTH(8),
+        .CLK_FREQ_HZ(100_000_000),
+        .BAUDRATE(10_000_000)
+    ) urx (
+        .clk(clk),
+        .rst(rst),
+        .rxd(tb_urx_rxd),
+
+        .axiod(urx_brx_axid),
+        .axiov(urx_brx_axiv));
+
+    // uart_rx --> bridge_rx signals
+    logic [7:0] urx_brx_axid;
+    logic urx_brx_axiv;
 
     bridge_rx brx (
         .clk(clk),
-        .axiid(tb_brx_axid),
-        .axiiv(tb_brx_axiv),
+        .axiid(urx_brx_axid),
+        .axiiv(urx_brx_axiv),
         .req_addr(brx_mem_1_addr),
         .req_data(brx_mem_1_wdata),
         .req_rw(brx_mem_1_rw),
         .req_valid(brx_mem_1_valid),
-        .req_ready(1'b1)); 
+        .req_ready(1'b1));
 
     // bridge_rx --> mem_1 signals
     logic [15:0] brx_mem_1_addr;
@@ -67,7 +86,7 @@ module bus_tb;
     logic mem_1_mem_2_rw;
     logic mem_1_mem_2_valid;
 
-    lut_mem #( 
+    lut_mem #(
         .DEPTH(8),
         .BASE_ADDR(8)
     ) mem_2 (
@@ -114,7 +133,7 @@ module bus_tb;
     logic [15:0] mem_3_btx_rdata;
     logic mem_3_btx_rw;
     logic mem_3_btx_valid;
-    
+
     bridge_tx btx (
         .clk(clk),
         .axiod(btx_utx_axid),
@@ -158,8 +177,7 @@ module bus_tb;
         // setup and reset
         clk = 0;
         rst = 0;
-        tb_brx_axid = 0;
-        tb_brx_axiv = 0;
+        tb_urx_rxd = 1;
         test_num = 0;
         #`CP
         rst = 1;
@@ -203,11 +221,11 @@ module bus_tb;
         #(10*`CP);
         /* ==== Test 1 End ==== */
 
-        message = {"M12345678", 8'h0D, 8'h0A};
-        `SEND_MESSAGE(message)
+        msg = {"M12345678", 8'h0D, 8'h0A};
+        `SEND_MSG_BITS(msg)
 
         #(1000*`CP)
-        
+
         $finish();
     end
 endmodule
