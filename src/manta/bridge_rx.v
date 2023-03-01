@@ -3,7 +3,6 @@
 
 module bridge_rx(
     input wire clk,
-    input wire rst,
 
     input wire[7:0] axiid,
     input wire axiiv,

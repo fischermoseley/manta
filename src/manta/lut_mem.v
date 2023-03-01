@@ -19,43 +19,26 @@ module lut_mem(
     output reg valid_o
 );
 
-
 parameter DEPTH = 8;
 parameter BASE_ADDR = 0;
 reg [DEPTH-1:0][15:0] mem;
 
-reg [15:0] addr_ppln;
-reg [15:0] wdata_ppln;
-reg [15:0] rdata_ppln;
-reg rw_ppln;
-reg valid_ppln;
-
 always @(posedge clk) begin
-    
-    // pipeline stage 1
-    addr_ppln <= addr_i;
-    wdata_ppln <= wdata_i;
-    rdata_ppln <= rdata_i;
-    rw_ppln <= rw_i;
-    valid_ppln <= valid_i;
-
-    // pipeline stage 2
-    addr_o <= addr_ppln;
-    wdata_o <= wdata_ppln;
-    rdata_o <= rdata_ppln;
-    rw_o <= rw_ppln;
-    valid_o <= valid_ppln;
+    addr_o <= addr_i;
+    wdata_o <= wdata_i;
+    rdata_o <= rdata_i;
+    rw_o <= rw_i;
+    valid_o <= valid_i;
+    rdata_o <= rdata_i;
     
 
     if(valid_i) begin
-        // write to memory
+        // check if address is valid
         if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + DEPTH - 1) ) begin
-
-            // write to mem
+            
+            // read/write
             if (rw_i) mem[addr_i - BASE_ADDR] <= wdata_i;
-
-            // read from mem
-            else rdata_ppln <= mem[addr_i - BASE_ADDR];
+            else rdata_o <= mem[addr_i - BASE_ADDR];
         end
     end
 end

@@ -1,26 +1,28 @@
 [*]
 [*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
-[*] Tue Feb 28 22:40:21 2023
+[*] Tue Feb 28 23:16:04 2023
 [*]
 [dumpfile] "/Users/fischerm/fpga/manta/lut_mem.vcd"
-[dumpfile_mtime] "Tue Feb 28 22:39:27 2023"
-[dumpfile_size] 5116
+[dumpfile_mtime] "Tue Feb 28 23:14:40 2023"
+[dumpfile_size] 5873
 [savefile] "/Users/fischerm/fpga/manta/lut_mem.gtkw"
-[timestart] 0
+[timestart] 96500000000000
 [size] 1710 994
 [pos] -1 -1
-*-45.675117 63700000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-46.420933 115000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] lut_mem_tb.
 [sst_width] 193
-[signals_width] 308
+[signals_width] 517
 [sst_expanded] 1
 [sst_vpaned_height] 305
 @28
 lut_mem_tb.clk
+@420
+lut_mem_tb.test_num
 @200
 -
 -tb --> mem_1
-@28
+@29
 lut_mem_tb.tb_mem_1_valid
 @22
 lut_mem_tb.tb_mem_1_addr[15:0]
