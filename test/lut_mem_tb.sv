@@ -192,7 +192,7 @@ module lut_mem_tb;
         $display("\n=== test 4: read from 0x0012 for baseline functionality ===");
         test_num = 4;
 
-        tb_mem_1_addr = 16'h0012;
+        tb_mem_1_addr = 16'h000A;
         tb_mem_1_valid = 1;
         tb_mem_1_rw = 0;
         #`CP;
