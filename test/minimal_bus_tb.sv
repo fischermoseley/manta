@@ -24,23 +24,15 @@ module minimal_bus_tb;
     integer test_num;
     string msg;
     logic [7:0] char;
-    logic baud_counter;
 
-    assign baud_counter = utx.baud_counter == 0;
 
     // tb --> uart_rx signals
     logic tb_urx_rxd;
-    uart_rx #(
-        .DATA_WIDTH(8),
-        .CLK_FREQ_HZ(100_000_000),
-        .BAUDRATE(10_000_000)
-    ) urx (
-        .clk(clk),
-        .rst(rst),
-        .rxd(tb_urx_rxd),
-
-        .axiod(urx_brx_axid),
-        .axiov(urx_brx_axiv));
+    rx_uart #(.CLOCKS_PER_BAUD(10)) urx (
+        .i_clk(clk),
+        .i_uart_rx(tb_urx_rxd),
+        .o_wr(urx_brx_axiv),
+        .o_data(urx_brx_axid));
 
     // uart_rx --> bridge_rx signals
     logic [7:0] urx_brx_axid;
@@ -65,13 +57,13 @@ module minimal_bus_tb;
     logic brx_mem_valid;
 
     lut_mem #(
-        .DEPTH(8),
+        .DEPTH(32),
         .BASE_ADDR(0)
     ) mem (
         .clk(clk),
         .addr_i(brx_mem_addr),
         .wdata_i(brx_mem_wdata),
-        .rdata_i(0),
+        .rdata_i(16'h0),
         .rw_i(brx_mem_rw),
         .valid_i(brx_mem_valid),
 
@@ -97,44 +89,23 @@ module minimal_bus_tb;
 
         .axiod(btx_utx_axid),
         .axiov(btx_utx_axiv),
-        .axior(btx_utx_axir));
+        .axior(~btx_utx_axib));
 
     // bridge_tx --> uart_tx signals
     logic [7:0] btx_utx_axid;
     logic btx_utx_axiv;
-    logic btx_utx_axir;
+    logic btx_utx_axib;
 
-    uart_tx #(
-        .DATA_WIDTH(8),
-        .CLK_FREQ_HZ(100_000_000),
-        .BAUDRATE(10_000_000)
-    ) utx (
-        .clk(clk),
-        .rst(rst),
+    tx_uart #(.CLOCKS_PER_BAUD(10)) utx(
+        .i_clk(clk),
+        .i_wr(btx_utx_axiv),
+        .i_data(btx_utx_axid),
 
-        .axiid(btx_utx_axid),
-        .axiiv(btx_utx_axiv),
-        .axiir(btx_utx_axir),
-        .txd(utx_tb_txd));
+        .o_uart_tx(utx_tb_txd),
+        .o_busy(btx_utx_axib));
 
     // utx --> tb signals
     logic utx_tb_txd;
-
-    /*
-    actually just for shiggles let's see what happens when you put a uart_rx on a uart_tx
-    */
-
-    uart_rx #(
-        .DATA_WIDTH(8),
-        .CLK_FREQ_HZ(100_000_000),
-        .BAUDRATE(10_000_000)
-    ) tb_decoder (
-        .clk(clk),
-        .rst(rst),
-        .rxd(utx_tb_txd),
-
-        .axiod(),
-        .axiov());
 
     always begin
         #`HCP
@@ -157,14 +128,8 @@ module minimal_bus_tb;
         #`HCP
 
         // throw some nonzero data in the memories just so we know that we're pulling from the right ones
-        mem.mem[0] = 16'h0000;
-        mem.mem[1] = 16'h0001;
-        mem.mem[2] = 16'h0002;
-        mem.mem[3] = 16'h0003;
-        mem.mem[4] = 16'h0004;
-        mem.mem[5] = 16'h0005;
-        mem.mem[6] = 16'h0006;
-        mem.mem[7] = 16'h0007;
+        
+        for(int i=0; i< 32; i++) mem.mem[i] = i;
 
         #(10*`CP);
 
@@ -189,29 +154,12 @@ module minimal_bus_tb;
         /* ==== Test 3 Begin ==== */
         $display("\n=== test 3: read from 0x0000-0x0007 for baseline functionality ===");
         test_num = 3;
-        msg = {"M0000", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg)
 
-        msg = {"M0001", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
-
-        msg = {"M0002", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
-
-        msg = {"M0003", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
-
-        msg = {"M0004", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
-
-        msg = {"M0005", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
-
-        msg = {"M0006", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
-
-        msg = {"M0007", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg)  
+        for(logic[15:0] j=0; j<32; j++) begin
+            $display($sformatf("M%H", j));
+            msg = {$sformatf("M%H", j), 8'h0D, 8'h0A};
+            `SEND_MSG_BITS(msg)
+        end
 
         #(10*`CP);
         /* ==== Test 3 End ==== */
