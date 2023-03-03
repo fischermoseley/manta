@@ -1,6 +1,13 @@
+# Vivado output products
 *.log
+*.jou
+*.rpt
 *.bit
+
+# iVerilog output products
 *.vcd
 *.out
+
+# Python Packaging output
 dist/
 *.egg-info

@@ -47,6 +47,7 @@ module uart_tx(
 		// transfers
 		if(axiiv && ~busy) begin
 			busy <= 1;
+			baud_counter <= 0;
 			data_buf <= axiid;
 		end
 
