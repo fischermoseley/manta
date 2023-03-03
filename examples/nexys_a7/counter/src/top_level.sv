@@ -28,7 +28,7 @@ module top_level (
 
     logic [6:0] cat;
 	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
-    seven_segment_controller ss (
+    ssd ssd (
         .clk_in(clk),
         .rst_in(btnc),
         .val_in( (manta.mem_1_btx_rdata << 16) | (manta.brx_mem_1_wdata) ),
