@@ -76,12 +76,6 @@ always @(posedge clk) begin
             axiod <= 8'h0A;
             if (axior) begin
                 axiov <= 0;
-                bytes_transmitted <= 7;
-            end
-        end
-
-        else if(bytes_transmitted == 7) begin
-            if(axior) begin 
                 res_ready <= 1;
                 bytes_transmitted <= 0;
             end
