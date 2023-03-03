@@ -20,7 +20,7 @@ module manta(
 
     //     .axiod(urx_brx_axid),
     //     .axiov(urx_brx_axiv));
-    
+
     rxuart urx(
         .i_clk(clk),
         .i_uart_rx(rxd),
@@ -28,8 +28,8 @@ module manta(
         .o_data(urx_brx_axid));
 
     // uart_rx --> bridge_rx signals
-    logic [7:0] urx_brx_axid;
-    logic urx_brx_axiv;
+    reg [7:0] urx_brx_axid;
+    reg urx_brx_axiv;
 
     bridge_rx brx (
         .clk(clk),
@@ -43,10 +43,10 @@ module manta(
         .req_ready(1'b1));
 
     // bridge_rx --> mem_1 signals
-    logic [15:0] brx_mem_1_addr;
-    logic [15:0] brx_mem_1_wdata;
-    logic brx_mem_1_rw;
-    logic brx_mem_1_valid;
+    reg [15:0] brx_mem_1_addr;
+    reg [15:0] brx_mem_1_wdata;
+    reg brx_mem_1_rw;
+    reg brx_mem_1_valid;
 
     lut_mem #(
         .DEPTH(8),
@@ -65,8 +65,8 @@ module manta(
         .rw_o(),
         .valid_o(mem_1_btx_valid));
 
-    logic [15:0] mem_1_btx_rdata;
-    logic mem_1_btx_valid;
+    reg [15:0] mem_1_btx_rdata;
+    reg mem_1_btx_valid;
 
     bridge_tx btx (
         .clk(clk),
@@ -80,9 +80,9 @@ module manta(
         .axior(btx_utx_axir));
 
     // bridge_tx --> uart_tx signals
-    logic [7:0] btx_utx_axid;
-    logic btx_utx_axiv;
-    logic btx_utx_axir;
+    reg [7:0] btx_utx_axid;
+    reg btx_utx_axiv;
+    reg btx_utx_axir;
 
     uart_tx #(
         .DATA_WIDTH(8),
