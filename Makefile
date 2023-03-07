@@ -4,7 +4,9 @@ build:
 pypi_upload: build
 	python3 -m twine upload --repository testpypi dist/*	
 
-
+lint:
+	python3 -m black src/manta/__init__.py
+	python3 -m black src/manta/__main__.py
 
 sim: sim_bit_fifo sim_bridge_rx sim_bridge_tx fifo_tb lut_mem_tb uart_tx_tb
 
@@ -44,5 +46,5 @@ uart_tx_tb:
 	rm sim.out
 	
 clean:
-	rm *.out *.vcd
+	rm -f *.out *.vcd
 	rm -rf dist/
