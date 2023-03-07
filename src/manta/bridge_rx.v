@@ -4,15 +4,19 @@
 module bridge_rx(
     input wire clk,
 
-    input wire[7:0] axiid,
-    input wire axiiv,
+    input wire[7:0] rx_data,
+    input wire rx_valid,
 
-    output reg[15:0] req_addr,
-    output reg[15:0] req_data,
-    output reg req_rw,
-    output reg req_valid,
-    input wire req_ready
+    output reg[15:0] addr_o,
+    output reg[15:0] wdata_o,
+    output reg rw_o,
+    output reg valid_o
 );
+
+
+// this is a hack, the FSM needs to be updated
+// but this will bypass it for now
+parameter ready_i = 1;
 
 parameter ADDR_WIDTH = 0;
 parameter DATA_WIDTH = 0;
@@ -30,40 +34,40 @@ reg [3:0] bytes_received;
 
 // no global resets!
 initial begin
-    req_addr = 0;
-    req_data = 0;
-    req_rw = 0;
-    req_valid = 0;
+    addr_o = 0;
+    wdata_o = 0;
+    rw_o = 0;
+    valid_o = 0;
     bytes_received = 0;
     state = ACQUIRE;
 end
 
-reg [3:0] axiid_decoded;
-reg axiid_is_0_thru_9;
-reg axiid_is_A_thru_F;
+reg [3:0] rx_data_decoded;
+reg rx_data_is_0_thru_9;
+reg rx_data_is_A_thru_F;
 
 always @(*) begin
-    axiid_is_0_thru_9 = (axiid >= 8'h30) & (axiid <= 8'h39);
-    axiid_is_A_thru_F = (axiid >= 8'h41) & (axiid <= 8'h46);
+    rx_data_is_0_thru_9 = (rx_data >= 8'h30) & (rx_data <= 8'h39);
+    rx_data_is_A_thru_F = (rx_data >= 8'h41) & (rx_data <= 8'h46);
 
-    if (axiid_is_0_thru_9) axiid_decoded = axiid - 8'h30;
-    else if (axiid_is_A_thru_F) axiid_decoded = axiid - 8'h41 + 'd10;
-    else axiid_decoded = 0;
+    if (rx_data_is_0_thru_9) rx_data_decoded = rx_data - 8'h30;
+    else if (rx_data_is_A_thru_F) rx_data_decoded = rx_data - 8'h41 + 'd10;
+    else rx_data_decoded = 0;
 end
 
 
 always @(posedge clk) begin
     if (state == ACQUIRE) begin
-        if(axiiv) begin
+        if(rx_valid) begin
 
             if (bytes_received == 0) begin
-                if(axiid == PREAMBLE) bytes_received <= 1;
+                if(rx_data == PREAMBLE) bytes_received <= 1;
             end
 
             else if( (bytes_received >= 1) & (bytes_received <= 4) ) begin
                 // only advance if byte is valid hex digit
-                if(axiid_is_0_thru_9 | axiid_is_A_thru_F) begin
-                    req_addr <= (req_addr << 4) | axiid_decoded;
+                if(rx_data_is_0_thru_9 | rx_data_is_A_thru_F) begin
+                    addr_o <= (addr_o << 4) | rx_data_decoded;
                     bytes_received <= bytes_received + 1;
                 end
 
@@ -71,16 +75,16 @@ always @(posedge clk) begin
             end
 
             else if( bytes_received == 5) begin
-                    if( (axiid == CR) | (axiid == LF)) begin
-                        req_valid <= 1;
-                        req_rw = 0;
+                    if( (rx_data == CR) | (rx_data == LF)) begin
+                        valid_o <= 1;
+                        rw_o = 0;
                         bytes_received <= 0;
                         state <= TRANSMIT;
                     end
 
-                    else if (axiid_is_0_thru_9 | axiid_is_A_thru_F) begin
+                    else if (rx_data_is_0_thru_9 | rx_data_is_A_thru_F) begin
                         bytes_received <= bytes_received + 1;
-                        req_data <= (req_data << 4) | axiid_decoded;
+                        wdata_o <= (wdata_o << 4) | rx_data_decoded;
                     end
 
                     else state <= ERROR;
@@ -88,8 +92,8 @@ always @(posedge clk) begin
 
             else if ( (bytes_received >= 6) & (bytes_received <= 8) ) begin
 
-                if (axiid_is_0_thru_9 | axiid_is_A_thru_F) begin
-                    req_data <= (req_data << 4) | axiid_decoded;
+                if (rx_data_is_0_thru_9 | rx_data_is_A_thru_F) begin
+                    wdata_o <= (wdata_o << 4) | rx_data_decoded;
                     bytes_received <= bytes_received + 1;
                 end
 
@@ -98,9 +102,9 @@ always @(posedge clk) begin
 
             else if (bytes_received == 9) begin
                 bytes_received <= 0;
-                if( (axiid == CR) | (axiid == LF)) begin
-                    req_valid <= 1;
-                    req_rw <= 1;
+                if( (rx_data == CR) | (rx_data == LF)) begin
+                    valid_o <= 1;
+                    rw_o <= 1;
                     state <= TRANSMIT;
                 end
 
@@ -111,14 +115,14 @@ always @(posedge clk) begin
 
 
     else if (state == TRANSMIT) begin
-        if(req_ready) begin
-            req_valid <= 0;
+        if(ready_i) begin
+            valid_o <= 0;
             state <= ACQUIRE;
         end
 
-        if(axiiv) begin
-            if ( (axiid != CR) & (axiid != LF)) begin
-                req_valid <= 0;
+        if(rx_valid) begin
+            if ( (rx_data != CR) & (rx_data != LF)) begin
+                valid_o <= 0;
                 state <= ERROR;
             end
         end
