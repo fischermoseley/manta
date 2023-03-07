@@ -11,11 +11,11 @@
             if (i == 0) tb_urx_rxd = 0;                             \
             else if ((i > 0) & (i < 9)) tb_urx_rxd = char[i-1];     \
             else if (i == 9) tb_urx_rxd = 1;                        \
-            #(10*`CP);                                              \
+            #(868*`CP);                                              \
         end                                                         \
     end                                                             \
 
-module minimal_bus_tb;
+module bus_fix_tb;
     // https://www.youtube.com/watch?v=WCOAr-96bGc
 
     //boilerplate
@@ -25,10 +25,11 @@ module minimal_bus_tb;
     string msg;
     logic [7:0] char;
 
+    logic [7:0] botl;
 
     // tb --> uart_rx signals
     logic tb_urx_rxd;
-    rx_uart #(.CLOCKS_PER_BAUD(10)) urx (
+    rx_uart #(.CLOCKS_PER_BAUD(868)) urx (
         .i_clk(clk),
         .i_uart_rx(tb_urx_rxd),
         .o_wr(urx_brx_axiv),
@@ -67,45 +68,57 @@ module minimal_bus_tb;
         .rw_i(brx_mem_rw),
         .valid_i(brx_mem_valid),
 
-        .addr_o(mem_btx_addr),
-        .wdata_o(mem_btx_wdata),
+        .addr_o(),
+        .wdata_o(),
         .rdata_o(mem_btx_rdata),
         .rw_o(mem_btx_rw),
         .valid_o(mem_btx_valid));
     
-    // mem --> bridge_tx signals
-    logic [15:0] mem_btx_addr;
-    logic [15:0] mem_btx_wdata;
+    // mem --> frizzle signals, it's frizzle because that's a bus you wanna get off of 
     logic [15:0] mem_btx_rdata;
     logic mem_btx_rw;
     logic mem_btx_valid;
 
     bridge_tx btx (
         .clk(clk),
+        
+        .rdata_i(mem_btx_rdata),
+        .rw_i(mem_btx_rw),
+        .valid_i(mem_btx_valid),
 
-        .res_data(mem_btx_rdata),
-        .res_valid(mem_btx_valid),
-        .res_ready(),
+        .ready_i(utx_btx_ready),
+        .data_o(btx_utx_data),
+        .valid_o(btx_utx_valid));
 
-        .axiod(btx_utx_axid),
-        .axiov(btx_utx_axiv),
-        .axior(~btx_utx_axib));
+    logic utx_btx_ready;
+    logic btx_utx_valid;
+    logic [7:0] btx_utx_data;
+    
+    uart_tx #(.CLOCKS_PER_BAUD(868)) utx (
+        .clk(clk),
 
-    // bridge_tx --> uart_tx signals
-    logic [7:0] btx_utx_axid;
-    logic btx_utx_axiv;
-    logic btx_utx_axib;
+        .data(btx_utx_data),
+        .valid(btx_utx_valid),
+        .ready(utx_btx_ready),
 
-    tx_uart #(.CLOCKS_PER_BAUD(10)) utx(
-        .i_clk(clk),
-        .i_wr(btx_utx_axiv),
-        .i_data(btx_utx_axid),
-
-        .o_uart_tx(utx_tb_txd),
-        .o_busy(btx_utx_axib));
+        .tx(utx_tb_tx));
 
     // utx --> tb signals
-    logic utx_tb_txd;
+    logic utx_tb_tx;
+
+    // decoder for lolz
+    logic [7:0] tb_decoder_data;
+    logic [7:0] decoded_uart;
+    logic tb_decoder_valid;
+
+    rx_uart #(.CLOCKS_PER_BAUD(868)) decoder (
+        .i_clk(clk),
+
+        .i_uart_rx(utx_tb_tx),
+        .o_wr(tb_decoder_valid),
+        .o_data(tb_decoder_data));
+
+    always @(posedge clk) if (tb_decoder_valid) decoded_uart <= tb_decoder_data;
 
     always begin
         #`HCP
@@ -113,8 +126,8 @@ module minimal_bus_tb;
     end
 
     initial begin
-        $dumpfile("minimal_bus.vcd");
-        $dumpvars(0, minimal_bus_tb);
+        $dumpfile("bus_fix.vcd");
+        $dumpvars(0, bus_fix_tb);
 
         // setup and reset
         clk = 0;
@@ -152,17 +165,52 @@ module minimal_bus_tb;
         /* ==== Test 2 End ==== */
 
         /* ==== Test 3 Begin ==== */
-        $display("\n=== test 3: read from 0x0000-0x0007 for baseline functionality ===");
+        $display("\n=== test 3: 1k sequential reads, stress test ===");
         test_num = 3;
 
-        for(logic[15:0] j=0; j<32; j++) begin
-            $display($sformatf("M%H", j));
-            msg = {$sformatf("M%H", j), 8'h0D, 8'h0A};
-            `SEND_MSG_BITS(msg)
+        for(int i=0; i<1000; i++) begin
+            msg = {"M1234", 8'h0D, 8'h0A};
+            `SEND_MSG_BITS(msg);
         end
+
+
+        // big reads
+        // for(logic[15:0] j=0; j<10; j++) begin
+        //     msg = {$sformatf("M%H", j), 8'h0D, 8'h0A};
+        //     `SEND_MSG_BITS(msg)
+        // end
+
+        // for(logic[15:0] j=0; j<10; j++) begin
+        //     msg = {$sformatf("M%H", j), 8'h0D, 8'h0A};
+        //     `SEND_MSG_BITS(msg)
+        // end
+        
 
         #(10*`CP);
         /* ==== Test 3 End ==== */
+
+        /* ==== Test 4 Begin ==== */
+        $display("\n=== test 4: 100 sequential writes, stress test ===");
+        test_num = 4;
+
+        for(int i=0; i<100; i++) begin
+            msg = {"M12345678", 8'h0D, 8'h0A};
+            `SEND_MSG_BITS(msg);
+        end
+ 
+        /* ==== Test 4 End ==== */
+
+        /* ==== Test 5 Begin ==== */
+        $display("\n=== test 5: 100 sequential reads, stress test ===");
+        test_num = 5;
+
+        for(int i=0; i<100; i++) begin
+            msg = {"M1234", 8'h0D, 8'h0A};
+            `SEND_MSG_BITS(msg);
+        end
+ 
+        /* ==== Test 5 End ==== */
+
 
         
         #(1000*`CP)

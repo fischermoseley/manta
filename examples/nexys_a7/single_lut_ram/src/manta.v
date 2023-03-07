@@ -5,99 +5,81 @@ module manta(
     input wire clk,
     input wire rst,
     input wire rxd,
-    output reg txd
-);
+    output reg txd);
 
-    // tb --> uart_rx signals
-    // uart_rx #(
-    //     .DATA_WIDTH(8),
-    //     .CLK_FREQ_HZ(100_000_000),
-    //     .BAUDRATE(115200)
-    // ) urx (
-    //     .clk(clk),
-    //     .rst(rst),
-    //     .rxd(rxd),
-
-    //     .axiod(urx_brx_axid),
-    //     .axiov(urx_brx_axiv));
-
-    rxuart urx(
+    rx_uart #(.CLOCKS_PER_BAUD(868)) urx (
         .i_clk(clk),
         .i_uart_rx(rxd),
         .o_wr(urx_brx_axiv),
         .o_data(urx_brx_axid));
 
     // uart_rx --> bridge_rx signals
-    reg [7:0] urx_brx_axid;
-    reg urx_brx_axiv;
+    logic [7:0] urx_brx_axid;
+    logic urx_brx_axiv;
 
     bridge_rx brx (
         .clk(clk),
+
         .axiid(urx_brx_axid),
         .axiiv(urx_brx_axiv),
 
-        .req_addr(brx_mem_1_addr),
-        .req_data(brx_mem_1_wdata),
-        .req_rw(brx_mem_1_rw),
-        .req_valid(brx_mem_1_valid),
+        .req_addr(brx_mem_addr),
+        .req_data(brx_mem_wdata),
+        .req_rw(brx_mem_rw),
+        .req_valid(brx_mem_valid),
         .req_ready(1'b1));
 
-    // bridge_rx --> mem_1 signals
-    reg [15:0] brx_mem_1_addr;
-    reg [15:0] brx_mem_1_wdata;
-    reg brx_mem_1_rw;
-    reg brx_mem_1_valid;
+    // bridge_rx --> mem signals
+    logic [15:0] brx_mem_addr;
+    logic [15:0] brx_mem_wdata;
+    logic brx_mem_rw;
+    logic brx_mem_valid;
 
     lut_mem #(
-        .DEPTH(8),
+        .DEPTH(32),
         .BASE_ADDR(0)
-    ) mem_1 (
+    ) mem (
         .clk(clk),
-        .addr_i(brx_mem_1_addr),
-        .wdata_i(brx_mem_1_wdata),
-        .rdata_i(0),
-        .rw_i(brx_mem_1_rw),
-        .valid_i(brx_mem_1_valid),
+        .addr_i(brx_mem_addr),
+        .wdata_i(brx_mem_wdata),
+        .rdata_i(16'h0),
+        .rw_i(brx_mem_rw),
+        .valid_i(brx_mem_valid),
 
         .addr_o(),
         .wdata_o(),
-        .rdata_o(mem_1_btx_rdata),
-        .rw_o(),
-        .valid_o(mem_1_btx_valid));
-
-    reg [15:0] mem_1_btx_rdata;
-    reg mem_1_btx_valid;
+        .rdata_o(mem_btx_rdata),
+        .rw_o(mem_btx_rw),
+        .valid_o(mem_btx_valid));
+    
+    // mem --> frizzle signals, it's frizzle because that's a bus you wanna get off of 
+    logic [15:0] mem_btx_rdata;
+    logic mem_btx_rw;
+    logic mem_btx_valid;
 
     bridge_tx btx (
         .clk(clk),
-
-        .res_data(mem_1_btx_rdata),
-        .res_valid(mem_1_btx_valid),
-        .res_ready(),
-
-        .axiod(btx_utx_axid),
-        .axiov(btx_utx_axiv),
-        .axior(btx_utx_axir));
-
-    // bridge_tx --> uart_tx signals
-    reg [7:0] btx_utx_axid;
-    reg btx_utx_axiv;
-    reg btx_utx_axir;
-
-    uart_tx #(
-        .DATA_WIDTH(8),
-        .CLK_FREQ_HZ(100_000_000),
-        .BAUDRATE(115200)
-    ) utx (
-        .clk(clk),
-        .rst(rst),
-
-        .axiid(btx_utx_axid),
-        .axiiv(btx_utx_axiv),
-        .axiir(btx_utx_axir),
         
-        .txd(txd));
+        .rdata_i(mem_btx_rdata),
+        .rw_i(mem_btx_rw),
+        .valid_i(mem_btx_valid),
 
+        .ready_i(utx_btx_ready),
+        .data_o(btx_utx_data),
+        .valid_o(btx_utx_valid));
+
+    logic utx_btx_ready;
+    logic btx_utx_valid;
+    logic [7:0] btx_utx_data;
+    
+    uart_tx #(.CLOCKS_PER_BAUD(868)) utx (
+        .clk(clk),
+
+        .data(btx_utx_data),
+        .valid(btx_utx_valid),
+        .ready(utx_btx_ready),
+
+        .tx(txd));
 endmodule
 
 `default_nettype wire
