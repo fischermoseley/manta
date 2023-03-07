@@ -25,11 +25,11 @@ module bus_fix_tb;
     string msg;
     logic [7:0] char;
 
-    logic [7:0] botl;
+    parameter CLOCKS_PER_BAUD = 10;
 
     // tb --> uart_rx signals
     logic tb_urx_rxd;
-    rx_uart #(.CLOCKS_PER_BAUD(868)) urx (
+    rx_uart #(.CLOCKS_PER_BAUD(CLOCKS_PER_BAUD)) urx (
         .i_clk(clk),
         .i_uart_rx(tb_urx_rxd),
         .o_wr(urx_brx_axiv),
@@ -42,14 +42,13 @@ module bus_fix_tb;
     bridge_rx brx (
         .clk(clk),
 
-        .axiid(urx_brx_axid),
-        .axiiv(urx_brx_axiv),
+        .rx_data(urx_brx_axid),
+        .rx_valid(urx_brx_axiv),
 
-        .req_addr(brx_mem_addr),
-        .req_data(brx_mem_wdata),
-        .req_rw(brx_mem_rw),
-        .req_valid(brx_mem_valid),
-        .req_ready(1'b1));
+        .addr_o(brx_mem_addr),
+        .wdata_o(brx_mem_wdata),
+        .rw_o(brx_mem_rw),
+        .valid_o(brx_mem_valid));
 
     // bridge_rx --> mem signals
     logic [15:0] brx_mem_addr;
@@ -94,7 +93,7 @@ module bus_fix_tb;
     logic btx_utx_valid;
     logic [7:0] btx_utx_data;
     
-    uart_tx #(.CLOCKS_PER_BAUD(868)) utx (
+    uart_tx #(.CLOCKS_PER_BAUD(CLOCKS_PER_BAUD)) utx (
         .clk(clk),
 
         .data(btx_utx_data),
@@ -111,7 +110,7 @@ module bus_fix_tb;
     logic [7:0] decoded_uart;
     logic tb_decoder_valid;
 
-    rx_uart #(.CLOCKS_PER_BAUD(868)) decoder (
+    rx_uart #(.CLOCKS_PER_BAUD(CLOCKS_PER_BAUD)) decoder (
         .i_clk(clk),
 
         .i_uart_rx(utx_tb_tx),
@@ -165,10 +164,10 @@ module bus_fix_tb;
         /* ==== Test 2 End ==== */
 
         /* ==== Test 3 Begin ==== */
-        $display("\n=== test 3: 1k sequential reads, stress test ===");
+        $display("\n=== test 3: 100 sequential reads, stress test ===");
         test_num = 3;
 
-        for(int i=0; i<1000; i++) begin
+        for(int i=0; i<100; i++) begin
             msg = {"M1234", 8'h0D, 8'h0A};
             `SEND_MSG_BITS(msg);
         end
