@@ -49,7 +49,7 @@
 //
 `default_nettype none
 
-module rxuart(
+module rx_uart(
 	input wire i_clk,
 	input wire i_uart_rx,
 	output reg o_wr,

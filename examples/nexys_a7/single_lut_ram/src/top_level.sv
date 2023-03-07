@@ -24,14 +24,14 @@ module top_level (
         .txd(uart_rxd_out)
     );
 
-    assign led = manta.brx_mem_1_addr;
+    assign led = manta.brx_mem_addr;
 
     logic [6:0] cat;
 	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
     ssd ssd (
         .clk_in(clk),
         .rst_in(btnc),
-        .val_in( (manta.mem_1_btx_rdata << 16) | (manta.brx_mem_1_wdata) ),
+        .val_in( (manta.mem_btx_rdata << 16) | (manta.brx_mem_wdata) ),
         .cat_out(cat),
         .an_out(an));
 

@@ -3,80 +3,73 @@
 
 module uart_tx(
 	input wire clk,
-	input wire rst,
 	
-	input wire [DATA_WIDTH-1:0] axiid,
-	input wire axiiv,
-	output reg axiir,
+	input wire [7:0] data,
+	input wire valid,
+	output reg busy,
+	output reg ready,
 
-	output reg txd
-	);
-	
-	parameter DATA_WIDTH = 0;
-	parameter CLK_FREQ_HZ = 0;
-	parameter BAUDRATE = 0;
+	output reg tx);
 
-	localparam BAUD_PERIOD = CLK_FREQ_HZ / BAUDRATE;
+	// this transmitter only works with 8N1 serial, at configurable baudrate	
+	parameter CLOCKS_PER_BAUD = 868;
 
-	reg busy;
-	assign axiir = ~busy; 
+	reg [9:0] baud_counter;
+	reg [8:0] data_buf;
+	reg [3:0] bit_index;
 
-	reg [$clog2(BAUD_PERIOD) - 1:0] baud_counter;
-	reg [$clog2(DATA_WIDTH + 2):0] bit_index;
-	reg [DATA_WIDTH - 1:0] data_buf;
-
-	// make secondary logic for baudrate
-	always @(posedge clk) begin
-		if(rst) baud_counter <= 0;
-		else begin
-			baud_counter <= (baud_counter == BAUD_PERIOD - 1) ? 0 : baud_counter + 1;
-		end
+	initial begin
+		baud_counter = CLOCKS_PER_BAUD;
+		data_buf = 0;
+		bit_index = 0;
+		busy = 0;
+		ready = 1;
+		tx = 1;
 	end
-	
+
 	always @(posedge clk) begin
-		
-		// reset logic
-		if(rst) begin
+		if (valid && !busy) begin
+			data_buf <= {1'b1, data};
 			bit_index <= 0;
-			busy <= 0;
-			txd <= 1; // idle high
-		end
-
-		// enter transmitting state logic
-		// don't allow new requests to interrupt current
-		// transfers
-		if(axiiv && ~busy) begin
+			tx <= 0; //wafflestomp that start bit
+			baud_counter <= CLOCKS_PER_BAUD - 1;
 			busy <= 1;
-			baud_counter <= 0;
-			data_buf <= axiid;
+			ready <= 0;
 		end
 
+		else if (busy) begin
+			baud_counter <= baud_counter - 1;
 
-		// transmitting state logic
-		else if(baud_counter == 0 && busy) begin
+			ready <= (baud_counter == 1) && (bit_index == 9);
 
-			if (bit_index == 0) begin
-				txd <= 0;
-				bit_index <= bit_index + 1;
-			end
+			if (baud_counter == 0) begin
+				baud_counter <= CLOCKS_PER_BAUD - 1;
 
-			else if ((bit_index < DATA_WIDTH + 1) && (bit_index > 0)) begin
-				txd <= data_buf[bit_index - 1];
-				bit_index <= bit_index + 1;
-			end
-			
-			else if (bit_index == DATA_WIDTH + 1) begin
-				txd <= 1;
-				bit_index <= bit_index + 1;
-			end
 
-			else if (bit_index >= DATA_WIDTH + 1) begin
-				busy <= 0;
-				bit_index <= 0;
+				if (bit_index == 9) begin
+					if(valid) begin
+						data_buf <= {1'b1, data};
+						bit_index <= 0;
+						tx <= 0;
+					end
+
+					else begin
+						busy <= 0;
+						ready <= 1;
+					end
+					// if valid happens here then we should bool 
+				end
+
+				else begin
+					tx <= data_buf[bit_index];
+					bit_index <= bit_index + 1;
+				end
 			end
 		end
 	end
-endmodule
 
+	
+
+endmodule
 
 `default_nettype wire
