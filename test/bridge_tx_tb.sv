@@ -7,47 +7,45 @@
 module bridge_tx_tb;
 // https://www.youtube.com/watch?v=WCOAr-96bGc
 
-//boilerplate
+// boilerplate
 logic clk;
-logic rst;
 integer test_num;
 
-// uart_tx <--> tb signals
-logic txd;
+// tb -> bridge_tx signals
+logic [15:0] tb_btx_rdata;
+logic res_ready;
+logic tb_btx_valid;
 
 // uart_tx <--> bridge_tx signals
-logic [7:0] axid;
-logic axiv;
-logic axir;
+logic [7:0] btx_utx_data;
+logic btx_utx_valid;
+logic btx_utx_ready;
 
-// bridge_tx <--> tb signals
-logic res_valid;
-logic res_ready;
-logic [15:0] res_data;
+// uart_tx -> tb signals
+logic utx_tb_tx;
+
+bridge_tx btx (
+    .clk(clk),
+
+    .rdata_i(tb_btx_rdata),
+    .rw_i(1'b1),
+    .valid_i(tb_btx_valid),
+
+    .data_o(btx_utx_data),
+    .ready_i(btx_utx_ready),
+    .valid_o(btx_utx_valid));
 
 uart_tx #(
-    .DATA_WIDTH(8),
-    .CLK_FREQ_HZ(100_000_000),
-    .BAUDRATE(115200))
-    uart_tx_uut (
-    .clk(clk),
-    .rst(rst),
-    .txd(txd),
-
-    .axiid(axid),
-    .axiiv(axiv),
-    .axiir(axir));
-
-bridge_tx bridge_tx_uut(
+    .CLOCKS_PER_BAUD(868))
+    utx (
     .clk(clk),
 
-    .axiod(axid),
-    .axiov(axiv),
-    .axior(axir),
+    .data(btx_utx_data),
+    .valid(btx_utx_valid),
+    .busy(),
+    .ready(btx_utx_ready),
     
-    .res_valid(res_valid),
-    .res_ready(res_ready),
-    .res_data(res_data));
+    .tx(utx_tb_tx));
 
 always begin
     #`HCP
@@ -60,26 +58,21 @@ initial begin
 
     // setup and reset
     clk = 0;
-    rst = 0;
     test_num = 0;
 
-    res_valid = 0;
-    res_data = 0;
-    #`CP
-    rst = 1;
-    #`CP
-    rst = 0;
+    tb_btx_valid = 0;
+    tb_btx_rdata = 0;
     #(10*`CP);
 
     /* ==== Test 1 Begin ==== */
     $display("\n=== test 1: receive 0x0123 for baseline functionality ===");
     test_num = 1;
-    res_data = 16'h0123;
-    res_valid = 1;
+    tb_btx_rdata = 16'h0123;
+    tb_btx_valid = 1;
     
     #`CP;
     assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
-    res_valid = 0;
+    tb_btx_valid = 0;
 
     #(100000*`CP);
     /* ==== Test 1 End ==== */
@@ -87,12 +80,12 @@ initial begin
     /* ==== Test 2 Begin ==== */
     $display("\n=== test 2: receive 0x4567 for baseline functionality ===");
     test_num = 2;
-    res_data = 16'h4567;
-    res_valid = 1;
+    tb_btx_rdata = 16'h4567;
+    tb_btx_valid = 1;
     
     #`CP;
     assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
-    res_valid = 0;
+    tb_btx_valid = 0;
 
     #(100000*`CP);
     /* ==== Test 2 End ==== */
@@ -100,12 +93,12 @@ initial begin
     /* ==== Test 3 Begin ==== */
     $display("\n=== test 3: receive 0x89AB for baseline functionality ===");
     test_num = 3;
-    res_data = 16'h89AB;
-    res_valid = 1;
+    tb_btx_rdata = 16'h89AB;
+    tb_btx_valid = 1;
     
     #`CP;
     assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
-    res_valid = 0;
+    tb_btx_valid = 0;
 
     #(100000*`CP);
     /* ==== Test 3 End ==== */
@@ -113,12 +106,12 @@ initial begin
     /* ==== Test 4 Begin ==== */
     $display("\n=== test 4: receive 0xCDEF for baseline functionality ===");
     test_num = 4;
-    res_data = 16'hCDEF;
-    res_valid = 1;
+    tb_btx_rdata = 16'hCDEF;
+    tb_btx_valid = 1;
     
     #`CP;
     assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
-    res_valid = 0;
+    tb_btx_valid = 0;
 
     #(100000*`CP);
     /* ==== Test 4 End ==== */

@@ -7,9 +7,9 @@ module bridge_tx(
     input wire [15:0] rdata_i,
     input wire rw_i,
     input wire valid_i,
-    input wire ready_i,
 
     output reg [7:0] data_o,
+    input wire ready_i,
     output reg valid_o);
 
 localparam PREAMBLE = 8'h4D;

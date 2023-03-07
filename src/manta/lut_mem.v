@@ -21,6 +21,7 @@ module lut_mem(
 
 parameter DEPTH = 8;
 parameter BASE_ADDR = 0;
+parameter READ_ONLY = 0;
 reg [DEPTH-1:0][15:0] mem;
 
 always @(posedge clk) begin
@@ -37,7 +38,7 @@ always @(posedge clk) begin
         if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + DEPTH - 1) ) begin
             
             // read/write
-            if (rw_i) mem[addr_i - BASE_ADDR] <= wdata_i;
+            if (rw_i && !READ_ONLY) mem[addr_i - BASE_ADDR] <= wdata_i;
             else rdata_o <= mem[addr_i - BASE_ADDR];
         end
     end
