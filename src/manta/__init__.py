@@ -36,6 +36,7 @@ class UARTInterface:
 
     def open(self):
         import serial
+
         self.ser = serial.Serial(self.port, self.baudrate)
 
     def read(self, bytes):
@@ -50,29 +51,54 @@ class UARTInterface:
     def rx_hdl(self):
         pkgutil.get_data(__name__, "rx_uart.sv").decode()
 
+
 class IOCore:
     def __init__(self, config, interface):
         self.interface = interface
-        
+
+
 class LogicAnalyzerCore:
     def __init__(self, config, interface):
         self.interface = interface
 
         # load config
-        assert "sample_depth" in config, "Sample depth not found for logic analyzer core."
+        assert (
+            "sample_depth" in config
+        ), "Sample depth not found for logic analyzer core."
         self.sample_depth = config["sample_depth"]
 
         assert "probes" in config, "No probe definitions found."
         assert len(config["probes"]) > 0, "Must specify at least one probe."
 
         for probe_name, probe_width in config["probes"].items():
-            assert probe_width > 0, f"Probe {probe_name} is of invalid width - it must be of at least width one."
+            assert (
+                probe_width > 0
+            ), f"Probe {probe_name} is of invalid width - it must be of at least width one."
 
         self.probes = config["probes"]
 
         assert "triggers" in config, "No triggers found."
         assert len(config["triggers"]) > 0, "Must specify at least one trigger."
         self.triggers = config["triggers"]
+    
+    def inst(self):
+        hdl = f"""
+        la_core {self.name} (
+            .clk(),
+
+            .addr_i(),
+            .wdata_i(),
+            .rdata_i(),
+            .rw_i(),
+            .valid_i(),
+            
+            .addr_o(),
+            .wdata_o(),
+            .rdata_o(),
+            .rw_o(),
+            .valid_o());\n\n"""
+    
+        return hdl
 
     def run(self):
         self.interface.open()
@@ -186,13 +212,13 @@ class Manta:
     def __init__(self, config_filepath):
         config = self.read_config_file(config_filepath)
 
-        # set interface 
-        if "uart" in config:        
+        # set interface
+        if "uart" in config:
             self.interface = UARTInterface(config["uart"])
         else:
             raise ValueError("Unrecognized interface specified.")
 
-        # check that cores were provided 
+        # check that cores were provided
         assert "cores" in config, "No cores found."
         assert len(config["cores"]) > 0, "Must specify at least one core."
 
@@ -202,17 +228,20 @@ class Manta:
             core = config["cores"][core_name]
 
             # make sure a type was specified for this core
-            assert "type" in core, f"No type specified for core {core_name}." 
+            assert "type" in core, f"No type specified for core {core_name}."
 
             # add the core to ourself
             if core["type"] == "logic_analyzer":
                 new_core = LogicAnalyzerCore(core, self.interface)
-            
+
             elif core["type"] == "io":
                 new_core = IOCore(core, self.interface)
-            
+
             else:
                 raise ValueError(f"Unrecognized core type specified for {core_name}.")
+
+            # TODO: update class defs so that we don't monkey-patch like this. this is not good. i am lazy
+            setattr(new_core, 'name', core_name)
 
             # add friendly name, so users can do Manta.my_logic_analyzer.read() for example
             setattr(self, core_name, new_core)
@@ -239,59 +268,96 @@ class Manta:
 
         return config
 
+    def generate_connections(self):
+        # generates hdl for registers that connect two modules together
+
+        # make pairwise cores
+        core_pairs = [(self.cores[i - 1], self.cores[i]) for i in range(1, len(self.cores))]
+        
+        conns = []
+        for core_pair in core_pairs:
+            src = core_pair[0].name
+            dst = core_pair[1].name
+
+            hdl = f"\treg [15:0] {src}_{dst}_addr;\n"
+            hdl += f"\treg [15:0] {src}_{dst}_wdata;\n"
+            hdl += f"\treg [15:0] {src}_{dst}_rdata;\n"
+            hdl += f"\treg {src}_{dst}_rw;\n"
+            hdl += f"\treg {src}_{dst}_valid;\n"
+            conns.append(hdl)
+        
+        return conns
+
+    def generate_instantiations(self):
+        # generates hdl for modules that need to be connected together
+
+        insts = []
+        for i, core in enumerate(self.cores):
+            # should probably check if core is LogicAnalyzerCore or IOCore
+
+            hdl = core.inst()
+
+            if (i < len(self.cores)-1):
+                dst = self.cores[i+1]
+
+                hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst.name}_addr)")
+                hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst.name}_wdata)")
+                hdl = hdl.replace(".rdata_o()", f".rdata_o({core.name}_{dst.name}_rdata)")
+                hdl = hdl.replace(".rw_o()", f".rw_o({core.name}_{dst.name}_rw)")
+                hdl = hdl.replace(".valid_o()", f".valid_o({core.name}_{dst.name}_valid)")
+
+            if (i > 0):
+                src = self.cores[i-1]
+                hdl = hdl.replace(".addr_i()", f".addr_i({src.name}_{core.name}_addr)")
+                hdl = hdl.replace(".wdata_i()", f".wdata_i({src.name}_{core.name}_wdata)")
+                hdl = hdl.replace(".rdata_i()", f".rdata_i({src.name}_{core.name}_rdata)")
+                hdl = hdl.replace(".rw_i()", f".rw_i({src.name}_{core.name}_rw)")
+                hdl = hdl.replace(".valid_i()", f".valid_i({src.name}_{core.name}_valid)")
+            
+            insts.append(hdl)
+        
+        return insts
+        
     def generate(self):
         # this occurs in two steps: generating manta and the top-level,
         # and pasting in all the HDL from earlier.
 
-        uart_rx_hdl = pkgutil.get_data(__name__, "rx_uart.sv").decode()
-        bridge_rx_hdl = pkgutil.get_data(__name__, "bridge_rx.sv").decode()
-        bridge_tx_hdl = pkgutil.get_data(__name__, "bridge_tx.sv").decode()
-        uart_tx_hdl = pkgutil.get_data(__name__, "uart_tx.sv").decode()
+        uart_rx_hdl = pkgutil.get_data(__name__, "rx_uart.v").decode()
+        bridge_rx_hdl = pkgutil.get_data(__name__, "bridge_rx.v").decode()
+        bridge_tx_hdl = pkgutil.get_data(__name__, "bridge_tx.v").decode()
+        uart_tx_hdl = pkgutil.get_data(__name__, "uart_tx.v").decode()
 
-        # make pairwise cores
-        core_pairs = [(cores[i-1], cores[i]) for i in range(1, len(cores))]
 
-        # write HDL to instantiate and connect them
-        connections = [] 
-        for src, dest in core_pairs:
-            # wait who's source and who's destination? have to know both the src, dest,
-            # and also current core at any given moment
+        """
+        ok so the way this works is that we have two lists, instantiations and connections
+        we make connections first, and it works by pairwise iterating over pairs of cores and
+        doing the 'reg[N:0] src_dest_name' thing
 
-            # so then is the solution src src_current current current_dst dst
-            hdl =  src.inst()
-            hdl += hdl.replace(".addr_i()",  f".addr_i({src}_{dest}_addr)")
-            hdl += hdl.replace(".wdata_i()", f".wdata_i({src}_{dest}_wdata)")
-            hdl += hdl.replace(".rdata_i()", f".rdata_i({src}_{dest}_rdata)")
-            hdl += hdl.replace(".rw_i()",    f".rw_i({src}_{dest}_rw)")
-            hdl += hdl.replace(".valid_i()", f".valid_i({src}_{dest}_valid)")
+        once we have that, we then generate the instantiations. we iterate through the same pairs,
+        setting outputs on the src, and inputs on the dest. this leaves the inputs of the first node
+        and the outputs of the last node unconnected, but we'll have a final step to take care of that.
+        """
 
-            hdl += "\n"
-            hdl += f"reg[15:0] {src}_{dest}_addr\n"
-            hdl += f"reg[15:0] {src}_{dest}_wdata\n"
-            hdl += f"reg[15:0] {src}_{dest}_rdata\n"
-            hdl += f"reg {src}_{dest}_rw\n"
-            hdl += f"reg {src}_{dest}_valid\n\n"
-            connections.append(hdl)
-    
-        # write HDL to instantiate them, now that we know src and dest
-        instantiations = [] 
-        for core in cores:
-            hdl = core.inst() 
-            hdl = hdl.replace(".addr_i()", f".addr_i({src}_{dest}_addr)")
-            hdl = hdl.replace(".addr_i()", f".addr_i({src}_{dest}_addr)")
-        
-        # for core in cores:
-        #     registers = ''
-        #     registers += f'{core}{}'
-        # # wire cores together
 
         # add preamble to top of file
         user = os.environ.get("USER", os.environ.get("USERNAME"))
         timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
 
-        hdl = "This manata definitinon was autogenerated on {timestamp} by {user}\n\n"
-        hdl += "If this breaks or if you've got dank formal verification memes,\n"
-        hdl += "please contact fischerm [at] mit.edu\n"
+        hdl = f"/* This manata definition was generated on {timestamp} by {user}\n"
+        hdl += " *\n"
+        hdl += " * If this breaks or if you've got dank formal verification memes,\n"
+        hdl += " * please contact fischerm [at] mit.edu\n"
+        hdl += " */\n"
+
+        insts = self.generate_instantiations()
+        conns = self.generate_connections()
+        for i, inst in enumerate(insts):
+            hdl += inst
+
+            if (i != len(insts)-1):
+                hdl += conns[i]
+
+        return hdl
 
 
 def main():
