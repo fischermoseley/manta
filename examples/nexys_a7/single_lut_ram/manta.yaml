@@ -1,6 +1,7 @@
 ---
 cores:
-  logic_analyzer:
+  my_logic_analyzer:
+    type: logic_analyzer
     sample_depth: 4096
     
     probes:
