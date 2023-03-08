@@ -48,3 +48,4 @@ uart_tx_tb:
 clean:
 	rm -f *.out *.vcd
 	rm -rf dist/
+	rm -rf src/mantaray.egg-info
