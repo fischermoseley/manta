@@ -1,18 +1,9 @@
 name: functional_simulation
 on: [push]
 jobs:
-  uart:
+  all:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt install iverilog
-      - run: iverilog -g2012 -o sim.out test/uart_tb.sv src/manta/uart_tx.sv src/manta/uart_rx.sv
-      - run: vvp sim.out
-  
-  fifo:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: sudo apt install iverilog
-      - run: iverilog -g2012 -o sim.out test/fifo_tb.sv src/manta/fifo.sv src/manta/xilinx_true_dual_port_read_first_2_clock_ram.v
-      - run: vvp sim.out
+      - run: make sim 
