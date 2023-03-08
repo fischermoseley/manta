@@ -9,16 +9,16 @@ version = "0.0.0"
 class UARTInterface:
     def __init__(self, config):
         # Obtain port. No way to check if it's valid yet.
-        assert config["port"], "No serial port provided to UART core."
+        assert "port" in config, "No serial port provided to UART core."
         self.port = config["port"]
 
         # Check that clock frequency is provided and positive
-        assert config["clock_freq"], "Clock frequency not provided to UART core."
+        assert "clock_freq" in config, "Clock frequency not provided to UART core."
         assert config["clock_freq"] > 0, "Clock frequency must be positive."
         self.clock_freq = config["clock_freq"]
 
         # Check that baudrate is provided and positive
-        assert config["baudrate"], "Baudrate not provided to UART core."
+        assert "baudrate" in config, "Baudrate not provided to UART core."
         assert config["baudrate"] > 0, "Baudrate must be positive."
         self.baudrate = config["baudrate"]
 
@@ -34,8 +34,8 @@ class UARTInterface:
             baudrate_error <= 5
         ), "Unable to match target baudrate - they differ by {baudrate_error}%"
 
+    def open(self):
         import serial
-
         self.ser = serial.Serial(self.port, self.baudrate)
 
     def read(self, bytes):
@@ -50,26 +50,27 @@ class UARTInterface:
     def rx_hdl(self):
         pkgutil.get_data(__name__, "rx_uart.sv").decode()
 
-
+class IOCore:
+    def __init__(self, config, interface):
+        self.interface = interface
+        
 class LogicAnalyzerCore:
     def __init__(self, config, interface):
         self.interface = interface
 
         # load config
-        assert config["sample_depth"], "Sample depth not found for logic analyzer core."
+        assert "sample_depth" in config, "Sample depth not found for logic analyzer core."
         self.sample_depth = config["sample_depth"]
 
-        assert config["probes"], "No probe definitions found."
+        assert "probes" in config, "No probe definitions found."
         assert len(config["probes"]) > 0, "Must specify at least one probe."
 
-        for probe in config["probes"]:
-            assert (
-                probe["width"] > 0
-            ), "Probe {probe} is of invalid width - it must be of at least width one."
+        for probe_name, probe_width in config["probes"].items():
+            assert probe_width > 0, f"Probe {probe_name} is of invalid width - it must be of at least width one."
 
         self.probes = config["probes"]
 
-        assert config["triggers"], "No triggers found."
+        assert "triggers" in config, "No triggers found."
         assert len(config["triggers"]) > 0, "Must specify at least one trigger."
         self.triggers = config["triggers"]
 
@@ -185,17 +186,37 @@ class Manta:
     def __init__(self, config_filepath):
         config = self.read_config_file(config_filepath)
 
-        # TODO: figure out some better place to put the interface data.
-        # it should probably go in it's own class. But for now it can go here.
-        self.interface = self.get_interface(config)
+        # set interface 
+        if "uart" in config:        
+            self.interface = UARTInterface(config["uart"])
+        else:
+            raise ValueError("Unrecognized interface specified.")
 
-        # add cores to manta
+        # check that cores were provided 
         assert "cores" in config, "No cores found."
         assert len(config["cores"]) > 0, "Must specify at least one core."
 
-        for core in config:
-            if core == "LA":
-                self.cores.append(LogicAnalyzerCore(core, self.interface))
+        # add cores to self
+        self.cores = []
+        for i, core_name in enumerate(config["cores"]):
+            core = config["cores"][core_name]
+
+            # make sure a type was specified for this core
+            assert "type" in core, f"No type specified for core {core_name}." 
+
+            # add the core to ourself
+            if core["type"] == "logic_analyzer":
+                new_core = LogicAnalyzerCore(core, self.interface)
+            
+            elif core["type"] == "io":
+                new_core = IOCore(core, self.interface)
+            
+            else:
+                raise ValueError(f"Unrecognized core type specified for {core_name}.")
+
+            # add friendly name, so users can do Manta.my_logic_analyzer.read() for example
+            setattr(self, core_name, new_core)
+            self.cores.append(new_core)
 
     def read_config_file(self, path):
         """Take path to configuration file, and retun the configuration as a python list/dict object."""
@@ -218,30 +239,47 @@ class Manta:
 
         return config
 
-    def get_interface(self, config):
-        if "uart" in config:
-            return UARTInterface(config["uart"])
-
-        elif "ethernet" in config:
-            raise NotImplementedError("Ethernet not supported yet!")
-
-        elif "jtag" in config:
-            raise NotImplementedError("JTAG not supported yet!")
-
-        else:
-            raise ValueError("Interface not recognized")
-
     def generate(self):
         # this occurs in two steps: generating manta and the top-level,
         # and pasting in all the HDL from earlier.
-
-        cores_hdl = {core.name: core.generate for core in self.cores}
 
         uart_rx_hdl = pkgutil.get_data(__name__, "rx_uart.sv").decode()
         bridge_rx_hdl = pkgutil.get_data(__name__, "bridge_rx.sv").decode()
         bridge_tx_hdl = pkgutil.get_data(__name__, "bridge_tx.sv").decode()
         uart_tx_hdl = pkgutil.get_data(__name__, "uart_tx.sv").decode()
 
+        # make pairwise cores
+        core_pairs = [(cores[i-1], cores[i]) for i in range(1, len(cores))]
+
+        # write HDL to instantiate and connect them
+        connections = [] 
+        for src, dest in core_pairs:
+            # wait who's source and who's destination? have to know both the src, dest,
+            # and also current core at any given moment
+
+            # so then is the solution src src_current current current_dst dst
+            hdl =  src.inst()
+            hdl += hdl.replace(".addr_i()",  f".addr_i({src}_{dest}_addr)")
+            hdl += hdl.replace(".wdata_i()", f".wdata_i({src}_{dest}_wdata)")
+            hdl += hdl.replace(".rdata_i()", f".rdata_i({src}_{dest}_rdata)")
+            hdl += hdl.replace(".rw_i()",    f".rw_i({src}_{dest}_rw)")
+            hdl += hdl.replace(".valid_i()", f".valid_i({src}_{dest}_valid)")
+
+            hdl += "\n"
+            hdl += f"reg[15:0] {src}_{dest}_addr\n"
+            hdl += f"reg[15:0] {src}_{dest}_wdata\n"
+            hdl += f"reg[15:0] {src}_{dest}_rdata\n"
+            hdl += f"reg {src}_{dest}_rw\n"
+            hdl += f"reg {src}_{dest}_valid\n\n"
+            connections.append(hdl)
+    
+        # write HDL to instantiate them, now that we know src and dest
+        instantiations = [] 
+        for core in cores:
+            hdl = core.inst() 
+            hdl = hdl.replace(".addr_i()", f".addr_i({src}_{dest}_addr)")
+            hdl = hdl.replace(".addr_i()", f".addr_i({src}_{dest}_addr)")
+        
         # for core in cores:
         #     registers = ''
         #     registers += f'{core}{}'
