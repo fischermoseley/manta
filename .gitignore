@@ -1,3 +1,6 @@
+# macOS being lame
+.DS_Store
+
 # Vivado output products
 *.log
 *.jou
