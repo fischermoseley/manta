@@ -69,7 +69,6 @@ class UARTInterface:
         .o_wr(urx_brx_axiv),
         .o_data(urx_brx_axid));
 
-    // uart_rx --> bridge_rx signals
     logic [7:0] urx_brx_axid;
     logic urx_brx_axiv;
 
@@ -163,7 +162,7 @@ class LogicAnalyzerCore:
         .wdata_o(),
         .rdata_o(),
         .rw_o(),
-        .valid_o());\n\n"""
+        .valid_o());\n"""
     
         return hdl
 
@@ -375,22 +374,32 @@ class Manta:
 
             hdl = core.hdl_inst()
 
+            # connect input
+            if (i == 0):
+                src_name = "brx"
+
+            else:
+                src_name = self.cores[i-1].name
+            
+            hdl = hdl.replace(".addr_i()", f".addr_i({src_name}_{core.name}_addr)")
+            hdl = hdl.replace(".wdata_i()", f".wdata_i({src_name}_{core.name}_wdata)")
+            hdl = hdl.replace(".rdata_i()", f".rdata_i({src_name}_{core.name}_rdata)")
+            hdl = hdl.replace(".rw_i()", f".rw_i({src_name}_{core.name}_rw)")
+            hdl = hdl.replace(".valid_i()", f".valid_i({src_name}_{core.name}_valid)")
+
+
+            # connect output 
             if (i < len(self.cores)-1):
-                dst = self.cores[i+1]
+                dst_name = self.cores[i+1]
+            
+            else:
+                dst_name = "btx"
 
-                hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst.name}_addr)")
-                hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst.name}_wdata)")
-                hdl = hdl.replace(".rdata_o()", f".rdata_o({core.name}_{dst.name}_rdata)")
-                hdl = hdl.replace(".rw_o()", f".rw_o({core.name}_{dst.name}_rw)")
-                hdl = hdl.replace(".valid_o()", f".valid_o({core.name}_{dst.name}_valid)")
-
-            if (i > 0):
-                src = self.cores[i-1]
-                hdl = hdl.replace(".addr_i()", f".addr_i({src.name}_{core.name}_addr)")
-                hdl = hdl.replace(".wdata_i()", f".wdata_i({src.name}_{core.name}_wdata)")
-                hdl = hdl.replace(".rdata_i()", f".rdata_i({src.name}_{core.name}_rdata)")
-                hdl = hdl.replace(".rw_i()", f".rw_i({src.name}_{core.name}_rw)")
-                hdl = hdl.replace(".valid_i()", f".valid_i({src.name}_{core.name}_valid)")
+            hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst_name}_addr)")
+            hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst_name}_wdata)")
+            hdl = hdl.replace(".rdata_o()", f".rdata_o({core.name}_{dst_name}_rdata)")
+            hdl = hdl.replace(".rw_o()", f".rw_o({core.name}_{dst_name}_rw)")
+            hdl = hdl.replace(".valid_o()", f".valid_o({core.name}_{dst_name}_valid)")
             
             insts.append(hdl)
         
@@ -441,30 +450,40 @@ module manta (
 """
 
     def generate_interface_rx(self):
-        interface_rx = self.interface.rx_hdl_inst()
+        # instantiate interface_rx, substitute in register names
+        interface_rx_inst = self.interface.rx_hdl_inst()
+
+        interface_rx_inst = interface_rx_inst.replace("addr_o()", f"addr_o(brx_{self.cores[0].name}_addr)")
+        interface_rx_inst = interface_rx_inst.replace("wdata_o()", f"wdata_o(brx_{self.cores[0].name}_wdata)")
+        interface_rx_inst = interface_rx_inst.replace("rw_o()", f"rw_o(brx_{self.cores[0].name}_rw)")
+        interface_rx_inst = interface_rx_inst.replace("valid_o()", f"valid_o(brx_{self.cores[0].name}_valid)")
+
         # connect interface_rx to core_chain
-        interface_rx_chain_connection = f"""
+        interface_rx_conn= f"""
     reg [15:0] brx_{self.cores[0].name}_addr;
     reg [15:0] brx_{self.cores[0].name}_wdata;
     reg brx_{self.cores[0].name}_rw;
     reg brx_{self.cores[0].name}_valid;\n"""
         
-        interface_rx = interface_rx.replace("addr_o()", f"addr_o(brx_{self.cores[0].name}_addr)")
-        interface_rx = interface_rx.replace("wdata_o()", f"wdata_o(brx_{self.cores[0].name}_wdata)")
-        interface_rx = interface_rx.replace("rw_o()", f"rw_o(brx_{self.cores[0].name}_rw)")
-        interface_rx = interface_rx.replace("valid_o()", f"valid_o(brx_{self.cores[0].name}_valid)")
-
-        return interface_rx
+        return interface_rx_inst + interface_rx_conn
 
     def generate_interface_tx(self):
-        interface_tx = self.interface.tx_hdl_inst()
 
-        interface_tx = interface_tx.replace("addr_i()", f"addr_o({self.cores[0].name}_btx_addr)")
-        interface_tx = interface_tx.replace("rdata_i()", f"rdata_o({self.cores[0].name}_btx_rdata)")
-        interface_tx = interface_tx.replace("rw_i()", f"rw_o({self.cores[0].name}_btx_rw)")
-        interface_tx = interface_tx.replace("valid_i()", f"valid_o({self.cores[0].name}_btx_valid)")
+        # connect core_chain to interface_tx
+        interface_tx_conn = f"""
+    reg [15:0] {self.cores[-1].name}_btx_rdata;
+    reg {self.cores[-1].name}_btx_rw;
+    reg {self.cores[-1].name}_btx_valid;\n"""
+
+        # instantiate interface_tx, substitute in register names
+        interface_tx_inst = self.interface.tx_hdl_inst()
+
+        interface_tx_inst = interface_tx_inst.replace("addr_i()", f"addr_o({self.cores[0].name}_btx_addr)")
+        interface_tx_inst = interface_tx_inst.replace("rdata_i()", f"rdata_o({self.cores[0].name}_btx_rdata)")
+        interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_o({self.cores[0].name}_btx_rw)")
+        interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_o({self.cores[0].name}_btx_valid)")
         
-        return interface_tx
+        return interface_tx_conn + interface_tx_inst
 
     def generate_footer(self):
         return """endmodule\n""" 
