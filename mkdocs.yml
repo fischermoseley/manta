@@ -4,7 +4,7 @@ site_author: Fischer Moseley
 
 repo_url: https://github.com/fischermoseley/manta/
 
-docs_dir: ../docs
+docs_dir: 'doc'
 
 theme:
   name: material
