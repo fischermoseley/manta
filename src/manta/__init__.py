@@ -49,7 +49,7 @@ class UARTInterface:
         # this should return the probes that we want to connect to top-level, but like as a string of verilog
 
         return """input wire rx,
-        output reg tx,"""
+    output reg tx,"""
 
     def rx_hdl_def(self):
         uart_rx_def = pkgutil.get_data(__name__, "rx_uart.v").decode()
@@ -65,7 +65,7 @@ class UARTInterface:
         return f"""
     rx_uart #(.CLOCKS_PER_BAUD({self.clocks_per_baud})) urx (
         .i_clk(clk),
-        .i_uart_rx(tb_urx_rxd),
+        .i_uart_rx(rx),
         .o_wr(urx_brx_axiv),
         .o_data(urx_brx_axid));
 
@@ -108,7 +108,7 @@ class UARTInterface:
         .valid(btx_utx_valid),
         .ready(utx_btx_ready),
 
-        .tx(utx_tb_tx));\n"""
+        .tx(tx));\n"""
 
 
 class IOCore:
@@ -437,16 +437,18 @@ Provided under a GNU GPLv3 license. Go wild.
     def generate_declaration(self):
         # get all the top level connections for each module.
 
-        ports = [core.hdl_top_level_ports() for core in self.cores]
-        ports = "\n".join(ports)
+        interface_ports = self.interface.hdl_top_level_ports()
 
-        print(ports)
+        core_chain_ports = [core.hdl_top_level_ports() for core in self.cores]
+        core_chain_ports = "\n".join(core_chain_ports)
     
         return f"""
 module manta (
     input wire clk,
 
-    {ports});
+    {interface_ports}
+
+    {core_chain_ports});
 """
 
     def generate_interface_rx(self):
