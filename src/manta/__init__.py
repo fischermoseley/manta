@@ -103,8 +103,7 @@ class UARTInterface:
         .valid(btx_utx_valid),
         .ready(utx_btx_ready),
 
-        .tx(utx_tb_tx));
-        """
+        .tx(utx_tb_tx));\n"""
 
 
 class IOCore:
@@ -138,20 +137,20 @@ class LogicAnalyzerCore:
     
     def hdl_inst(self):
         hdl = f"""
-        la_core {self.name} (
-            .clk(),
+    la_core {self.name} (
+        .clk(clk),
 
-            .addr_i(),
-            .wdata_i(),
-            .rdata_i(),
-            .rw_i(),
-            .valid_i(),
-            
-            .addr_o(),
-            .wdata_o(),
-            .rdata_o(),
-            .rw_o(),
-            .valid_o());\n\n"""
+        .addr_i(),
+        .wdata_i(),
+        .rdata_i(),
+        .rw_i(),
+        .valid_i(),
+        
+        .addr_o(),
+        .wdata_o(),
+        .rdata_o(),
+        .rw_o(),
+        .valid_o());\n\n"""
     
         return hdl
 
@@ -262,6 +261,10 @@ class LogicAnalyzerCore:
         tmpl = tmpl.replace("@SAMPLE_DEPTH", str(self.sample_depth))
         return tmpl
 
+    def hdl_top_level_ports(self):
+        # this should return the probes that we want to connect to top-level, but like as a string of verilog\
+        return "" # TODO: i'll fix this later 
+
 
 class Manta:
     def __init__(self, config_filepath):
@@ -343,7 +346,7 @@ class Manta:
         
         return conns
 
-    def generate_instantiations(self):
+    def generate_instances(self):
         # generates hdl for modules that need to be connected together
 
         insts = []
@@ -372,46 +375,9 @@ class Manta:
             insts.append(hdl)
         
         return insts
-        
-    def generate_hdl(self):
-        """
-        anatomy of manta.v:
 
-        - header
-        - top-level module:
-            - module declaration
-            - top <-> cores
-            - interface_in (for uart, this would be uart_rx and bridge_rx)
-
-            - core chain
-                - core inst
-                - core connection
-                - core inst
-                - core connection
-                ....
-
-            - interface_out (for uart, this is bridge_tx and uart_tx)
-            - footer
-
-        
-            then come all the module definitions
-        """
-
-        # generate header
-        user = os.environ.get("USER", os.environ.get("USERNAME"))
-        timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
-
-        header = f"/* This manata definition was generated on {timestamp} by {user}\n"
-        header += " *\n"
-        header += " * If this breaks or if you've got dank formal verification memes,\n"
-        header += " * please contact fischerm [at] mit.edu\n"
-        header += " */\n"
-
-        # generate interface_rx
-        interface_rx = self.interface.rx_hdl_inst()
-        
-        # generate chain of cores
-        insts = self.generate_instantiations()
+    def generate_core_chain(self):
+        insts = self.generate_instances()
         conns = self.generate_connections()
         core_chain = []
         for i, inst in enumerate(insts):
@@ -419,23 +385,130 @@ class Manta:
 
             if (i != len(insts)-1):
                 core_chain.append(conns[i])
+        
+        return '\n'.join(core_chain)
 
-        core_chain = '\n'.join(core_chain)
+    def generate_header(self):
+        # generate header
+        user = os.environ.get("USER", os.environ.get("USERNAME"))
+        timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
 
-        # generate interface_tx
+        header = f"""
+/*
+This manta definition was generated on {timestamp} by {user}
+
+If this breaks or if you've got dank formal verification memes,
+please contact fischerm [at] mit.edu
+
+Provided under a GNU GPLv3 license. Go wild.
+*/
+"""
+        return header
+
+    def generate_declaration(self):
+        # get all the top level connections for each module.
+
+        #ports = [core.top_level_ports() for core in self.cores]
+        #ports = "\n".join(ports)
+    
+        return f"""
+module manta (
+    input wire clk,
+    input wire rx,
+    output reg tx,
+);"""
+
+    def generate_interface_rx(self):
+        interface_rx = self.interface.rx_hdl_inst()
+        # connect interface_rx to core_chain
+        interface_rx_chain_connection = f"""
+    reg [15:0] brx_{self.cores[0].name}_addr;
+    reg [15:0] brx_{self.cores[0].name}_wdata;
+    reg brx_{self.cores[0].name}_rw;
+    reg brx_{self.cores[0].name}_valid;\n"""
+        
+        interface_rx = interface_rx.replace("addr_o()", f"addr_o(brx_{self.cores[0].name}_addr)")
+        interface_rx = interface_rx.replace("wdata_o()", f"wdata_o(brx_{self.cores[0].name}_wdata)")
+        interface_rx = interface_rx.replace("rw_o()", f"rw_o(brx_{self.cores[0].name}_rw)")
+        interface_rx = interface_rx.replace("valid_o()", f"valid_o(brx_{self.cores[0].name}_valid)")
+
+        return interface_rx
+
+    def generate_interface_tx(self):
         interface_tx = self.interface.tx_hdl_inst()
 
-        # generate footer
-        footer = """endmodule\n"""
+        interface_tx = interface_tx.replace("addr_i()", f"addr_o({self.cores[0].name}_btx_addr)")
+        interface_tx = interface_tx.replace("rdata_i()", f"rdata_o({self.cores[0].name}_btx_rdata)")
+        interface_tx = interface_tx.replace("rw_i()", f"rw_o({self.cores[0].name}_btx_rw)")
+        interface_tx = interface_tx.replace("valid_i()", f"valid_o({self.cores[0].name}_btx_valid)")
+        
+        return interface_tx
 
+    def generate_footer(self):
+        return """endmodule\n""" 
+    
+    def generate_module_defs(self):
         # aggregate module definitions and remove duplicates
         module_defs_with_dups = [self.interface.rx_hdl_def()] + [core.hdl_def() for core in self.cores] + [self.interface.tx_hdl_def()]
         module_defs = []
         module_defs = [m_def for m_def in module_defs_with_dups if m_def not in module_defs]
-        module_defs = '\n'.join(module_defs)
- 
+        return '\n'.join(module_defs)
+
+
+
+    def generate_hdl(self, output_filepath):
+        """
+        This function generates manta.v, which has the following anatomy:
+        - Header - contains a little blurb about when and who generated the file 
+        - Top-Level Module - the actual definition of module manta
+            - Declaration - contains `module manta` and top-level ports 
+                            that constitutent cores need access to
+            - Interface RX - the modules needed to bring whatever interface the user
+                             selected onto the bus. For UART, this is just an instance
+                             of uart_rx and bridge_rx.
+            - Core Chain - the chain of cores specified by the user. This follows
+                           a sequence of:
+                - Core Instance - HDL specifying an instance of the core. 
+                - Core Connection - HDL specifying the registers that connect one
+                                    core to the next.
+                - Core Instance 
+                - Core Connection
+                ....
+                
+                This repeats for however many cores the user specified.
+
+            - Interface TX - the modules needed to bring the bus out to whatever
+                             interface the user selected. For UART, this is just
+                             an instance of bridge_tx and uart_tx.
+            - Footer - just the 'endmodule' keyword.
+
+        - Module Definitions - all the source for the modules instantiated in the
+                               top-level module. 
+        """
+
+        # generate header
+        header = self.generate_header()
+
+        # generate module declaration
+        declar = self.generate_declaration()
+
+        # generate interface_rx
+        interface_rx = self.generate_interface_rx() 
+        
+        # generate core chain 
+        core_chain = self.generate_core_chain()
+        
+        # generate interface_tx
+        interface_tx = self.generate_interface_tx()
+
+        # generate footer
+        footer = self.generate_footer()
+
+        # generate module definitions
+        module_defs = self.generate_module_defs()
+        
         # assemble all the parts
-        hdl = header + interface_rx + core_chain + interface_tx + footer
+        hdl = header + declar + interface_rx + core_chain + interface_tx + footer
         hdl += "\n /* ---- Module Definitions ----  */\n"
         hdl += module_defs
 
@@ -445,7 +518,9 @@ class Manta:
         hdl = hdl.replace("`timescale 1ns/1ps", "")
 
         hdl = "`default_nettype none\n" + "`timescale 1ns/1ps\n" + hdl + "`default_nettype wire"
-        return hdl
+
+        with open(output_filepath, 'w') as f:
+            f.write(hdl)        
 
 
 def main():
