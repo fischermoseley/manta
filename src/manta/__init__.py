@@ -45,6 +45,12 @@ class UARTInterface:
     def write(self, bytes):
         self.ser.write(bytes)  
 
+    def hdl_top_level_ports(self):
+        # this should return the probes that we want to connect to top-level, but like as a string of verilog
+
+        return """input wire rx,
+        output reg tx,"""
+
     def rx_hdl_def(self):
         uart_rx_def = pkgutil.get_data(__name__, "rx_uart.v").decode()
         bridge_rx_def = pkgutil.get_data(__name__, "bridge_rx.v").decode()
@@ -136,6 +142,11 @@ class LogicAnalyzerCore:
         self.triggers = config["triggers"]
     
     def hdl_inst(self):
+        ports = []
+
+        ports = [f".{name}({name})," for name in self.probes.keys()]
+        ports = "\n\t\t".join(ports)
+        
         hdl = f"""
     la_core {self.name} (
         .clk(clk),
@@ -145,6 +156,8 @@ class LogicAnalyzerCore:
         .rdata_i(),
         .rw_i(),
         .valid_i(),
+
+        {ports}
         
         .addr_o(),
         .wdata_o(),
@@ -262,9 +275,16 @@ class LogicAnalyzerCore:
         return tmpl
 
     def hdl_top_level_ports(self):
-        # this should return the probes that we want to connect to top-level, but like as a string of verilog\
-        return "" # TODO: i'll fix this later 
-
+        # this should return the probes that we want to connect to top-level, but like as a string of verilog
+        
+        ports = []
+        for name, width in self.probes.items():
+            if width == 1:
+                ports.append(f"input wire {name},")
+            else:
+                ports.append(f"input wire [{width-1}:0] {name},")
+            
+        return "\n    ".join(ports)
 
 class Manta:
     def __init__(self, config_filepath):
@@ -408,15 +428,17 @@ Provided under a GNU GPLv3 license. Go wild.
     def generate_declaration(self):
         # get all the top level connections for each module.
 
-        #ports = [core.top_level_ports() for core in self.cores]
-        #ports = "\n".join(ports)
+        ports = [core.hdl_top_level_ports() for core in self.cores]
+        ports = "\n".join(ports)
+
+        print(ports)
     
         return f"""
 module manta (
     input wire clk,
-    input wire rx,
-    output reg tx,
-);"""
+
+    {ports});
+"""
 
     def generate_interface_rx(self):
         interface_rx = self.interface.rx_hdl_inst()
@@ -574,8 +596,7 @@ Supported commands:
         ), "Wrong number of arguments, only a config file and output file must both be specified."
 
         manta = Manta(argv[2])
-        with open(argv[3], "w") as f:
-            f.write(manta.generate())
+        manta.generate(argv[3])
 
     # run the specified core
     elif argv[1] == "run":
