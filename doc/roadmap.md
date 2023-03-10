@@ -1,4 +1,4 @@
-# Planned Work:
+## Planned Work:
 
 - _Verify Manta on non-Xilinx FPGAs_: This is in progress for the Lattice iCE40 on the Icestick, and the Altera Cyclone IV on the DE0 Nano.
 
@@ -17,7 +17,7 @@
 
 - _FuseSoC integration_: This will probably exist in some headless-ish mode that separates manta's core generation and operation, but it'd be kinda nice for folks who package their projects with FuseSoC.
 
-# Potential Future Work:
+## Potential Future Work:
 
 The guiding principle behind adding features here is to just do a bunch of projects, run into annoying bugs, and see what'd be useful to have as a tool, and then implement that. That said, there's a few ideas I've been kicking around at the moment:
 
@@ -32,6 +32,6 @@ The guiding principle behind adding features here is to just do a bunch of proje
 * _Clock Domain Crossing:_ You should be able to put cores in different clock domains - although I'm struggling to figure out where exactly this would be useful. Xilinx's ILA will let you have multiple cores and it doesn't care much which 
 clock domain those are under, so some more investigation will be needed there. 
 
-# Completed Features:
+## Completed Features:
 
 * _Packaging_: Manta should fundamentally be out of the way of the hardware developer, so it needs to live on the system, not as source code in the project repo. We learned this with `lab-bc` last semester - we couldn't update it easily and it ended up living in people's git repos. Which shouldn't be necessary since they're not responsible for versioning it - we are. Same mentality here.

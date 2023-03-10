@@ -1,4 +1,4 @@
-site_name: Manta
+site_name: manta
 site_description: Manta Documentation
 site_author: Fischer Moseley
 
@@ -8,6 +8,10 @@ docs_dir: 'doc'
 
 theme:
   name: material
+  features:
+    - content.code.copy
+    - content.code.annotate
+
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -25,8 +29,18 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
 nav:
     - Home: index.md
-    - How it Works: theory_of_operation.md
+    - Getting Started: getting_started.md
+    - How it Works: how_it_works.md
     - Cores: cores.md
     - Roadmap: roadmap.md
