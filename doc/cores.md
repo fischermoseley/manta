@@ -1,8 +1,6 @@
 # Cores
 
-Manta has two types of debug cores: a logic analyzer core, and an IO core.
-
-## Logic Analyzer Core
+## Logic Analyzer
 
 This emulates the look and feel of a logic analyzer, both benchtop and integrated. These work by continuously sampling a set of digital signals, and then when some condition (the _trigger_) is met, recording these signals to memory, which are then read out to the user. 
 
