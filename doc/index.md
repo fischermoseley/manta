@@ -1,7 +1,6 @@
+![](assets/manta.png)
+
 ## Manta: An In-Situ Debugging Tool for Programmable Hardware
-![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Manta is a tool for getting information into and out of FPGAs over an interface like UART or Ethernet. It's primarily intended for debugging, but it's robust enough to be a simple, reliable transport layer between a FPGA and a host machine. It lets you configure a series of cores on a shared bus via a YAML or JSON file, and then provides a Python API to each core, along with vendor-agnostic Verilog HDL to instantiate them on your FPGA. 
 
@@ -26,7 +25,7 @@ Manta includes a few cores, configurable to your liking:
 
 * __LUT RAM__ and __BRAM Cores__: Under the hood, Manta is just a bunch of modules sharing a common address and data bus, so cores that add Block RAM and LUT RAM to said bus are also available. More information on this bus configuration is on the [How it Works](how_it_works) page.
 
-These are more explicity described on the [cores](cores) page.
+These are more explicity described on their individual pages.
 
 ## Design Philosophy
 

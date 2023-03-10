@@ -1,4 +1,4 @@
-![](assets/manta.png)
+![](doc/assets/manta.png)
 
 ## Manta: An In-Situ Debugging Tool for Programmable Hardware
 ![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
