@@ -8,6 +8,8 @@ docs_dir: 'doc'
 
 theme:
   name: material
+  logo: assets/manta_minimal_border.png
+  favicon: assets/manta_with_shadow.png
   features:
     - content.code.copy
     - content.code.annotate
@@ -29,6 +31,9 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
+extra_css:
+  - stylesheets/extra.css
+
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
@@ -42,5 +47,6 @@ nav:
     - Home: index.md
     - Getting Started: getting_started.md
     - How it Works: how_it_works.md
-    - Cores: cores.md
+    - Logic Analyzer Core: logic_analyzer_core.md
+    - IO Core: io_core.md
     - Roadmap: roadmap.md
