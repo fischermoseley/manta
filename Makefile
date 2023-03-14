@@ -8,7 +8,7 @@ lint:
 	python3 -m black src/manta/__init__.py
 	python3 -m black src/manta/__main__.py
 
-sim: sim_bit_fifo sim_bridge_rx sim_bridge_tx fifo_tb lut_mem_tb uart_tx_tb
+sim: sim_bit_fifo sim_bridge_rx sim_bridge_tx fifo_tb lut_ram_tb uart_tx_tb
 
 sim_bit_fifo:
 	iverilog -g2012 -o sim.out test/bit_fifo_tb.sv src/manta/bit_fifo.v
@@ -30,8 +30,8 @@ fifo_tb:
 	vvp sim.out >> /dev/null # this one is noisy right now
 	rm sim.out
 
-lut_mem_tb:
-	iverilog -g2012 -o sim.out test/lut_mem_tb.sv src/manta/lut_mem.v 
+lut_ram_tb:
+	iverilog -g2012 -o sim.out test/lut_ram_tb.sv src/manta/lut_ram.v 
 	vvp sim.out
 	rm sim.out
 

@@ -2,7 +2,7 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 09 Mar 2023 at 23:58:38 by fischerm
+This manta definition was generated on 14 Mar 2023 at 13:06:49 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
@@ -31,41 +31,41 @@ module manta (
         .rx_data(urx_brx_axid),
         .rx_valid(urx_brx_axiv),
 
-        .addr_o(brx_my_logic_analyzer_addr),
-        .wdata_o(brx_my_logic_analyzer_wdata),
-        .rw_o(brx_my_logic_analyzer_rw),
-        .valid_o(brx_my_logic_analyzer_valid));
+        .addr_o(brx_my_lut_ram_addr),
+        .wdata_o(brx_my_lut_ram_wdata),
+        .rw_o(brx_my_lut_ram_rw),
+        .valid_o(brx_my_lut_ram_valid));
         
-    reg [15:0] brx_my_logic_analyzer_addr;
-    reg [15:0] brx_my_logic_analyzer_wdata;
-    reg brx_my_logic_analyzer_rw;
-    reg brx_my_logic_analyzer_valid;
+    reg [15:0] brx_my_lut_ram_addr;
+    reg [15:0] brx_my_lut_ram_wdata;
+    reg brx_my_lut_ram_rw;
+    reg brx_my_lut_ram_valid;
 
-    lut_mem my_logic_analyzer(
+    lut_ram #(.DEPTH(64)) my_lut_ram (
         .clk(clk),
 
-        .addr_i(brx_my_logic_analyzer_addr),
-        .wdata_i(brx_my_logic_analyzer_wdata),
+        .addr_i(brx_my_lut_ram_addr),
+        .wdata_i(brx_my_lut_ram_wdata),
         .rdata_i(),
-        .rw_i(brx_my_logic_analyzer_rw),
-        .valid_i(brx_my_logic_analyzer_valid),
-        
+        .rw_i(brx_my_lut_ram_rw),
+        .valid_i(brx_my_lut_ram_valid),
+
         .addr_o(),
         .wdata_o(),
-        .rdata_o(my_logic_analyzer_btx_rdata),
-        .rw_o(my_logic_analyzer_btx_rw),
-        .valid_o(my_logic_analyzer_btx_valid));
+        .rdata_o(my_lut_ram_btx_rdata),
+        .rw_o(my_lut_ram_btx_rw),
+        .valid_o(my_lut_ram_btx_valid));
 
-    reg [15:0] my_logic_analyzer_btx_rdata;
-    reg my_logic_analyzer_btx_rw;
-    reg my_logic_analyzer_btx_valid;
+    reg [15:0] my_lut_ram_btx_rdata;
+    reg my_lut_ram_btx_rw;
+    reg my_lut_ram_btx_valid;
 
     bridge_tx btx (
         .clk(clk),
         
-        .rdata_i(my_logic_analyzer_btx_rdata),
-        .rw_i(my_logic_analyzer_btx_rw),
-        .valid_i(my_logic_analyzer_btx_valid),
+        .rdata_i(my_lut_ram_btx_rdata),
+        .rw_i(my_lut_ram_btx_rw),
+        .valid_i(my_lut_ram_btx_valid),
 
         .ready_i(utx_btx_ready),
         .data_o(btx_utx_data),
@@ -340,6 +340,53 @@ endmodule
 
 
 
+module lut_ram(
+    input wire clk,
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o
+);
+
+parameter DEPTH = 8;
+parameter BASE_ADDR = 0;
+parameter READ_ONLY = 0;
+reg [DEPTH-1:0][15:0] mem;
+
+always @(posedge clk) begin
+    addr_o <= addr_i;
+    wdata_o <= wdata_i;
+    rdata_o <= rdata_i;
+    rw_o <= rw_i;
+    valid_o <= valid_i;
+    rdata_o <= rdata_i;
+    
+
+    if(valid_i) begin
+        // check if address is valid
+        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + DEPTH - 1) ) begin
+            
+            // read/write
+            if (rw_i && !READ_ONLY) mem[addr_i - BASE_ADDR] <= wdata_i;
+            else rdata_o <= mem[addr_i - BASE_ADDR];
+        end
+    end
+end
+endmodule
+
+
+
+
 
 module bridge_tx(
     input wire clk,
@@ -484,54 +531,5 @@ module uart_tx(
 
 endmodule
 
-
-`default_nettype none
-`timescale 1ns/1ps
-
-module lut_mem(
-    input wire clk,
-
-    // input port
-    input wire [15:0] addr_i,
-    input wire [15:0] wdata_i,
-    input wire [15:0] rdata_i,
-    input wire rw_i,
-    input wire valid_i,
-
-    // output port
-    output reg [15:0] addr_o,
-    output reg [15:0] wdata_o,
-    output reg [15:0] rdata_o,
-    output reg rw_o,
-    output reg valid_o
-);
-
-parameter DEPTH = 8;
-parameter BASE_ADDR = 0;
-parameter READ_ONLY = 0;
-reg [DEPTH-1:0][15:0] mem;
-
-always @(posedge clk) begin
-    addr_o <= addr_i;
-    wdata_o <= wdata_i;
-    rdata_o <= rdata_i;
-    rw_o <= rw_i;
-    valid_o <= valid_i;
-    rdata_o <= rdata_i;
-    
-
-    if(valid_i) begin
-        // check if address is valid
-        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + DEPTH - 1) ) begin
-            
-            // read/write
-            if (rw_i && !READ_ONLY) mem[addr_i - BASE_ADDR] <= wdata_i;
-            else rdata_o <= mem[addr_i - BASE_ADDR];
-        end
-    end
-end
-endmodule
-
-`default_nettype wire
 
 `default_nettype wire

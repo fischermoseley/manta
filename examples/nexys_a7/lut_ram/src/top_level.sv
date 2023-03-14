@@ -13,25 +13,20 @@ module top_level (
 	output logic uart_rxd_out
 	);
 	
-    // Signal Generator
-    // logic [7:0] count;
-    // always_ff @(posedge clk) count <= count + 1;
-    
-
     manta manta (
         .clk(clk),
 
         .rx(uart_txd_in),
         .tx(uart_rxd_out));
 
-    assign led = manta.brx_my_logic_analyzer_addr;
+    assign led = manta.brx_my_lut_ram_addr;
 
     logic [6:0] cat;
 	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
     ssd ssd (
         .clk_in(clk),
         .rst_in(btnc),
-        .val_in( (manta.my_logic_analyzer_btx_rdata << 16) | (manta.brx_my_logic_analyzer_wdata) ),
+        .val_in( (manta.my_lut_ram_btx_rdata << 16) | (manta.brx_my_lut_ram_wdata) ),
         .cat_out(cat),
         .an_out(an));
 
