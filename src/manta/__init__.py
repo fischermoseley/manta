@@ -48,8 +48,7 @@ class UARTInterface:
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but like as a string of verilog
 
-        return """input wire rx,
-    output reg tx,"""
+        return ["input wire rx", "output reg tx"]
 
     def rx_hdl_def(self):
         uart_rx_def = pkgutil.get_data(__name__, "rx_uart.v").decode()
@@ -111,10 +110,39 @@ class UARTInterface:
         .tx(tx));\n"""
 
 
-class IOCore:
+class LUTRAMCore:
     def __init__(self, config, interface):
         self.interface = interface
 
+        assert "size" in config, "Size not specified for LUT RAM core."
+        self.size = config["size"]
+    
+    def hdl_inst(self):
+        hdl = f"""
+    lut_ram #(.DEPTH({self.size})) {self.name} (
+        .clk(clk),
+
+        .addr_i(),
+        .wdata_i(),
+        .rdata_i(),
+        .rw_i(),
+        .valid_i(),
+
+        .addr_o(),
+        .wdata_o(),
+        .rdata_o(),
+        .rw_o(),
+        .valid_o());\n"""
+    
+        return hdl
+
+    def hdl_def(self):
+        hdl = pkgutil.get_data(__name__, "lut_ram.v").decode()
+        return hdl
+
+    def hdl_top_level_ports(self):
+        # no top_level connections since this core just lives on the bus
+        return []
 
 class LogicAnalyzerCore:
     def __init__(self, config, interface):
@@ -274,16 +302,16 @@ class LogicAnalyzerCore:
         return tmpl
 
     def hdl_top_level_ports(self):
-        # this should return the probes that we want to connect to top-level, but like as a string of verilog
+        # this should return the probes that we want to connect to top-level, but as a list of verilog ports
         
         ports = []
         for name, width in self.probes.items():
             if width == 1:
-                ports.append(f"input wire {name},")
+                ports.append(f"input wire {name}")
             else:
-                ports.append(f"input wire [{width-1}:0] {name},")
+                ports.append(f"input wire [{width-1}:0] {name}")
             
-        return "\n    ".join(ports)
+        return ports
 
 class Manta:
     def __init__(self, config_filepath):
@@ -313,6 +341,9 @@ class Manta:
 
             elif core["type"] == "io":
                 new_core = IOCore(core, self.interface)
+            
+            elif core["type"] == "lut_ram":
+                new_core = LUTRAMCore(core, self.interface)
 
             else:
                 raise ValueError(f"Unrecognized core type specified for {core_name}.")
@@ -380,27 +411,28 @@ class Manta:
 
             else:
                 src_name = self.cores[i-1].name
+                hdl = hdl.replace(".rdata_i()", f".rdata_i({src_name}_{core.name}_rdata)")
             
             hdl = hdl.replace(".addr_i()", f".addr_i({src_name}_{core.name}_addr)")
             hdl = hdl.replace(".wdata_i()", f".wdata_i({src_name}_{core.name}_wdata)")
-            hdl = hdl.replace(".rdata_i()", f".rdata_i({src_name}_{core.name}_rdata)")
             hdl = hdl.replace(".rw_i()", f".rw_i({src_name}_{core.name}_rw)")
             hdl = hdl.replace(".valid_i()", f".valid_i({src_name}_{core.name}_valid)")
-
+            
+            
 
             # connect output 
             if (i < len(self.cores)-1):
                 dst_name = self.cores[i+1]
+                hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst_name}_addr)")
+                hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst_name}_wdata)")
             
             else:
                 dst_name = "btx"
 
-            hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst_name}_addr)")
-            hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst_name}_wdata)")
             hdl = hdl.replace(".rdata_o()", f".rdata_o({core.name}_{dst_name}_rdata)")
             hdl = hdl.replace(".rw_o()", f".rw_o({core.name}_{dst_name}_rw)")
             hdl = hdl.replace(".valid_o()", f".valid_o({core.name}_{dst_name}_valid)")
-            
+
             insts.append(hdl)
         
         return insts
@@ -438,17 +470,31 @@ Provided under a GNU GPLv3 license. Go wild.
         # get all the top level connections for each module.
 
         interface_ports = self.interface.hdl_top_level_ports()
+        interface_ports = [f"    {port},\n" for port in interface_ports]
+        interface_ports = "".join(interface_ports) + "\n"
 
-        core_chain_ports = [core.hdl_top_level_ports() for core in self.cores]
+        core_chain_ports = []
+        for core in self.cores:
+            ports = [f"    {port},\n" for port in core.hdl_top_level_ports()]
+            ports = "".join(ports)
+            core_chain_ports.append(ports)
+        
         core_chain_ports = "\n".join(core_chain_ports)
-    
+
+        ports = interface_ports + core_chain_ports
+
+        # remove trailing comma
+        ports = ports.rstrip()
+        if ports[-1] == ",":
+            ports = ports[:-1]
+
+        print(ports)
+
         return f"""
 module manta (
     input wire clk,
 
-    {interface_ports}
-
-    {core_chain_ports});
+{ports});
 """
 
     def generate_interface_rx(self):
@@ -480,10 +526,10 @@ module manta (
         # instantiate interface_tx, substitute in register names
         interface_tx_inst = self.interface.tx_hdl_inst()
 
-        interface_tx_inst = interface_tx_inst.replace("addr_i()", f"addr_o({self.cores[0].name}_btx_addr)")
-        interface_tx_inst = interface_tx_inst.replace("rdata_i()", f"rdata_o({self.cores[0].name}_btx_rdata)")
-        interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_o({self.cores[0].name}_btx_rw)")
-        interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_o({self.cores[0].name}_btx_valid)")
+        interface_tx_inst = interface_tx_inst.replace("addr_i()", f"addr_i({self.cores[0].name}_btx_addr)")
+        interface_tx_inst = interface_tx_inst.replace("rdata_i()", f"rdata_i({self.cores[0].name}_btx_rdata)")
+        interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_i({self.cores[0].name}_btx_rw)")
+        interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_i({self.cores[0].name}_btx_valid)")
         
         return interface_tx_conn + interface_tx_inst
 

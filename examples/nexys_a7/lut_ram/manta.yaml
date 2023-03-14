@@ -1,0 +1,10 @@
+---
+cores:
+  my_lut_ram:
+    type: lut_ram 
+    size: 64 
+
+uart:
+  port: "/dev/tty.usbserial-2102926963071"
+  baudrate: 115200
+  clock_freq: 100000000
