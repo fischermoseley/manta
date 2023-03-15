@@ -8,19 +8,24 @@ lint:
 	python3 -m black src/manta/__init__.py
 	python3 -m black src/manta/__main__.py
 
-sim: sim_bit_fifo sim_bridge_rx sim_bridge_tx fifo_tb lut_ram_tb uart_tx_tb
+sim: bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tx_tb 
 
-sim_bit_fifo:
+logic_analyzer_tb:
+	iverilog -g2012 -o sim.out test/logic_analyzer_tb.sv src/manta/logic_analyzer.v src/manta/fifo.v src/manta/trigger.v src/manta/xilinx_true_dual_port_read_first_2_clock_ram.v
+	vvp sim.out
+	rm sim.out
+
+bit_fifo_tb:
 	iverilog -g2012 -o sim.out test/bit_fifo_tb.sv src/manta/bit_fifo.v
 	vvp sim.out
 	rm sim.out
 
-sim_bridge_rx:
+bridge_rx_tb:
 	iverilog -g2012 -o sim.out test/bridge_rx_tb.sv src/manta/bridge_rx.v
 	vvp sim.out
 	rm sim.out
 
-sim_bridge_tx:
+bridge_tx_tb:
 	iverilog -g2012 -o sim.out test/bridge_tx_tb.sv src/manta/bridge_tx.v src/manta/uart_tx.v
 	vvp sim.out
 	rm sim.out

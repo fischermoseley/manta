@@ -3,14 +3,14 @@
 
 module fifo (
 	input wire clk,
-	input wire rst,
+	input wire bram_rst,
 
-	input wire [WIDTH - 1:0] data_in,
-	input wire input_ready,
+	input wire [WIDTH - 1:0] in,
+	input wire in_valid,
 
-	input wire request_output,
-	output reg [WIDTH - 1:0] data_out,
-	output reg output_valid,
+	output reg [WIDTH - 1:0] out,
+	input wire out_req,
+	output reg out_valid,
 
 	output reg [AW:0] size,
 	output reg empty,
@@ -28,28 +28,24 @@ module fifo (
 	assign empty_int = (write_pointer[AW] == read_pointer[AW]);
 
 	reg full_or_empty;
-	assign full_or_empty = (write_pointer[AW-1:0] ==	read_pointer[AW-1:0]);
+	assign full_or_empty = (write_pointer[AW-1:0] == read_pointer[AW-1:0]);
 
 	assign full = full_or_empty & !empty_int;
 	assign empty = full_or_empty & empty_int;
 	assign size = write_pointer - read_pointer;
 
-	reg output_valid_pip_0;
-	reg output_valid_pip_1;
+	reg out_valid_pip_0;
+	reg out_valid_pip_1;
 
 	always @(posedge clk) begin
-		if (input_ready && ~full)
+		if (in_valid && ~full)
 			write_pointer <= write_pointer + 1'd1;
 
-	 	if (request_output && ~empty)
+	 	if (out_req && ~empty) begin
 			read_pointer <= read_pointer + 1'd1;
-			output_valid_pip_0 <= request_output;
-			output_valid_pip_1 <= output_valid_pip_0;
-			output_valid <= output_valid_pip_1;
-
-		if (rst) begin
-			read_pointer  <= 0;
-			write_pointer <= 0;
+			out_valid_pip_0 <= out_req;
+			out_valid_pip_1 <= out_valid_pip_0;
+			out_valid <= out_valid_pip_1;
 		end
 	end
 
@@ -62,23 +58,23 @@ module fifo (
 
 		// write port
 		.clka(clk),
-		.rsta(rst),
-		.ena(1),
+		.rsta(bram_rst),
+		.ena(1'b1),
 		.addra(write_pointer),
-		.dina(data_in),
-		.wea(input_ready),
-		.regcea(1),
+		.dina(in),
+		.wea(in_valid),
+		.regcea(1'b1),
 		.douta(),
 
 		// read port
 		.clkb(clk),
-		.rstb(rst),
-		.enb(1),
+		.rstb(bram_rst),
+		.enb(1'b1),
 		.addrb(read_pointer),
 		.dinb(),
-		.web(0),
-		.regceb(1),
-		.doutb(data_out));
+		.web(1'b0),
+		.regceb(1'b1),
+		.doutb(out));
 	endmodule
 
 `default_nettype wire
