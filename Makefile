@@ -11,7 +11,7 @@ lint:
 sim: bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tx_tb 
 
 logic_analyzer_tb:
-	iverilog -g2012 -o sim.out test/logic_analyzer_tb.sv src/manta/logic_analyzer.v src/manta/fifo.v src/manta/trigger.v src/manta/xilinx_true_dual_port_read_first_2_clock_ram.v
+	iverilog -g2012 -o sim.out test/logic_analyzer_tb.sv src/manta/logic_analyzer.v src/manta/la_fsm.v src/manta/trigger_block.v src/manta/trigger.v src/manta/sample_mem.v src/manta/xilinx_true_dual_port_read_first_2_clock_ram.v
 	vvp sim.out
 	rm sim.out
 

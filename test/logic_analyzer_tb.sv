@@ -30,7 +30,7 @@ module logic_analyzer_tb;
     logic la_tb_valid;
 
 
-    logic_analyzer la(
+    logic_analyzer #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) la(
         .clk(clk),
 
         // probes
@@ -107,8 +107,26 @@ module logic_analyzer_tb;
         tb_la_wdata = 5;
         #`CP
         tb_la_valid = 0;
-        #`CP
+        while (!la_tb_valid) #`CP;
         $display(" -> wrote 0x0005 to state reg (addr 0x0000)");
+
+        // read
+        tb_la_valid = 1;
+        tb_la_rw = 0;
+        #`CP
+        tb_la_valid = 0;
+        while (!la_tb_valid) #`CP;
+        $display(" -> read  0x%h from state reg (addr 0x0000)", la_tb_rdata);
+
+        // write
+        tb_la_addr = 0;
+        tb_la_valid = 1;
+        tb_la_rw = 1;
+        tb_la_wdata = 0;
+        #`CP
+        tb_la_valid = 0;
+        while (!la_tb_valid) #`CP;
+        $display(" -> wrote 0x0000 to state reg (addr 0x0000)");
 
         // read
         tb_la_valid = 1;
@@ -135,7 +153,7 @@ module logic_analyzer_tb;
         tb_la_wdata = -16'sd69;
         #`CP
         tb_la_valid = 0;
-        #`CP
+        while (!la_tb_valid) #`CP;
         $display(" -> wrote -0d69 to trigger_loc reg (addr 0x0001)");
 
         // read
@@ -145,6 +163,24 @@ module logic_analyzer_tb;
         tb_la_valid = 0;
         while (!la_tb_valid) #`CP;
         $display(" -> read  0d%d from trigger_loc reg (addr 0x0001)", $signed(la_tb_rdata));
+
+        // write
+        tb_la_addr = 1;
+        tb_la_valid = 1;
+        tb_la_rw = 1;
+        tb_la_wdata = 0;
+        #`CP
+        tb_la_valid = 0;
+        while (!la_tb_valid) #`CP;
+        $display(" -> wrote 0x0000 to trigger_loc reg (addr 0x0001)");
+
+        // read
+        tb_la_valid = 1;
+        tb_la_rw = 0;
+        #`CP
+        tb_la_valid = 0;
+        while (!la_tb_valid) #`CP;
+        $display(" -> read  0x%h from trigger_loc reg (addr 0x0001)", $signed(la_tb_rdata));
 
 
         #(10*`CP);
@@ -163,7 +199,7 @@ module logic_analyzer_tb;
         tb_la_wdata = 8;
         #`CP
         tb_la_valid = 0;
-        #`CP
+        while (!la_tb_valid) #`CP;
         $display(" -> wrote 0x0008 to larry_op reg (addr 0x0002)");
 
         // read
@@ -191,7 +227,7 @@ module logic_analyzer_tb;
         tb_la_wdata = 1;
         #`CP
         tb_la_valid = 0;
-        #`CP
+        while (!la_tb_valid) #`CP;
         $display(" -> wrote 0x0001 to larry_arg reg (addr 0x0003)");
 
         // read
@@ -212,17 +248,51 @@ module logic_analyzer_tb;
         $display("\n=== test 6: set larry = 1, verify core does not trigger ===");
         test_num = 6;
 
-        larry = 1; 
         $display(" -> set larry = 1");
+        larry = 1; 
 
         // read
-        $display(" -> la core is in state 0x%h", la.state);
+        $display(" -> la core is in state 0x%h", la.fsm.state);
+        $display(" -> wait a clock cycle");
         #`CP
-        $display(" -> la core is in state 0x%h", la.state);
+        $display(" -> la core is in state 0x%h", la.fsm.state);
+        $display(" -> set larry = 0");
+        larry = 0;
 
 
         #(10*`CP);
         /* ==== Test 6 End ==== */
+
+
+
+        /* ==== Test 7 Begin ==== */
+        $display("\n=== test 7: set larry = 1, verify core does trigger ===");
+        test_num = 7;
+
+        // write
+        tb_la_addr = 0;
+        tb_la_valid = 1;
+        tb_la_rw = 1;
+        tb_la_wdata = 1;
+        #`CP
+        tb_la_valid = 0;
+        #`CP
+        $display(" -> wrote 0x0001 to state reg (addr 0x0000)");
+
+        #`CP
+
+        $display(" -> set larry = 1");
+        larry = 1; 
+
+        // read
+        $display(" -> la core is in state 0x%h", la.fsm.state);
+        $display(" -> wait a clock cycle");
+        #`CP
+        $display(" -> la core is in state 0x%h", la.fsm.state);
+
+
+        #(200*`CP);
+        /* ==== Test 7 End ==== */
 
         $finish();
     end

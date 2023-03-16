@@ -24,6 +24,11 @@ module fifo (
 	reg [AW:0] write_pointer;
 	reg [AW:0] read_pointer;
 
+	initial begin
+		write_pointer = 0;
+		read_pointer = 0;
+	end
+
 	reg empty_int;
 	assign empty_int = (write_pointer[AW] == read_pointer[AW]);
 

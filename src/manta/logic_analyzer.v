@@ -26,201 +26,98 @@ module logic_analyzer(
     );
 
     parameter BASE_ADDR = 0;
-    parameter SAMPLE_DEPTH = 4096;
+    parameter SAMPLE_DEPTH = 0;
 
-    // trigger configuration registers
-    // - each probe gets an operation and a compare register
-    // - at the end we AND them all together. along with any custom probes the user specs
-
-    reg [3:0] larry_trigger_op;
-    reg larry_trigger_arg;
-    reg larry_trig;
-    trigger #(.INPUT_WIDTH(1)) larry_trigger(
+    // fsm
+    la_fsm #(.BASE_ADDR(BASE_ADDR), .SAMPLE_DEPTH(SAMPLE_DEPTH)) fsm (
         .clk(clk),
 
-        .probe(larry),
-        .op(larry_trigger_op),
-        .arg(larry_trigger_arg),
-        .trig(larry_trig));
+        .trig(trig),
+        .fifo_size(fifo_size),
+        .fifo_acquire(fifo_acquire),
+        .fifo_pop(fifo_pop),
 
-    reg [3:0] curly_trigger_op;
-    reg curly_trigger_arg;
-    reg curly_trig;
-    trigger #(.INPUT_WIDTH(1)) curly_trigger(
-        .clk(clk),
+        .addr_i(addr_i),
+        .wdata_i(wdata_i),
+        .rdata_i(rdata_i),
+        .rw_i(rw_i),
+        .valid_i(valid_i),
 
-        .probe(curly),
-        .op(curly_trigger_op),
-        .arg(curly_trigger_arg),
-        .trig(curly_trig));
-
-
-    reg [3:0] moe_trigger_op;
-    reg moe_trigger_arg;
-    reg moe_trig;
-    trigger #(.INPUT_WIDTH(1)) moe_trigger(
-        .clk(clk),
-
-        .probe(moe),
-        .op(moe_trigger_op),
-        .arg(moe_trigger_arg),
-        .trig(moe_trig));
-
-    reg [3:0] shemp_trigger_op;
-    reg [3:0] shemp_trigger_arg;
-    reg shemp_trig;
-    trigger #(.INPUT_WIDTH(4)) shemp_trigger(
-        .clk(clk),
-
-        .probe(shemp),
-        .op(shemp_trigger_op),
-        .arg(shemp_trigger_arg),
-        .trig(shemp_trig));
-
-    reg triggered;
-    assign triggered = larry_trig || curly_trig || moe_trig || shemp_trig;
-
-    reg [6:0] concatenated;
-    assign concatenated = {larry, curly, moe, shemp};
+        .addr_o(fsm_trig_blk_addr),
+        .wdata_o(fsm_trig_blk_wdata),
+        .rdata_o(fsm_trig_blk_rdata),
+        .rw_o(fsm_trig_blk_rw),
+        .valid_o(fsm_trig_blk_valid));
     
-    // word-wise fifo 
-    fifo #(.WIDTH(FIFO_WIDTH), .DEPTH(SAMPLE_DEPTH)) wfifo(
+    reg [15:0] fsm_trig_blk_addr;
+    reg [15:0] fsm_trig_blk_wdata;
+    reg [15:0] fsm_trig_blk_rdata;
+    reg fsm_trig_blk_rw;
+    reg fsm_trig_blk_valid;
+
+    reg trig;
+    reg [$clog2(SAMPLE_DEPTH):0] fifo_size;
+    reg fifo_acquire;
+    reg fifo_pop;
+     
+
+    // trigger block
+    trigger_block #(.BASE_ADDR(BASE_ADDR + 2)) trig_blk(
         .clk(clk),
-        .bram_rst(1'b0),
-
-        .in(concatenated),
-        .in_valid(wfifo_in_valid),
-
-        .out(wfifo_out),
-        .out_req(wfifo_out_req),
-        .out_valid(wfifo_out_valid),
         
-        .size(wfifo_size),
-        .empty(),
-        .full());
+        .larry(larry),
+        .curly(curly),
+        .moe(moe),
+        .shemp(shemp),
 
-    reg wfifo_in_valid;
-    localparam FIFO_WIDTH = 7;
-    reg [FIFO_WIDTH-1:0] wfifo_out;
-    reg wfifo_out_req;
-    reg wfifo_out_valid;
+        .trig(trig),
+        
+        .addr_i(fsm_trig_blk_addr),
+        .wdata_i(fsm_trig_blk_wdata),
+        .rdata_i(fsm_trig_blk_rdata),
+        .rw_i(fsm_trig_blk_rw),
+        .valid_i(fsm_trig_blk_valid),
 
-    reg [$clog2(SAMPLE_DEPTH):0] wfifo_size;
+        .addr_o(trig_blk_sample_mem_addr),
+        .wdata_o(trig_blk_sample_mem_wdata),
+        .rdata_o(trig_blk_sample_mem_rdata),
+        .rw_o(trig_blk_sample_mem_rw),
+        .valid_o(trig_blk_sample_mem_valid));
 
-    
-    // state machine 
-    localparam IDLE = 0;
-    localparam START = 1;
-    localparam MOVE_TO_POSITION = 2;
-    localparam IN_POSITION = 3;
-    localparam FILLING_BUFFER = 4;
-    localparam FILLED = 5;
+    reg [15:0] trig_blk_sample_mem_addr;
+    reg [15:0] trig_blk_sample_mem_wdata;
+    reg [15:0] trig_blk_sample_mem_rdata;
+    reg trig_blk_sample_mem_rw;
+    reg trig_blk_sample_mem_valid;
 
-    reg [3:0] state;
-    initial state = IDLE;
+    // sample memory
+    sample_mem #(.BASE_ADDR(BASE_ADDR + 10), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
+        .clk(clk),
 
-    reg signed [15:0] trigger_loc;
-    initial trigger_loc = 0;
+        // fifo
+        .acquire(fifo_acquire),
+        .pop(fifo_pop),
+        .size(fifo_size),
 
-    reg signed [15:0] present_loc;
-    initial present_loc = 0;
+        // probes
+        .larry(larry),
+        .curly(curly),
+        .moe(moe),
+        .shemp(shemp),
 
-    always @(posedge clk) begin
-        if(state == IDLE) begin
-            present_loc <= (trigger_loc < 0) ? trigger_loc : 0; 
-        end
+        // input port
+        .addr_i(trig_blk_sample_mem_addr),
+        .wdata_i(trig_blk_sample_mem_wdata),
+        .rdata_i(trig_blk_sample_mem_rdata),
+        .rw_i(trig_blk_sample_mem_rw),
+        .valid_i(trig_blk_sample_mem_valid),
 
-        else if(state == MOVE_TO_POSITION) begin
-            // if trigger location is negative or zero,
-            // then we're already in position
-            if(trigger_loc <= 0) state <= IN_POSITION;
-
-            // otherwise we'll need to wait a little,
-            // but we'll need to buffer along the way
-            else begin
-                present_loc <= present_loc + 1;
-                // add code to add samples to word FIFO
-                wfifo_in_valid <= 1;
-                if (present_loc == trigger_loc) state <= IN_POSITION; 
-            end
-        end
-
-        else if(state == IN_POSITION) begin
-            // pop stuff out of the word FIFO in addition to pulling it in
-            wfifo_in_valid <= 1;
-            wfifo_out_req <= 1;
-
-            if(triggered) state <= FILLING_BUFFER;
-        end
-
-        else if(state == FILLING_BUFFER) begin
-            if(wfifo_size == SAMPLE_DEPTH) state <= FILLED;
-        end
-
-        else if(state == FILLED) begin
-            // don't automatically go back to IDLE, the host will move
-            // the state to MOVE_TO_POSITION
-
-            present_loc <= (trigger_loc < 0) ? trigger_loc : 0; 
-        end
-    end
-
-
-
-    // memory servicing
-    //  - TODO: add support for comparision values > 16 bits,
-    //    we'll have to concat them somwehere up here
-
-    always @(posedge clk) begin
-
-        addr_o <= addr_i;
-        wdata_o <= wdata_i;
-        rdata_o <= rdata_i;
-        rw_o <= rw_i;
-        valid_o <= valid_i;
-
-        // operations to configuration registers        
-        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 9) ) begin
-            
-            // reads
-            if(valid_i && !rw_i) begin
-                case (addr_i)
-                    BASE_ADDR + 0: rdata_o <= state;
-                    BASE_ADDR + 1: rdata_o <= trigger_loc;
-                    BASE_ADDR + 2: rdata_o <= larry_trigger_op;
-                    BASE_ADDR + 3: rdata_o <= larry_trigger_arg;
-                    BASE_ADDR + 4: rdata_o <= curly_trigger_op;
-                    BASE_ADDR + 5: rdata_o <= curly_trigger_arg;
-                    BASE_ADDR + 6: rdata_o <= moe_trigger_op;
-                    BASE_ADDR + 7: rdata_o <= moe_trigger_arg;
-                    BASE_ADDR + 8: rdata_o <= shemp_trigger_op;
-                    BASE_ADDR + 9: rdata_o <= shemp_trigger_arg;
-                    default: rdata_o <= rdata_i;
-                endcase
-            end
-
-            // writes
-            else if(valid_i && rw_i) begin
-                case (addr_i)
-                    BASE_ADDR + 0: state <= wdata_i;
-                    BASE_ADDR + 1: trigger_loc <= wdata_i;
-                    BASE_ADDR + 2: larry_trigger_op <= wdata_i;
-                    BASE_ADDR + 3: larry_trigger_arg <= wdata_i;
-                    BASE_ADDR + 4: curly_trigger_op <= wdata_i;
-                    BASE_ADDR + 5: curly_trigger_arg <= wdata_i;
-                    BASE_ADDR + 6: moe_trigger_op <= wdata_i;
-                    BASE_ADDR + 7: moe_trigger_arg <= wdata_i;
-                    BASE_ADDR + 8: shemp_trigger_op <= wdata_i;
-                    BASE_ADDR + 9: shemp_trigger_arg <= wdata_i;
-                    default: wdata_o <= wdata_i; 
-                endcase
-            end
-        end
-
-        // operations to BRAM
-        else if( (addr_i >= BASE_ADDR + 10) && (addr_i <= BASE_ADDR + 10 + SAMPLE_DEPTH) ) begin
-        end
-    end
+        // output port
+        .addr_o(addr_o),
+        .wdata_o(wdata_o),
+        .rdata_o(rdata_o),
+        .rw_o(rw_o),
+        .valid_o(valid_o));
 endmodule
 
 `default_nettype wire

@@ -5,11 +5,11 @@ module fifo_tb();
 	logic clk;
 	logic rst;
 
-	logic [7:0] data_in;
-	logic input_ready;
+	logic [7:0] in;
+	logic in_valid;
 	
-	logic request_output;
-	logic [7:0] data_out;
+	logic out_req;
+	logic [7:0] out;
 
 	logic [11:0] size;
 	logic empty;
@@ -17,13 +17,13 @@ module fifo_tb();
 
 	fifo uut (
 		.clk(clk),
-		.rst(rst),
+		.bram_rst(rst),
 	
-		.data_in(data_in),
-		.input_ready(input_ready),
+		.in(in),
+		.in_valid(in_valid),
 		
-		.request_output(request_output),
-		.data_out(data_out),
+		.out_req(out_req),
+		.out(out),
 
 		.size(size),
 		.empty(empty),
@@ -39,27 +39,27 @@ module fifo_tb();
     		$dumpvars(0, fifo_tb);
 		clk = 0;
 		rst = 1;
-		data_in = 0;
-		input_ready = 0;
-		request_output = 0;
+		in = 0;
+		in_valid = 0;
+		out_req = 0;
 		#10;
 		rst = 0;
 		#10;
 
 		// try and load some data, make sure counter increases
-		input_ready = 1;
+		in_valid = 1;
 
 		for(int i=0; i < 4097; i++) begin
-			data_in = i;
+			in = i;
 			#10;
 		end
 		
-		input_ready = 0;
+		in_valid = 0;
 
 		// try and read out said data
-		request_output = 1;
+		out_req = 1;
 		for(int i=0; i < 4097; i++) begin
-			$display("%h", data_out);
+			$display("%h", out);
 			#10;
 		end
 
