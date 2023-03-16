@@ -32,7 +32,7 @@ There's a few parameters that get configured here, including:
 
 ## Probes
 
-Probes are the signals read by the core. These are meant to be connected to your RTL design when you instantiate your generated copy of Manta. These can be given whatever name and width you like (within reason). You can have up to 256 probes in your design. 
+Probes are the signals read by the core. These are meant to be connected to your RTL design when you instantiate your generated copy of Manta. These can be given whatever name and width you like (within reason). You can have up to ~32k probes in your design. 
 
 ## Sample Depth
 
