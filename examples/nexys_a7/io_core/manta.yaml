@@ -1,0 +1,21 @@
+---
+cores:
+  my_io_core:
+    type: io 
+    
+    inputs:
+      picard: 1
+      data: 7
+      laforge: 10
+      troi: 1
+    
+    outputs:
+      kirk: 1
+      spock: 5
+      uhura: 3
+      chekov: 1
+
+uart:
+  port: "/dev/tty.usbserial-2102926963071"
+  baudrate: 115200
+  clock_freq: 100000000

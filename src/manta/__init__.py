@@ -109,6 +109,131 @@ class UARTInterface:
 
         .tx(tx));\n"""
 
+class IOCore:
+    def __init__(self, config, interface):
+        self.interface = interface
+
+        # make sure we have ports defined
+        assert ('inputs' in config) or ('outputs' in config), "No input or output ports specified."
+
+        # add inputs to core
+        address = 0
+        self.inputs = []
+        if 'inputs' in config:
+            for name, width in config["inputs"].items():
+                # make sure inputs are of reasonable width 
+                assert width > 0, f"Input {name} must have width greater than zero."
+                
+                self.inputs.append( {"name": name, "width": width, "address": address} )
+                self.max_rel_addr = address
+                address += 1 
+
+        # add outputs to core
+        self.outputs = []
+        if 'outputs' in config:
+            for name, width in config["outputs"].items():
+                # make sure inputs are of reasonable width 
+                assert width > 0, f"Output {name} must have width greater than zero." 
+        
+                self.outputs.append( {"name": name, "width": width, "address": address} )
+                self.max_rel_addr = address
+                address += 1
+
+    def hdl_inst(self):
+        hdl = f""
+        return hdl
+    
+    def hdl_def(self):
+
+        # generate declaration
+
+        # generate memory handling
+        read_case_statement_body = ""
+        for input in self.inputs:
+            name = input["name"]
+            width = input["width"]
+            address = input["address"]
+
+            read_case_statement_body += f"\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}}\n"
+
+        write_case_statement_body = ""
+        for output in self.outputs:
+            name = output["name"]
+            width = output["width"]
+            address = output["address"]
+
+            read_case_statement_body += f"\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}}\n"            
+
+            if width == 1:
+                write_case_statement_body += f"\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[0]\n"
+            else:
+                write_case_statement_body += f"\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[{width-1}:0]\n"
+
+        # remove trailing newline
+        read_case_statement_body = read_case_statement_body.rstrip()
+        write_case_statement_body = write_case_statement_body.rstrip()
+
+        memory_handler_hdl = f"""
+always @(posedge clk) begin
+        addr_o <= addr_i;
+        wdata_o <= wdata_i;
+        rdata_o <= rdata_i;
+        rw_o <= rw_i;
+        valid_o <= valid_i;
+        rdata_o <= rdata_i;
+        
+
+        // check if address is valid
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_rel_addr})) begin
+
+            if(!rw_i) begin // reads
+                case (addr_i)
+{read_case_statement_body}
+                endcase
+            end
+
+            else begin // writes
+                case (addr_i)
+{write_case_statement_body}
+                endcase
+            end
+        end
+    end
+
+        """ 
+
+        hdl = f""
+        return hdl 
+
+    def hdl_top_level_ports(self):
+        probes = []
+
+        # generate inputs
+        for input in self.inputs:
+            name = input["name"]
+            width = input["width"]
+            
+            if width == 1:
+                probes.append(f"input wire {name}")
+            
+            else:
+                probes.append(f"input wire [{width-1}:0] {name}")
+
+        # generate outputs 
+        for output in self.outputs:
+            name = output["name"]
+            width = output["width"]
+
+            if width == 1:
+                probes.append(f"output reg {name}")
+            
+            else:
+                probes.append(f"output reg [{width-1}:0] {name}")
+        
+        print(probes) 
+
+        hdl = f""
+        return hdl
 
 class LUTRAMCore:
     def __init__(self, config, interface):
@@ -663,7 +788,7 @@ Supported commands:
         ), "Wrong number of arguments, only a config file and output file must both be specified."
 
         manta = Manta(argv[2])
-        manta.generate(argv[3])
+        manta.generate_hdl(argv[3])
 
     # run the specified core
     elif argv[1] == "run":

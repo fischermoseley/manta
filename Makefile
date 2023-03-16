@@ -8,7 +8,12 @@ lint:
 	python3 -m black src/manta/__init__.py
 	python3 -m black src/manta/__main__.py
 
-sim: bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tx_tb 
+sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tb uart_tx_tb 
+
+io_core_tb:
+	iverilog -g2012 -o sim.out test/io_core_tb.sv src/manta/io_core.v
+	vvp sim.out
+	rm sim.out
 
 logic_analyzer_tb:
 	iverilog -g2012 -o sim.out test/logic_analyzer_tb.sv src/manta/logic_analyzer.v src/manta/la_fsm.v src/manta/trigger_block.v src/manta/trigger.v src/manta/sample_mem.v src/manta/xilinx_true_dual_port_read_first_2_clock_ram.v

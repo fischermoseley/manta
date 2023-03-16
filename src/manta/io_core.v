@@ -31,8 +31,14 @@ module io_core(
     output reg valid_o
     );
 
-    parameter DEPTH = 8;
     parameter BASE_ADDR = 0;
+
+    initial begin
+        kirk = 0;
+        spock = 0;
+        uhura = 0;
+        chekov = 0;
+    end
 
     always @(posedge clk) begin
         addr_o <= addr_i;
@@ -44,7 +50,7 @@ module io_core(
         
 
         // check if address is valid
-        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 2)) begin
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 7)) begin
 
             if(!rw_i) begin // reads
                 case (addr_i)
