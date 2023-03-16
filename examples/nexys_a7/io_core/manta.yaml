@@ -1,19 +1,24 @@
 ---
 cores:
   my_io_core:
-    type: io 
-    
+    type: io
+
     inputs:
-      picard: 1
-      data: 7
-      laforge: 10
-      troi: 1
-    
+      btnu: 1
+      btnd: 1
+      btnl: 1
+      btnr: 1
+      btnc: 1
+      sw: 16
+
     outputs:
-      kirk: 1
-      spock: 5
-      uhura: 3
-      chekov: 1
+      led: 16
+      led16_b: 1
+      led16_g: 1
+      led16_r: 1
+      led17_b: 1
+      led17_g: 1
+      led17_r: 1
 
 uart:
   port: "/dev/tty.usbserial-2102926963071"

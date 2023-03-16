@@ -43,7 +43,7 @@ class UARTInterface:
         self.ser.read(bytes)
 
     def write(self, bytes):
-        self.ser.write(bytes)  
+        self.ser.write(bytes)
 
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but like as a string of verilog
@@ -82,12 +82,12 @@ class UARTInterface:
         .rw_o(),
         .valid_o());
         """
-    
+
     def tx_hdl_inst(self):
         return f"""
     bridge_tx btx (
         .clk(clk),
-        
+
         .rdata_i(),
         .rw_i(),
         .valid_i(),
@@ -99,7 +99,7 @@ class UARTInterface:
     logic utx_btx_ready;
     logic btx_utx_valid;
     logic [7:0] btx_utx_data;
-    
+
     uart_tx #(.CLOCKS_PER_BAUD({self.clocks_per_baud})) utx (
         .clk(clk),
 
@@ -121,40 +121,104 @@ class IOCore:
         self.inputs = []
         if 'inputs' in config:
             for name, width in config["inputs"].items():
-                # make sure inputs are of reasonable width 
+                # make sure inputs are of reasonable width
                 assert width > 0, f"Input {name} must have width greater than zero."
-                
+
                 self.inputs.append( {"name": name, "width": width, "address": address} )
                 self.max_rel_addr = address
-                address += 1 
+                address += 1
 
         # add outputs to core
         self.outputs = []
         if 'outputs' in config:
             for name, width in config["outputs"].items():
-                # make sure inputs are of reasonable width 
-                assert width > 0, f"Output {name} must have width greater than zero." 
-        
+                # make sure inputs are of reasonable width
+                assert width > 0, f"Output {name} must have width greater than zero."
+
                 self.outputs.append( {"name": name, "width": width, "address": address} )
                 self.max_rel_addr = address
                 address += 1
 
     def hdl_inst(self):
-        hdl = f""
-        return hdl
-    
+        inst_ports = ""
+        for input in self.inputs:
+            name = input["name"]
+            inst_ports += f".{name}({name}),\n    "
+
+        for output in self.outputs:
+            name = output["name"]
+            inst_ports += f".{name}({name}),\n    "
+
+        inst_ports = inst_ports.rstrip()
+
+        inst = f"""
+{self.name} {self.name}_inst(
+    .clk(clk),
+
+    // ports
+    {inst_ports}
+
+    // input port
+    .addr_i(),
+    .wdata_i(),
+    .rdata_i(),
+    .rw_i(),
+    .valid_i(),
+
+    // output port
+    .addr_o(),
+    .wdata_o(),
+    .rdata_o(),
+    .rw_o(),
+    .valid_o()
+    );
+"""
+        return inst
+
     def hdl_def(self):
 
         # generate declaration
 
+        top_level_ports = ',\n    '.join(self.hdl_top_level_ports())
+        top_level_ports += ','
+        declaration = f"""
+module {self.name} (
+    input wire clk,
+
+    // ports
+    {top_level_ports}
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o
+    );
+"""
+
         # generate memory handling
+
+        # TODO: clean this up, should just do all the probes at once
+        #       instead of splitting by input/output
         read_case_statement_body = ""
         for input in self.inputs:
             name = input["name"]
             width = input["width"]
             address = input["address"]
 
-            read_case_statement_body += f"\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}}\n"
+            if width == 16:
+                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {name};\n"
+            
+            else:
+                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}};\n"
 
         write_case_statement_body = ""
         for output in self.outputs:
@@ -162,18 +226,28 @@ class IOCore:
             width = output["width"]
             address = output["address"]
 
-            read_case_statement_body += f"\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}}\n"            
+            if width == 16:
+                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {name};\n"
+
+            else:
+                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}};\n"
+            
 
             if width == 1:
-                write_case_statement_body += f"\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[0]\n"
+                write_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[0];\n"
+            
+            elif width == 16:
+                write_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: {name} <= wdata_i;\n"
+            
             else:
-                write_case_statement_body += f"\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[{width-1}:0]\n"
+                write_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[{width-1}:0];\n"
 
         # remove trailing newline
         read_case_statement_body = read_case_statement_body.rstrip()
         write_case_statement_body = write_case_statement_body.rstrip()
 
         memory_handler_hdl = f"""
+parameter BASE_ADDR = 0;
 always @(posedge clk) begin
         addr_o <= addr_i;
         wdata_o <= wdata_i;
@@ -181,7 +255,7 @@ always @(posedge clk) begin
         rw_o <= rw_i;
         valid_o <= valid_i;
         rdata_o <= rdata_i;
-        
+
 
         // check if address is valid
         if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_rel_addr})) begin
@@ -199,11 +273,10 @@ always @(posedge clk) begin
             end
         end
     end
+"""
 
-        """ 
-
-        hdl = f""
-        return hdl 
+        hdl = declaration + memory_handler_hdl + "endmodule"
+        return hdl
 
     def hdl_top_level_ports(self):
         probes = []
@@ -212,28 +285,25 @@ always @(posedge clk) begin
         for input in self.inputs:
             name = input["name"]
             width = input["width"]
-            
+
             if width == 1:
                 probes.append(f"input wire {name}")
-            
+
             else:
                 probes.append(f"input wire [{width-1}:0] {name}")
 
-        # generate outputs 
+        # generate outputs
         for output in self.outputs:
             name = output["name"]
             width = output["width"]
 
             if width == 1:
                 probes.append(f"output reg {name}")
-            
+
             else:
                 probes.append(f"output reg [{width-1}:0] {name}")
-        
-        print(probes) 
 
-        hdl = f""
-        return hdl
+        return probes
 
 class LUTRAMCore:
     def __init__(self, config, interface):
@@ -241,7 +311,7 @@ class LUTRAMCore:
 
         assert "size" in config, "Size not specified for LUT RAM core."
         self.size = config["size"]
-    
+
     def hdl_inst(self):
         hdl = f"""
     lut_ram #(.DEPTH({self.size})) {self.name} (
@@ -258,7 +328,7 @@ class LUTRAMCore:
         .rdata_o(),
         .rw_o(),
         .valid_o());\n"""
-    
+
         return hdl
 
     def hdl_def(self):
@@ -292,13 +362,13 @@ class LogicAnalyzerCore:
         assert "triggers" in config, "No triggers found."
         assert len(config["triggers"]) > 0, "Must specify at least one trigger."
         self.triggers = config["triggers"]
-    
+
     def hdl_inst(self):
         ports = []
 
         ports = [f".{name}({name})," for name in self.probes.keys()]
         ports = "\n\t\t".join(ports)
-        
+
         hdl = f"""
     la_core {self.name} (
         .clk(clk),
@@ -310,13 +380,13 @@ class LogicAnalyzerCore:
         .valid_i(),
 
         {ports}
-        
+
         .addr_o(),
         .wdata_o(),
         .rdata_o(),
         .rw_o(),
         .valid_o());\n"""
-    
+
         return hdl
 
     def run(self):
@@ -428,14 +498,14 @@ class LogicAnalyzerCore:
 
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but as a list of verilog ports
-        
+
         ports = []
         for name, width in self.probes.items():
             if width == 1:
                 ports.append(f"input wire {name}")
             else:
                 ports.append(f"input wire [{width-1}:0] {name}")
-            
+
         return ports
 
 class Manta:
@@ -466,7 +536,7 @@ class Manta:
 
             elif core["type"] == "io":
                 new_core = IOCore(core, self.interface)
-            
+
             elif core["type"] == "lut_ram":
                 new_core = LUTRAMCore(core, self.interface)
 
@@ -506,7 +576,7 @@ class Manta:
 
         # make pairwise cores
         core_pairs = [(self.cores[i - 1], self.cores[i]) for i in range(1, len(self.cores))]
-        
+
         conns = []
         for core_pair in core_pairs:
             src = core_pair[0].name
@@ -518,7 +588,7 @@ class Manta:
             hdl += f"\treg {src}_{dst}_rw;\n"
             hdl += f"\treg {src}_{dst}_valid;\n"
             conns.append(hdl)
-        
+
         return conns
 
     def generate_instances(self):
@@ -537,20 +607,20 @@ class Manta:
             else:
                 src_name = self.cores[i-1].name
                 hdl = hdl.replace(".rdata_i()", f".rdata_i({src_name}_{core.name}_rdata)")
-            
+
             hdl = hdl.replace(".addr_i()", f".addr_i({src_name}_{core.name}_addr)")
             hdl = hdl.replace(".wdata_i()", f".wdata_i({src_name}_{core.name}_wdata)")
             hdl = hdl.replace(".rw_i()", f".rw_i({src_name}_{core.name}_rw)")
             hdl = hdl.replace(".valid_i()", f".valid_i({src_name}_{core.name}_valid)")
-            
-            
 
-            # connect output 
+
+
+            # connect output
             if (i < len(self.cores)-1):
                 dst_name = self.cores[i+1]
                 hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst_name}_addr)")
                 hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst_name}_wdata)")
-            
+
             else:
                 dst_name = "btx"
 
@@ -559,7 +629,7 @@ class Manta:
             hdl = hdl.replace(".valid_o()", f".valid_o({core.name}_{dst_name}_valid)")
 
             insts.append(hdl)
-        
+
         return insts
 
     def generate_core_chain(self):
@@ -571,7 +641,7 @@ class Manta:
 
             if (i != len(insts)-1):
                 core_chain.append(conns[i])
-        
+
         return '\n'.join(core_chain)
 
     def generate_header(self):
@@ -603,7 +673,7 @@ Provided under a GNU GPLv3 license. Go wild.
             ports = [f"    {port},\n" for port in core.hdl_top_level_ports()]
             ports = "".join(ports)
             core_chain_ports.append(ports)
-        
+
         core_chain_ports = "\n".join(core_chain_ports)
 
         ports = interface_ports + core_chain_ports
@@ -612,8 +682,6 @@ Provided under a GNU GPLv3 license. Go wild.
         ports = ports.rstrip()
         if ports[-1] == ",":
             ports = ports[:-1]
-
-        print(ports)
 
         return f"""
 module manta (
@@ -637,7 +705,7 @@ module manta (
     reg [15:0] brx_{self.cores[0].name}_wdata;
     reg brx_{self.cores[0].name}_rw;
     reg brx_{self.cores[0].name}_valid;\n"""
-        
+
         return interface_rx_inst + interface_rx_conn
 
     def generate_interface_tx(self):
@@ -655,12 +723,12 @@ module manta (
         interface_tx_inst = interface_tx_inst.replace("rdata_i()", f"rdata_i({self.cores[0].name}_btx_rdata)")
         interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_i({self.cores[0].name}_btx_rw)")
         interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_i({self.cores[0].name}_btx_valid)")
-        
+
         return interface_tx_conn + interface_tx_inst
 
     def generate_footer(self):
-        return """endmodule\n""" 
-    
+        return """endmodule\n"""
+
     def generate_module_defs(self):
         # aggregate module definitions and remove duplicates
         module_defs_with_dups = [self.interface.rx_hdl_def()] + [core.hdl_def() for core in self.cores] + [self.interface.tx_hdl_def()]
@@ -673,22 +741,22 @@ module manta (
     def generate_hdl(self, output_filepath):
         """
         This function generates manta.v, which has the following anatomy:
-        - Header - contains a little blurb about when and who generated the file 
+        - Header - contains a little blurb about when and who generated the file
         - Top-Level Module - the actual definition of module manta
-            - Declaration - contains `module manta` and top-level ports 
+            - Declaration - contains `module manta` and top-level ports
                             that constitutent cores need access to
             - Interface RX - the modules needed to bring whatever interface the user
                              selected onto the bus. For UART, this is just an instance
                              of uart_rx and bridge_rx.
             - Core Chain - the chain of cores specified by the user. This follows
                            a sequence of:
-                - Core Instance - HDL specifying an instance of the core. 
+                - Core Instance - HDL specifying an instance of the core.
                 - Core Connection - HDL specifying the registers that connect one
                                     core to the next.
-                - Core Instance 
+                - Core Instance
                 - Core Connection
                 ....
-                
+
                 This repeats for however many cores the user specified.
 
             - Interface TX - the modules needed to bring the bus out to whatever
@@ -697,7 +765,7 @@ module manta (
             - Footer - just the 'endmodule' keyword.
 
         - Module Definitions - all the source for the modules instantiated in the
-                               top-level module. 
+                               top-level module.
         """
 
         # generate header
@@ -707,11 +775,11 @@ module manta (
         declar = self.generate_declaration()
 
         # generate interface_rx
-        interface_rx = self.generate_interface_rx() 
-        
-        # generate core chain 
+        interface_rx = self.generate_interface_rx()
+
+        # generate core chain
         core_chain = self.generate_core_chain()
-        
+
         # generate interface_tx
         interface_tx = self.generate_interface_tx()
 
@@ -720,7 +788,7 @@ module manta (
 
         # generate module definitions
         module_defs = self.generate_module_defs()
-        
+
         # assemble all the parts
         hdl = header + declar + interface_rx + core_chain + interface_tx + footer
         hdl += "\n /* ---- Module Definitions ----  */\n"
@@ -734,7 +802,7 @@ module manta (
         hdl = "`default_nettype none\n" + "`timescale 1ns/1ps\n" + hdl + "`default_nettype wire"
 
         with open(output_filepath, 'w') as f:
-            f.write(hdl)        
+            f.write(hdl)
 
 
 def main():

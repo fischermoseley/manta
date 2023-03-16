@@ -2,7 +2,7 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 14 Mar 2023 at 13:06:49 by fischerm
+This manta definition was generated on 16 Mar 2023 at 12:07:39 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
@@ -16,10 +16,19 @@ module manta (
     input wire rx,
     output reg tx,
 
-    input wire larry,
-    input wire curly,
-    input wire moe,
-    input wire [3:0] shemp);
+    input wire btnu,
+    input wire btnd,
+    input wire btnl,
+    input wire btnr,
+    input wire btnc,
+    input wire [15:0] sw,
+    output reg [15:0] led,
+    output reg led16_b,
+    output reg led16_g,
+    output reg led16_r,
+    output reg led17_b,
+    output reg led17_g,
+    output reg led17_r);
 
     rx_uart #(.CLOCKS_PER_BAUD(868)) urx (
         .i_clk(clk),
@@ -36,46 +45,59 @@ module manta (
         .rx_data(urx_brx_axid),
         .rx_valid(urx_brx_axiv),
 
-        .addr_o(brx_my_logic_analyzer_addr),
-        .wdata_o(brx_my_logic_analyzer_wdata),
-        .rw_o(brx_my_logic_analyzer_rw),
-        .valid_o(brx_my_logic_analyzer_valid));
+        .addr_o(brx_my_io_core_addr),
+        .wdata_o(brx_my_io_core_wdata),
+        .rw_o(brx_my_io_core_rw),
+        .valid_o(brx_my_io_core_valid));
         
-    reg [15:0] brx_my_logic_analyzer_addr;
-    reg [15:0] brx_my_logic_analyzer_wdata;
-    reg brx_my_logic_analyzer_rw;
-    reg brx_my_logic_analyzer_valid;
+    reg [15:0] brx_my_io_core_addr;
+    reg [15:0] brx_my_io_core_wdata;
+    reg brx_my_io_core_rw;
+    reg brx_my_io_core_valid;
 
-    la_core my_logic_analyzer (
-        .clk(clk),
+my_io_core my_io_core_inst(
+    .clk(clk),
 
-        .addr_i(brx_my_logic_analyzer_addr),
-        .wdata_i(brx_my_logic_analyzer_wdata),
-        .rdata_i(),
-        .rw_i(brx_my_logic_analyzer_rw),
-        .valid_i(brx_my_logic_analyzer_valid),
+    // ports
+    .btnu(btnu),
+    .btnd(btnd),
+    .btnl(btnl),
+    .btnr(btnr),
+    .btnc(btnc),
+    .sw(sw),
+    .led(led),
+    .led16_b(led16_b),
+    .led16_g(led16_g),
+    .led16_r(led16_r),
+    .led17_b(led17_b),
+    .led17_g(led17_g),
+    .led17_r(led17_r),
 
-        .larry(larry),
-		.curly(curly),
-		.moe(moe),
-		.shemp(shemp),
-        
-        .addr_o(),
-        .wdata_o(),
-        .rdata_o(my_logic_analyzer_btx_rdata),
-        .rw_o(my_logic_analyzer_btx_rw),
-        .valid_o(my_logic_analyzer_btx_valid));
+    // input port
+    .addr_i(brx_my_io_core_addr),
+    .wdata_i(brx_my_io_core_wdata),
+    .rdata_i(),
+    .rw_i(brx_my_io_core_rw),
+    .valid_i(brx_my_io_core_valid),
 
-    reg [15:0] my_logic_analyzer_btx_rdata;
-    reg my_logic_analyzer_btx_rw;
-    reg my_logic_analyzer_btx_valid;
+    // output port
+    .addr_o(),
+    .wdata_o(),
+    .rdata_o(my_io_core_btx_rdata),
+    .rw_o(my_io_core_btx_rw),
+    .valid_o(my_io_core_btx_valid)
+    );
+
+    reg [15:0] my_io_core_btx_rdata;
+    reg my_io_core_btx_rw;
+    reg my_io_core_btx_valid;
 
     bridge_tx btx (
         .clk(clk),
-        
-        .rdata_i(my_logic_analyzer_btx_rdata),
-        .rw_i(my_logic_analyzer_btx_rw),
-        .valid_i(my_logic_analyzer_btx_valid),
+
+        .rdata_i(my_io_core_btx_rdata),
+        .rw_i(my_io_core_btx_rw),
+        .valid_i(my_io_core_btx_valid),
 
         .ready_i(utx_btx_ready),
         .data_o(btx_utx_data),
@@ -84,7 +106,7 @@ module manta (
     logic utx_btx_ready;
     logic btx_utx_valid;
     logic [7:0] btx_utx_data;
-    
+
     uart_tx #(.CLOCKS_PER_BAUD(868)) utx (
         .clk(clk),
 
@@ -348,6 +370,84 @@ end
 endmodule
 
 
+module my_io_core (
+    input wire clk,
+
+    // ports
+    input wire btnu,
+    input wire btnd,
+    input wire btnl,
+    input wire btnr,
+    input wire btnc,
+    input wire [15:0] sw,
+    output reg [15:0] led,
+    output reg led16_b,
+    output reg led16_g,
+    output reg led16_r,
+    output reg led17_b,
+    output reg led17_g,
+    output reg led17_r,
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o
+    );
+
+parameter BASE_ADDR = 0;
+always @(posedge clk) begin
+        addr_o <= addr_i;
+        wdata_o <= wdata_i;
+        rdata_o <= rdata_i;
+        rw_o <= rw_i;
+        valid_o <= valid_i;
+        rdata_o <= rdata_i;
+
+
+        // check if address is valid
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 12)) begin
+
+            if(!rw_i) begin // reads
+                case (addr_i)
+					BASE_ADDR + 0: rdata_o <= {15'b0, btnu};
+					BASE_ADDR + 1: rdata_o <= {15'b0, btnd};
+					BASE_ADDR + 2: rdata_o <= {15'b0, btnl};
+					BASE_ADDR + 3: rdata_o <= {15'b0, btnr};
+					BASE_ADDR + 4: rdata_o <= {15'b0, btnc};
+					BASE_ADDR + 5: rdata_o <= sw;
+					BASE_ADDR + 6: rdata_o <= led;
+					BASE_ADDR + 7: rdata_o <= {15'b0, led16_b};
+					BASE_ADDR + 8: rdata_o <= {15'b0, led16_g};
+					BASE_ADDR + 9: rdata_o <= {15'b0, led16_r};
+					BASE_ADDR + 10: rdata_o <= {15'b0, led17_b};
+					BASE_ADDR + 11: rdata_o <= {15'b0, led17_g};
+					BASE_ADDR + 12: rdata_o <= {15'b0, led17_r};
+                endcase
+            end
+
+            else begin // writes
+                case (addr_i)
+					BASE_ADDR + 6: led <= wdata_i;
+					BASE_ADDR + 7: led16_b <= wdata_i[0];
+					BASE_ADDR + 8: led16_g <= wdata_i[0];
+					BASE_ADDR + 9: led16_r <= wdata_i[0];
+					BASE_ADDR + 10: led17_b <= wdata_i[0];
+					BASE_ADDR + 11: led17_g <= wdata_i[0];
+					BASE_ADDR + 12: led17_r <= wdata_i[0];
+                endcase
+            end
+        end
+    end
+endmodule
 
 
 
