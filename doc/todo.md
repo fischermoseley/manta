@@ -1,5 +1,4 @@
 ## IO Core
-- add interface read/write to python
 - test examples that build
 - update IO core read/write memory handling to be less ugly
 - add logic for ports >16 bits in width
@@ -28,12 +27,6 @@
     - if we see a FT2232 on the device we should grab it
 
 ## Documentation
-- Move stuff out of readme.md and into the docs front page - right now information is duplicated
-- Write out what technologies are being used here (iverilog for sim, gtkwave for vcd, makefile for simulation/lint/pushing to pypi, github actions for automated test and building the doc site, python for autogeneration, verilator for lint. for docs, mkdoc-material for the site, wavedrom for timing diagrams and draw.io for block diagrams)
-- Write out where stuff is being stored - `test/` contains all the systemverilog testbenches, `src/manta` contains all verilog and python needed to generate and run the cores, `doc/` contains the documentation site source files, `.github/` contains the github actions config, `examples/` is exactly what it sounds like
-
-- Write out the anatomy of manta.v and how `Manta` generates that
-- Write out what methods need to be implemented for Manta.generate_hdl() to actually be able to pick up on the cores
 - Write out what bus transactions look like and how messages get passed. probably going to need wavedrom for this.
 
 ## Testing

@@ -44,6 +44,28 @@ class UARTInterface:
 
     def write(self, bytes):
         self.ser.write(bytes)
+    
+    def read_register(self, addr):
+        # request from the bus
+        addr_hex = hex(addr).split("0x")[-1] # TODO: turn this into format()
+        request = f"M{addr_hex}\r\n".encode('ascii')
+        self.write(request)
+
+        # read and parse the response
+        response = self.read(7)
+        assert response[0] == 'M'.encode('ascii'), "Bad message recieved, incorrect preamble."
+        assert response[-1] == '\n'.encode('ascii'), "Bad message received, incorrect EOL."
+        assert response[-2] == '\r'.encode('ascii'), "Bad message received, incorrect EOL."
+        assert len(response) == 7, f"Wrong number of bytes received, expecting 7 but got {len(response)}."
+        
+        return int(response[1:4].decode('ascii'))
+
+    def write_register(self, addr, data):
+        addr_hex = hex(addr).split("0x")[-1] # TODO: turn this into format()
+        data_hex = hex(data).split("0x")[-1] 
+
+        msg = f"M{addr_hex}{data_hex}\r\n".encode('ascii')
+        self.write(msg)
 
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but like as a string of verilog
@@ -138,6 +160,48 @@ class IOCore:
                 self.outputs.append( {"name": name, "width": width, "address": address} )
                 self.max_rel_addr = address
                 address += 1
+
+    def set(self, probe, data):
+        # check that probe actually exists
+        assert (probe in self.inputs) or (probe in self.outputs), "Probe {probe} not found."
+
+        if probe in self.inputs:
+            probe_def = self.inputs[probe]
+        
+        elif probe in self.outputs:
+            probe_def = self.outputs[probe]
+
+
+        # check that value is reasonable
+        # (should be an integer between 0 and 2^width - 1)
+
+        # send message
+        addr = probe_def["address"] + self.base_addr
+
+
+        assert isinstance(data, int), "Data must be an integer."
+        if data > 0:
+            assert data <= (2**probe_def["width"]) - 1, f"Unsigned value too large for probe of width {probe_def['width']}"
+
+        elif data < 0:
+            assert data >= -(2**(probe_def["width"]-1))-1, f"Signed value too large for probe of width {probe_def['width']}"
+            assert data <= (2**(probe_def["width"]-1))-1, f"Signed value too large for probe of width {probe_def['width']}"
+
+        self.interface.write_register(addr, data)
+ 
+    
+    def get(self, probe):
+        # check that probe actually exists
+        assert (probe in self.inputs) or (probe in self.outputs), "Probe {probe} not found."
+
+        if probe in self.inputs:
+            probe_def = self.inputs[probe]
+        
+        elif probe in self.outputs:
+            probe_def = self.outputs[probe]
+
+        addr = self.base_addr + probe_def["address"]
+        return self.interface.read_register(addr)
 
     def hdl_inst(self):
         inst_ports = ""
@@ -739,35 +803,6 @@ module manta (
 
 
     def generate_hdl(self, output_filepath):
-        """
-        This function generates manta.v, which has the following anatomy:
-        - Header - contains a little blurb about when and who generated the file
-        - Top-Level Module - the actual definition of module manta
-            - Declaration - contains `module manta` and top-level ports
-                            that constitutent cores need access to
-            - Interface RX - the modules needed to bring whatever interface the user
-                             selected onto the bus. For UART, this is just an instance
-                             of uart_rx and bridge_rx.
-            - Core Chain - the chain of cores specified by the user. This follows
-                           a sequence of:
-                - Core Instance - HDL specifying an instance of the core.
-                - Core Connection - HDL specifying the registers that connect one
-                                    core to the next.
-                - Core Instance
-                - Core Connection
-                ....
-
-                This repeats for however many cores the user specified.
-
-            - Interface TX - the modules needed to bring the bus out to whatever
-                             interface the user selected. For UART, this is just
-                             an instance of bridge_tx and uart_tx.
-            - Footer - just the 'endmodule' keyword.
-
-        - Module Definitions - all the source for the modules instantiated in the
-                               top-level module.
-        """
-
         # generate header
         header = self.generate_header()
 

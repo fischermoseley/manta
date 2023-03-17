@@ -9,4 +9,5 @@ Manta is a tool for debugging FPGA designs over an interface like UART or Ethern
 
 Manta is written in Python, and generates Verilog-2001 HDL. It's cross-platform, and its only dependencies are pySerial and pyYAML.
 
-For more information check out the docs at [https://fischermoseley.github.io/manta](https://fischermoseley.github.io/manta)
+For more information check out the docs:
+[https://fischermoseley.github.io/manta](https://fischermoseley.github.io/manta)
