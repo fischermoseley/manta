@@ -131,91 +131,80 @@ class UARTInterface:
 
         .tx(tx));\n"""
 
+class IOCoreProbe:
+    def __init__(self, name, width, direction, base_addr, interface):
+        self.name = name 
+        self.width = width
+        self.direction = direction
+        self.base_addr = base_addr
+        self.interface = interface
+
+    def set(self, data):
+        # check that value is within range for the width of the probe
+        assert isinstance(data, int), "Data must be an integer."
+        if data > 0:
+            assert data <= (2**self.width) - 1, f"Unsigned value too large for probe of width {self.width}"
+
+        elif data < 0:
+            assert data >= -(2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
+            assert data <= (2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
+
+        self.interface.write_register(self.base_addr, data)
+ 
+    def get(self, probe):
+        return self.interface.read_register(self.base_addr)
+
 class IOCore:
-    def __init__(self, config, interface):
+    def __init__(self, config, name, base_addr, interface):
+        self.name = name
+        self.base_addr = base_addr
         self.interface = interface
 
         # make sure we have ports defined
         assert ('inputs' in config) or ('outputs' in config), "No input or output ports specified."
 
-        # add inputs to core
-        address = 0
-        self.inputs = []
+        # add input probes to core
+        self.probes = []
+        probe_base_addr = self.base_addr
         if 'inputs' in config:
-            for name, width in config["inputs"].items():
+           for name, width in config["inputs"].items():
                 # make sure inputs are of reasonable width
-                assert width > 0, f"Input {name} must have width greater than zero."
+                assert isinstance(width, int), f"Probe {name} must have integer width."
+                assert width > 0, f"Probe {name} must have positive width."
 
-                self.inputs.append( {"name": name, "width": width, "address": address} )
-                self.max_rel_addr = address
-                address += 1
+                probe = IOCoreProbe(name, width, "input", probe_base_addr, self.interface)
+                
+                # add friendly name, so users can do Manta.my_io_core.my_probe.set() for example
+                setattr(self, name, probe) 
+                self.probes.append(probe)
 
-        # add outputs to core
-        self.outputs = []
+                self.max_probe_addr = probe_base_addr
+                probe_base_addr += 1 
+
+        # add output probes to core
         if 'outputs' in config:
             for name, width in config["outputs"].items():
                 # make sure inputs are of reasonable width
-                assert width > 0, f"Output {name} must have width greater than zero."
+                assert isinstance(width, int), f"Probe {name} must have integer width."
+                assert width > 0, f"Probe {name} must have positive width."
+                
+                probe = IOCoreProbe(name, width, "output", probe_base_addr, self.interface)
+                
+                # add friendly name, so users can do Manta.my_io_core.my_probe.set() for example
+                setattr(self, name, probe) 
+                self.probes.append(probe)
 
-                self.outputs.append( {"name": name, "width": width, "address": address} )
-                self.max_rel_addr = address
-                address += 1
+                self.max_probe_addr = probe_base_addr 
+                probe_base_addr += 1 
 
-    def set(self, probe, data):
-        # check that probe actually exists
-        assert (probe in self.inputs) or (probe in self.outputs), "Probe {probe} not found."
-
-        if probe in self.inputs:
-            probe_def = self.inputs[probe]
-        
-        elif probe in self.outputs:
-            probe_def = self.outputs[probe]
-
-
-        # check that value is reasonable
-        # (should be an integer between 0 and 2^width - 1)
-
-        # send message
-        addr = probe_def["address"] + self.base_addr
-
-
-        assert isinstance(data, int), "Data must be an integer."
-        if data > 0:
-            assert data <= (2**probe_def["width"]) - 1, f"Unsigned value too large for probe of width {probe_def['width']}"
-
-        elif data < 0:
-            assert data >= -(2**(probe_def["width"]-1))-1, f"Signed value too large for probe of width {probe_def['width']}"
-            assert data <= (2**(probe_def["width"]-1))-1, f"Signed value too large for probe of width {probe_def['width']}"
-
-        self.interface.write_register(addr, data)
- 
-    
-    def get(self, probe):
-        # check that probe actually exists
-        assert (probe in self.inputs) or (probe in self.outputs), "Probe {probe} not found."
-
-        if probe in self.inputs:
-            probe_def = self.inputs[probe]
-        
-        elif probe in self.outputs:
-            probe_def = self.outputs[probe]
-
-        addr = self.base_addr + probe_def["address"]
-        return self.interface.read_register(addr)
 
     def hdl_inst(self):
-        inst_ports = ""
-        for input in self.inputs:
-            name = input["name"]
-            inst_ports += f".{name}({name}),\n    "
-
-        for output in self.outputs:
-            name = output["name"]
-            inst_ports += f".{name}({name}),\n    "
-
+        # TODO: make this a string comprehension
+        inst_ports = [f".{probe.name}({probe.name}),\n    " for probe in self.probes]
+        inst_ports = "".join(inst_ports)
         inst_ports = inst_ports.rstrip()
 
-        inst = f"""
+        return f"""
 {self.name} {self.name}_inst(
     .clk(clk),
 
@@ -237,12 +226,9 @@ class IOCore:
     .valid_o()
     );
 """
-        return inst
 
     def hdl_def(self):
-
         # generate declaration
-
         top_level_ports = ',\n    '.join(self.hdl_top_level_ports())
         top_level_ports += ','
         declaration = f"""
@@ -269,43 +255,29 @@ module {self.name} (
 """
 
         # generate memory handling
-
-        # TODO: clean this up, should just do all the probes at once
-        #       instead of splitting by input/output
         read_case_statement_body = ""
-        for input in self.inputs:
-            name = input["name"]
-            width = input["width"]
-            address = input["address"]
-
-            if width == 16:
-                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {name};\n"
-            
-            else:
-                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}};\n"
-
         write_case_statement_body = ""
-        for output in self.outputs:
-            name = output["name"]
-            width = output["width"]
-            address = output["address"]
+        for probe in self.probes:
 
-            if width == 16:
-                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {name};\n"
-
-            else:
-                read_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: rdata_o <= {{{16-width}'b0, {name}}};\n"
-            
-
-            if width == 1:
-                write_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[0];\n"
-            
-            elif width == 16:
-                write_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: {name} <= wdata_i;\n"
+            # add to read block
+            if probe.width == 16:
+                read_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: rdata_o <= {probe.name};\n"
             
             else:
-                write_case_statement_body += f"\t\t\t\t\tBASE_ADDR + {address}: {name} <= wdata_i[{width-1}:0];\n"
+                read_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: rdata_o <= {{{16-probe.width}'b0, {probe.name}}};\n"
 
+
+            # if output, add to write block
+            if probe.direction == "output":
+                if probe.width == 1:
+                    write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i[0];\n"
+                
+                elif probe.width == 16:
+                    write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i;\n"
+                
+                else:
+                    write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i[{probe.width-1}:0];\n"
+        
         # remove trailing newline
         read_case_statement_body = read_case_statement_body.rstrip()
         write_case_statement_body = write_case_statement_body.rstrip()
@@ -322,7 +294,7 @@ always @(posedge clk) begin
 
 
         // check if address is valid
-        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_rel_addr})) begin
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_probe_addr})) begin
 
             if(!rw_i) begin // reads
                 case (addr_i)
@@ -343,34 +315,18 @@ always @(posedge clk) begin
         return hdl
 
     def hdl_top_level_ports(self):
-        probes = []
-
-        # generate inputs
-        for input in self.inputs:
-            name = input["name"]
-            width = input["width"]
-
-            if width == 1:
-                probes.append(f"input wire {name}")
-
-            else:
-                probes.append(f"input wire [{width-1}:0] {name}")
-
-        # generate outputs
-        for output in self.outputs:
-            name = output["name"]
-            width = output["width"]
-
-            if width == 1:
-                probes.append(f"output reg {name}")
-
-            else:
-                probes.append(f"output reg [{width-1}:0] {name}")
-
-        return probes
+        ports = []
+        for probe in self.probes:
+            net_type = "input wire " if probe.direction == "input" else "output reg "
+            name_def = probe.name if probe.width == 1 else f"[{probe.width-1}:0] {probe.name}"
+            ports.append(net_type + name_def)
+        
+        return ports
 
 class LUTRAMCore:
-    def __init__(self, config, interface):
+    def __init__(self, config, name, base_addr, interface):
+        self.name = name
+        self.base_addr = base_addr
         self.interface = interface
 
         assert "size" in config, "Size not specified for LUT RAM core."
@@ -404,7 +360,9 @@ class LUTRAMCore:
         return []
 
 class LogicAnalyzerCore:
-    def __init__(self, config, interface):
+    def __init__(self, config, name, base_addr, interface):
+        self.name = name
+        self.base_addr = base_addr
         self.interface = interface
 
         # load config
@@ -587,6 +545,7 @@ class Manta:
         assert len(config["cores"]) > 0, "Must specify at least one core."
 
         # add cores to self
+        base_addr = 0 # TODO: implement address assignment
         self.cores = []
         for i, core_name in enumerate(config["cores"]):
             core = config["cores"][core_name]
@@ -596,19 +555,16 @@ class Manta:
 
             # add the core to ourself
             if core["type"] == "logic_analyzer":
-                new_core = LogicAnalyzerCore(core, self.interface)
+                new_core = LogicAnalyzerCore(core, core_name, base_addr, self.interface)
 
             elif core["type"] == "io":
-                new_core = IOCore(core, self.interface)
+                new_core = IOCore(core, core_name, base_addr, self.interface)
 
             elif core["type"] == "lut_ram":
-                new_core = LUTRAMCore(core, self.interface)
+                new_core = LUTRAMCore(core, core_name, base_addr, self.interface)
 
             else:
                 raise ValueError(f"Unrecognized core type specified for {core_name}.")
-
-            # TODO: update class defs so that we don't monkey-patch like this. this is not good. i am lazy
-            setattr(new_core, 'name', core_name)
 
             # add friendly name, so users can do Manta.my_logic_analyzer.read() for example
             setattr(self, core_name, new_core)

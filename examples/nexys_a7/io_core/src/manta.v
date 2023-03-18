@@ -2,7 +2,7 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 16 Mar 2023 at 12:07:39 by fischerm
+This manta definition was generated on 17 Mar 2023 at 20:02:55 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
@@ -418,31 +418,31 @@ always @(posedge clk) begin
 
             if(!rw_i) begin // reads
                 case (addr_i)
-					BASE_ADDR + 0: rdata_o <= {15'b0, btnu};
-					BASE_ADDR + 1: rdata_o <= {15'b0, btnd};
-					BASE_ADDR + 2: rdata_o <= {15'b0, btnl};
-					BASE_ADDR + 3: rdata_o <= {15'b0, btnr};
-					BASE_ADDR + 4: rdata_o <= {15'b0, btnc};
-					BASE_ADDR + 5: rdata_o <= sw;
-					BASE_ADDR + 6: rdata_o <= led;
-					BASE_ADDR + 7: rdata_o <= {15'b0, led16_b};
-					BASE_ADDR + 8: rdata_o <= {15'b0, led16_g};
-					BASE_ADDR + 9: rdata_o <= {15'b0, led16_r};
-					BASE_ADDR + 10: rdata_o <= {15'b0, led17_b};
-					BASE_ADDR + 11: rdata_o <= {15'b0, led17_g};
-					BASE_ADDR + 12: rdata_o <= {15'b0, led17_r};
+					0: rdata_o <= {15'b0, btnu};
+					1: rdata_o <= {15'b0, btnd};
+					2: rdata_o <= {15'b0, btnl};
+					3: rdata_o <= {15'b0, btnr};
+					4: rdata_o <= {15'b0, btnc};
+					5: rdata_o <= sw;
+					6: rdata_o <= led;
+					7: rdata_o <= {15'b0, led16_b};
+					8: rdata_o <= {15'b0, led16_g};
+					9: rdata_o <= {15'b0, led16_r};
+					10: rdata_o <= {15'b0, led17_b};
+					11: rdata_o <= {15'b0, led17_g};
+					12: rdata_o <= {15'b0, led17_r};
                 endcase
             end
 
             else begin // writes
                 case (addr_i)
-					BASE_ADDR + 6: led <= wdata_i;
-					BASE_ADDR + 7: led16_b <= wdata_i[0];
-					BASE_ADDR + 8: led16_g <= wdata_i[0];
-					BASE_ADDR + 9: led16_r <= wdata_i[0];
-					BASE_ADDR + 10: led17_b <= wdata_i[0];
-					BASE_ADDR + 11: led17_g <= wdata_i[0];
-					BASE_ADDR + 12: led17_r <= wdata_i[0];
+					6: led <= wdata_i;
+					7: led16_b <= wdata_i[0];
+					8: led16_g <= wdata_i[0];
+					9: led16_r <= wdata_i[0];
+					10: led17_b <= wdata_i[0];
+					11: led17_g <= wdata_i[0];
+					12: led17_r <= wdata_i[0];
                 endcase
             end
         end

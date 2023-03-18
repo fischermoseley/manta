@@ -1,6 +1,5 @@
 ## IO Core
 - test examples that build
-- update IO core read/write memory handling to be less ugly
 - add logic for ports >16 bits in width
 - clock domain crossing
 - figure out what happens for module naming - it's possible we could have two modules that have the same ports but have different names
@@ -21,6 +20,7 @@
 - write interface 
 
 ## Python API
+- implement global address assignment
 - find a better way of handling tabs
 - make finding a serial port possible even if no cores are configured
 - make autodetecting and automatically selecting a serial device possible
