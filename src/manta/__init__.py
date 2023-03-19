@@ -178,7 +178,7 @@ class IOCore:
                 setattr(self, name, probe) 
                 self.probes.append(probe)
 
-                self.max_probe_addr = probe_base_addr
+                self.max_addr = probe_base_addr
                 probe_base_addr += 1 
 
         # add output probes to core
@@ -194,7 +194,7 @@ class IOCore:
                 setattr(self, name, probe) 
                 self.probes.append(probe)
 
-                self.max_probe_addr = probe_base_addr 
+                self.max_addr = probe_base_addr 
                 probe_base_addr += 1 
 
 
@@ -294,7 +294,7 @@ always @(posedge clk) begin
 
 
         // check if address is valid
-        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_probe_addr})) begin
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_addr})) begin
 
             if(!rw_i) begin // reads
                 case (addr_i)
@@ -330,7 +330,11 @@ class LUTRAMCore:
         self.interface = interface
 
         assert "size" in config, "Size not specified for LUT RAM core."
+        assert config["size"] > 0, "LUT RAM must have positive size."
+        assert isinstance(config["size"], int), "LUT RAM must have integer size."        
         self.size = config["size"]
+
+        self.max_addr = self.base_addr + self.size - 1
 
     def hdl_inst(self):
         hdl = f"""
@@ -384,6 +388,10 @@ class LogicAnalyzerCore:
         assert "triggers" in config, "No triggers found."
         assert len(config["triggers"]) > 0, "Must specify at least one trigger."
         self.triggers = config["triggers"]
+
+        # need 3 addresses for configuration (state, current_loc, trigger_loc)
+        # and 2 address for each trigger (operation and argument)
+        self.max_addr = self.base_addr + 2 + (2*len(self.probes))
 
     def hdl_inst(self):
         ports = []
@@ -565,6 +573,9 @@ class Manta:
 
             else:
                 raise ValueError(f"Unrecognized core type specified for {core_name}.")
+            
+            # make the next core's base address start one address after the previous one's
+            base_addr = new_core.max_addr + 1
 
             # add friendly name, so users can do Manta.my_logic_analyzer.read() for example
             setattr(self, core_name, new_core)
