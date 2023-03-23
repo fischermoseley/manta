@@ -12,21 +12,21 @@ module top_level (
 	input wire uart_txd_in,
 	output logic uart_rxd_out
 	);
-	
-    manta manta (
+
+    manta manta_inst (
         .clk(clk),
 
         .rx(uart_txd_in),
         .tx(uart_rxd_out));
 
-    assign led = manta.brx_my_lut_ram_addr;
+    assign led = manta_inst.brx_my_lut_ram_addr;
 
     logic [6:0] cat;
 	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
     ssd ssd (
         .clk_in(clk),
         .rst_in(btnc),
-        .val_in( (manta.my_lut_ram_btx_rdata << 16) | (manta.brx_my_lut_ram_wdata) ),
+        .val_in( (manta_inst.my_lut_ram_btx_rdata << 16) | (manta_inst.brx_my_lut_ram_wdata) ),
         .cat_out(cat),
         .an_out(an));
 

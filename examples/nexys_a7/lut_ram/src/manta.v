@@ -2,12 +2,25 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 14 Mar 2023 at 13:06:49 by fischerm
+This manta definition was generated on 23 Mar 2023 at 18:12:05 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
 
 Provided under a GNU GPLv3 license. Go wild.
+*/
+
+/*
+
+// Here's an example instantiation of the Manta module you configured,
+// feel free to copy-paste this into your source!
+
+manta manta_inst (
+    .clk(clk),
+
+    .rx(rx),
+    .tx(tx));
+
 */
 
 module manta (
@@ -62,7 +75,7 @@ module manta (
 
     bridge_tx btx (
         .clk(clk),
-        
+
         .rdata_i(my_lut_ram_btx_rdata),
         .rw_i(my_lut_ram_btx_rw),
         .valid_i(my_lut_ram_btx_valid),
@@ -74,7 +87,7 @@ module manta (
     logic utx_btx_ready;
     logic btx_utx_valid;
     logic [7:0] btx_utx_data;
-    
+
     uart_tx #(.CLOCKS_PER_BAUD(868)) utx (
         .clk(clk),
 
