@@ -60,6 +60,9 @@ clean:
 	rm -rf dist/
 	rm -rf src/mantaray.egg-info
 
+serve_docs:
+	mkdocs serve
+
 total_loc:
 	find . -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.yml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
 

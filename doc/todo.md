@@ -1,3 +1,5 @@
+# ToDo
+
 ## IO Core
 - test examples that build
 - add logic for ports >16 bits in width
@@ -20,8 +22,6 @@
 - write interface 
 
 ## Python API
-- implement global address assignment
-- find a better way of handling tabs
 - make finding a serial port possible even if no cores are configured
 - make autodetecting and automatically selecting a serial device possible
     - if we see a FT2232 on the device we should grab it

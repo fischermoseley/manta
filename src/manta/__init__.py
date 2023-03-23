@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 version = "0.0.0"
+verbose = True
 
 
 class UARTInterface:
@@ -36,7 +37,6 @@ class UARTInterface:
 
     def open(self):
         import serial
-
         self.ser = serial.Serial(self.port, self.baudrate)
 
     def read(self, bytes):
@@ -44,28 +44,39 @@ class UARTInterface:
 
     def write(self, bytes):
         self.ser.write(bytes)
-    
+
     def read_register(self, addr):
         # request from the bus
         addr_hex = hex(addr).split("0x")[-1] # TODO: turn this into format()
         request = f"M{addr_hex}\r\n".encode('ascii')
-        self.write(request)
+
+        if verbose:
+            print(f"reading from {addr_hex} with message {request}")
+
+        self.write(request.encode('ascii'))
 
         # read and parse the response
         response = self.read(7)
+
+        if verbose:
+            print(f"response {response} received!")
+
         assert response[0] == 'M'.encode('ascii'), "Bad message recieved, incorrect preamble."
         assert response[-1] == '\n'.encode('ascii'), "Bad message received, incorrect EOL."
         assert response[-2] == '\r'.encode('ascii'), "Bad message received, incorrect EOL."
         assert len(response) == 7, f"Wrong number of bytes received, expecting 7 but got {len(response)}."
-        
+
         return int(response[1:4].decode('ascii'))
 
     def write_register(self, addr, data):
         addr_hex = hex(addr).split("0x")[-1] # TODO: turn this into format()
-        data_hex = hex(data).split("0x")[-1] 
+        data_hex = hex(data).split("0x")[-1]
+        msg = f"M{addr_hex}{data_hex}\r\n"
 
-        msg = f"M{addr_hex}{data_hex}\r\n".encode('ascii')
-        self.write(msg)
+        if verbose:
+            print(f"writing {data_hex} to {addr_hex} with message {msg}")
+
+        self.write(msg.encode('ascii'))
 
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but like as a string of verilog
@@ -133,7 +144,7 @@ class UARTInterface:
 
 class IOCoreProbe:
     def __init__(self, name, width, direction, base_addr, interface):
-        self.name = name 
+        self.name = name
         self.width = width
         self.direction = direction
         self.base_addr = base_addr
@@ -150,7 +161,7 @@ class IOCoreProbe:
             assert data <= (2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
 
         self.interface.write_register(self.base_addr, data)
- 
+
     def get(self, probe):
         return self.interface.read_register(self.base_addr)
 
@@ -173,13 +184,13 @@ class IOCore:
                 assert width > 0, f"Probe {name} must have positive width."
 
                 probe = IOCoreProbe(name, width, "input", probe_base_addr, self.interface)
-                
+
                 # add friendly name, so users can do Manta.my_io_core.my_probe.set() for example
-                setattr(self, name, probe) 
+                setattr(self, name, probe)
                 self.probes.append(probe)
 
                 self.max_addr = probe_base_addr
-                probe_base_addr += 1 
+                probe_base_addr += 1
 
         # add output probes to core
         if 'outputs' in config:
@@ -187,15 +198,15 @@ class IOCore:
                 # make sure inputs are of reasonable width
                 assert isinstance(width, int), f"Probe {name} must have integer width."
                 assert width > 0, f"Probe {name} must have positive width."
-                
+
                 probe = IOCoreProbe(name, width, "output", probe_base_addr, self.interface)
-                
+
                 # add friendly name, so users can do Manta.my_io_core.my_probe.set() for example
-                setattr(self, name, probe) 
+                setattr(self, name, probe)
                 self.probes.append(probe)
 
-                self.max_addr = probe_base_addr 
-                probe_base_addr += 1 
+                self.max_addr = probe_base_addr
+                probe_base_addr += 1
 
 
     def hdl_inst(self):
@@ -262,7 +273,7 @@ module {self.name} (
             # add to read block
             if probe.width == 16:
                 read_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: rdata_o <= {probe.name};\n"
-            
+
             else:
                 read_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: rdata_o <= {{{16-probe.width}'b0, {probe.name}}};\n"
 
@@ -271,13 +282,13 @@ module {self.name} (
             if probe.direction == "output":
                 if probe.width == 1:
                     write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i[0];\n"
-                
+
                 elif probe.width == 16:
                     write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i;\n"
-                
+
                 else:
                     write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i[{probe.width-1}:0];\n"
-        
+
         # remove trailing newline
         read_case_statement_body = read_case_statement_body.rstrip()
         write_case_statement_body = write_case_statement_body.rstrip()
@@ -320,7 +331,7 @@ always @(posedge clk) begin
             net_type = "input wire " if probe.direction == "input" else "output reg "
             name_def = probe.name if probe.width == 1 else f"[{probe.width-1}:0] {probe.name}"
             ports.append(net_type + name_def)
-        
+
         return ports
 
 class LUTRAMCore:
@@ -331,7 +342,7 @@ class LUTRAMCore:
 
         assert "size" in config, "Size not specified for LUT RAM core."
         assert config["size"] > 0, "LUT RAM must have positive size."
-        assert isinstance(config["size"], int), "LUT RAM must have integer size."        
+        assert isinstance(config["size"], int), "LUT RAM must have integer size."
         self.size = config["size"]
 
         self.max_addr = self.base_addr + self.size - 1
@@ -573,7 +584,7 @@ class Manta:
 
             else:
                 raise ValueError(f"Unrecognized core type specified for {core_name}.")
-            
+
             # make the next core's base address start one address after the previous one's
             base_addr = new_core.max_addr + 1
 
@@ -691,7 +702,7 @@ Provided under a GNU GPLv3 license. Go wild.
 */
 """
         return header
-    
+
     def generate_ex_inst(self):
         # this is a C-style block comment that contains an instantiation
         # of the configured manta instance - the idea is that a user
@@ -706,9 +717,9 @@ Provided under a GNU GPLv3 license. Go wild.
         interface_ports = self.interface.hdl_top_level_ports()
         interface_ports = [port.split(',')[0] for port in interface_ports]
         interface_ports = [port.split(' ')[-1] for port in interface_ports]
-        interface_ports = [f".{port}({port})" for port in interface_ports] 
+        interface_ports = [f".{port}({port})" for port in interface_ports]
         interface_ports = [f"    {port},\n" for port in interface_ports]
-        interface_ports = "".join(interface_ports) 
+        interface_ports = "".join(interface_ports)
 
         core_chain_ports = []
         for core in self.cores:
@@ -728,7 +739,7 @@ Provided under a GNU GPLv3 license. Go wild.
         ports = ports.rstrip()
         if ports[-1] == ",":
             ports = ports[:-1]
-        
+
         return f"""
 /*
 
