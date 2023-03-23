@@ -26,7 +26,7 @@ module top_level (
     ssd ssd (
         .clk_in(clk),
         .rst_in(btnc),
-        .val_in( (manta_inst.my_lut_ram_btx_rdata << 16) | (manta_inst.brx_my_lut_ram_wdata) ),
+        .val_in( {manta_inst.my_lut_ram_btx_rdata, manta_inst.brx_my_lut_ram_wdata} ),
         .cat_out(cat),
         .an_out(an));
 
