@@ -1,0 +1,1 @@
+# try to build manta instances from valid and invalid configuration files

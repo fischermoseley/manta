@@ -1,11 +1,8 @@
 # ToDo
 
 ## IO Core
-- test examples that build
 - add logic for ports >16 bits in width
 - clock domain crossing
-- figure out what happens for module naming - it's possible we could have two modules that have the same ports but have different names
-    - do we say that port names have to be globally unique? or do we allow something like `module_name_module_type_inst` for example
 
 ## Logic Analyzer Core
 - need to finish up simulations, those might get broken out into separate testbenches for each module
