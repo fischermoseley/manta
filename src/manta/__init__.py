@@ -7,9 +7,12 @@ version = "0.0.0"
 
 class UARTInterface:
     def __init__(self, config):
-        # Obtain port. No way to check if it's valid yet.
+        # Obtain port. Try to automatically detect port if "auto" is specified
         assert "port" in config, "No serial port provided to UART core."
+
         self.port = config["port"]
+        if config["port"] == "auto":
+            self.port = self.autodetect_port()
 
         # Check that clock frequency is provided and positive
         assert "clock_freq" in config, "Clock frequency not provided to UART core."
@@ -33,21 +36,50 @@ class UARTInterface:
             baudrate_error <= 5
         ), "Unable to match target baudrate - they differ by {baudrate_error}%"
 
+        # set verbosity
+        self.verbose = False
         if "verbose" in config:
             self.verbose = config["verbose"]
-        
-        else:
-            self.verbose = False
 
-    def open(self):
+        # open port
         import serial
         self.ser = serial.Serial(self.port, self.baudrate)
 
-    def read_register(self, addr):
-        # open the port if it's not already open
-        if not hasattr(self, "ser"):
-            self.open() 
+    def autodetect_port(self):
+        # TODO: clean all of this up - it's a little gross and inflexible
 
+        # as far as I know the FT2232 is the only chip used on the icestick/digilent boards, so just look for that
+        known_devices = [{
+            "name": "FT2232",
+            "vid": 0x403,
+            "pid": 0x6010
+        }]
+
+        import serial.tools.list_ports
+        recognized_devices = []
+        for port in serial.tools.list_ports.comports():
+            for device in known_devices:
+                if (port.vid == device["vid"]) and (port.pid == device["pid"]):
+                    recognized_devices.append(port)
+
+        assert len(recognized_devices) == 2, f"Expected to recognize two ports (one for bitstream upload over JTAG, another for UART). Instead recognized {len(recognized_devices)} ports. Which device to select is unknown."
+
+        largest_location_device = None
+        largest_location = 0
+        for device in recognized_devices:
+            location = device.hwid.split("LOCATION=")[-1]
+            location = location.replace("-","")
+            location = location.replace(":","")
+            location = location.replace(".","")
+            location = int(location)
+
+            if location > largest_location:
+                largest_location = location
+                largest_location_device = device
+
+        return largest_location_device.device
+
+    def read_register(self, addr):
         # request from the bus
         addr_str = '{:04X}'.format(addr)
         request = f"M{addr_str}\r\n".encode('ascii')
@@ -65,7 +97,7 @@ class UARTInterface:
         assert len(response) == 7, f"Wrong number of bytes received, expecting 7 but got {len(response)}."
 
         data = int(response[1:5], 16)
-        data_hex ='{:04X}'.format(data) 
+        data_hex ='{:04X}'.format(data)
 
 
         if self.verbose:
@@ -74,11 +106,8 @@ class UARTInterface:
         return data
 
     def write_register(self, addr, data):
-        # open the port if it's not already open
-        if not hasattr(self, "ser"):
-            self.open()
-
-        addr_str = '{:04X}'.format(addr) 
+        # request from the bus
+        addr_str = '{:04X}'.format(addr)
         data_str = '{:04X}'.format(data)
         request = f"M{addr_str}{data_str}\r\n"
 
@@ -385,7 +414,7 @@ class LUTRAMCore:
 
     def read(self, addr):
         return self.interface.read_register(addr + self.base_addr)
-    
+
     def write(self, addr, data):
         return self.interface.write_register(addr + self.base_addr, data)
 

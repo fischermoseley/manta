@@ -5,6 +5,6 @@ cores:
     size: 64 
 
 uart:
-  port: "/dev/ttyUSB1"
+  port: "auto"
   baudrate: 115200
   clock_freq: 100000000

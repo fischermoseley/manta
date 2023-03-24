@@ -21,6 +21,6 @@ cores:
       led17_r: 1
 
 uart:
-  port: "/dev/tty.usbserial-2102926963071"
+  port: "auto"
   baudrate: 115200
   clock_freq: 100000000
