@@ -46,38 +46,24 @@ class UARTInterface:
         self.ser = serial.Serial(self.port, self.baudrate)
 
     def autodetect_port(self):
-        # TODO: clean all of this up - it's a little gross and inflexible
-
         # as far as I know the FT2232 is the only chip used on the icestick/digilent boards, so just look for that
-        known_devices = [{
-            "name": "FT2232",
-            "vid": 0x403,
-            "pid": 0x6010
-        }]
-
         import serial.tools.list_ports
+
         recognized_devices = []
         for port in serial.tools.list_ports.comports():
-            for device in known_devices:
-                if (port.vid == device["vid"]) and (port.pid == device["pid"]):
-                    recognized_devices.append(port)
+            if (port.vid == 0x403) and (port.pid == 0x6010):
+                recognized_devices.append(port)     
+        
+        assert len(recognized_devices) == 2, f"Expected to see two serial ports for FT2232 device, but instead see {len(recognized_devices)}."
 
-        assert len(recognized_devices) == 2, f"Expected to recognize two ports (one for bitstream upload over JTAG, another for UART). Instead recognized {len(recognized_devices)} ports. Which device to select is unknown."
 
-        largest_location_device = None
-        largest_location = 0
-        for device in recognized_devices:
-            location = device.hwid.split("LOCATION=")[-1]
-            location = location.replace("-","")
-            location = location.replace(":","")
-            location = location.replace(".","")
-            location = int(location)
+        # board manufacturers seem to always make the 0th serial
+        # interface on the FT2232 be for programming over JTAG,
+        # and then the 1st to be for UART. as a result, we always
+        # grab the device with the larger location
 
-            if location > largest_location:
-                largest_location = location
-                largest_location_device = device
-
-        return largest_location_device.device
+        rd = recognized_devices
+        return rd[0].device if rd[0].location > rd[1].location else rd[1].device
 
     def read_register(self, addr):
         # request from the bus
@@ -608,7 +594,7 @@ class Manta:
         assert len(config["cores"]) > 0, "Must specify at least one core."
 
         # add cores to self
-        base_addr = 0 # TODO: implement address assignment
+        base_addr = 0
         self.cores = []
         for i, core_name in enumerate(config["cores"]):
             core = config["cores"][core_name]
@@ -938,20 +924,10 @@ def main():
 Supported commands:
     gen [config file]       generate the core specified in the config file
     run [config file]       run the core specified in the config file
-    terminal [config file]  present a minicom-like serial terminal with the UART settings in the config file
     ports                   list all available serial ports
     help, ray               display this splash screen (hehe...splash screen)
 """
         )
-
-    # open minicom-like serial terminal with given config
-    elif argv[1] == "terminal":
-        assert len(argv) == 3, "Not enough (or too many) config files specified."
-
-        # TODO: make this work with a looser config file - it should work as long as it has a uart definition
-        manta = Manta(argv[2])
-
-        raise NotImplementedError("Miniterm console is still under development!")
 
     # list available serial ports
     elif argv[1] == "ports":

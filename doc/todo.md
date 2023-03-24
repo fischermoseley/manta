@@ -21,11 +21,6 @@
 - write tests 
 - write interface 
 
-## Python API
-- make finding a serial port possible even if no cores are configured
-- make autodetecting and automatically selecting a serial device possible
-    - if we see a FT2232 on the device we should grab it
-
 ## Documentation
 - Write out what bus transactions look like and how messages get passed. probably going to need wavedrom for this.
 
