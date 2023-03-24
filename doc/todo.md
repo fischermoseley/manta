@@ -22,7 +22,7 @@
 - Write out what bus transactions look like and how messages get passed. probably going to need wavedrom for this.
 
 ## Testing
-- need to add tests for the python itself - does it recognize bad yaml files and produce the right errors when trying to build from them? are good manta files synthesizeable?
+- need to build out more tests for the python itself in test/api_gen
 - try doing literally anything on Windows lol
 
 ## Meta

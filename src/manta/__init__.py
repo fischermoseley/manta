@@ -54,15 +54,14 @@ class UARTInterface:
             if (port.vid == 0x403) and (port.pid == 0x6010):
                 recognized_devices.append(port)     
         
-        assert len(recognized_devices) == 2, f"Expected to see two serial ports for FT2232 device, but instead see {len(recognized_devices)}."
-
-
         # board manufacturers seem to always make the 0th serial
         # interface on the FT2232 be for programming over JTAG,
         # and then the 1st to be for UART. as a result, we always
         # grab the device with the larger location
 
         rd = recognized_devices
+        assert len(recognized_devices) == 2, f"Expected to see two serial ports for FT2232 device, but instead see {len(recognized_devices)}."
+        assert rd[0].serial_number == rd[1].serial_number, "Serial numbers should be the same on both FT2232 ports - probably somehow grabbed ports on two different devices."
         return rd[0].device if rd[0].location > rd[1].location else rd[1].device
 
     def read_register(self, addr):
@@ -936,8 +935,15 @@ Supported commands:
     elif argv[1] == "ports":
         import serial.tools.list_ports
 
-        for info in serial.tools.list_ports.comports():
-            print(info)
+        for port in serial.tools.list_ports.comports():
+            print(port)
+            print(' ->  vid: 0x{:04X}'.format(port.vid))
+            print(' ->  pid: 0x{:04X}'.format(port.pid))
+            print(f" ->  ser: {port.serial_number}")
+            print(f" ->  loc: {port.location}")
+            print(f" -> mftr: {port.manufacturer}")
+            print(f" -> prod: {port.product}")
+            print(f" -> desc: {port.description}\n")
 
     # generate the specified configuration
     elif argv[1] == "gen":
