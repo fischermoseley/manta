@@ -53,7 +53,7 @@ module top_level (
 	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
     ssd ssd (
         .clk_in(clk),
-        .rst_in(cpu_resetn),
+        .rst_in(!cpu_resetn),
         .val_in( (manta.my_io_core_btx_rdata << 16) | (manta.brx_my_io_core_wdata) ),
         .cat_out(cat),
         .an_out(an));

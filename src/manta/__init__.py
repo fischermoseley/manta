@@ -175,6 +175,9 @@ class IOCoreProbe:
         self.interface = interface
 
     def set(self, data):
+        # make sure that we're an output probe
+        assert self.direction == "output", "Cannot set value of input port."
+
         # check that value is within range for the width of the probe
         assert isinstance(data, int), "Data must be an integer."
         if data > 0:
@@ -186,7 +189,7 @@ class IOCoreProbe:
 
         self.interface.write_register(self.base_addr, data)
 
-    def get(self, probe):
+    def get(self):
         return self.interface.read_register(self.base_addr)
 
 class IOCore:
