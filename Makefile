@@ -27,47 +27,47 @@ api_gen:
 func_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tb uart_tx_tb 
 
 io_core_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/io_core_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/io_core_tb.sv
 	vvp sim.out
 	rm sim.out
 
 logic_analyzer_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/logic_analyzer_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/logic_analyzer_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bit_fifo_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/bit_fifo_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/bit_fifo_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bridge_rx_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/bridge_rx_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/bridge_rx_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bridge_tx_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/bridge_tx_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/bridge_tx_tb.sv
 	vvp sim.out
 	rm sim.out
 
 fifo_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/fifo_tb.sv -y src/manta 
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/fifo_tb.sv 
 	vvp sim.out >> /dev/null # this one is noisy right now
 	rm sim.out
 
 lut_ram_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/lut_ram_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/lut_ram_tb.sv
 	vvp sim.out
 	rm sim.out
 
 uart_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/uart_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/uart_tb.sv
 	vvp sim.out
 	rm sim.out
 
 uart_tx_tb:
-	iverilog -g2012 -o sim.out test/hdl_tb/uart_tx_tb.sv -y src/manta
+	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/uart_tx_tb.sv
 	vvp sim.out
 	rm sim.out
 	
