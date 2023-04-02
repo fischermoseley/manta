@@ -8,6 +8,7 @@ module la_fsm(
     input wire [$clog2(SAMPLE_DEPTH):0] fifo_size,
     output reg fifo_acquire,
     output reg fifo_pop,
+    output reg fifo_clear,
 
     // input port
     input wire [15:0] addr_i,
@@ -28,10 +29,11 @@ module la_fsm(
 
     // state machine
     localparam IDLE = 0;
-    localparam MOVE_TO_POSITION = 1;
-    localparam IN_POSITION = 2;
-    localparam FILLING_BUFFER = 3;
-    localparam FILLED = 4;
+    localparam START_CAPTURE = 1;
+    localparam MOVE_TO_POSITION = 2;
+    localparam IN_POSITION = 3;
+    localparam FILLING_BUFFER = 4;
+    localparam FILLED = 5;
 
     reg [3:0] state;
     reg signed [15:0] trigger_loc;
@@ -76,7 +78,14 @@ module la_fsm(
             present_loc <= (trigger_loc < 0) ? trigger_loc : 0;
         end
 
+        else if(state == START_CAPTURE) begin
+            // perform whatever setup is needed before starting the next capture
+            fifo_clear <= 1;
+            state <= MOVE_TO_POSITION;
+        end
+
         else if(state == MOVE_TO_POSITION) begin
+            fifo_clear <= 0;
             // if trigger location is negative or zero,
             // then we're already in position
             if(trigger_loc <= 0) state <= IN_POSITION;

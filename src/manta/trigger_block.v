@@ -33,8 +33,8 @@ module trigger_block(
     // - each probe gets an operation and a compare register
     // - at the end we OR them all together. along with any custom probes the user specs
 
-    reg [3:0] larry_trigger_op;
-    reg larry_trigger_arg;
+    reg [3:0] larry_trigger_op = 0;
+    reg larry_trigger_arg = 0;
     reg larry_trig;
     trigger #(.INPUT_WIDTH(1)) larry_trigger(
         .clk(clk),
@@ -44,8 +44,8 @@ module trigger_block(
         .arg(larry_trigger_arg),
         .trig(larry_trig));
 
-    reg [3:0] curly_trigger_op;
-    reg curly_trigger_arg;
+    reg [3:0] curly_trigger_op = 0;
+    reg curly_trigger_arg = 0;
     reg curly_trig;
     trigger #(.INPUT_WIDTH(1)) curly_trigger(
         .clk(clk),
@@ -56,8 +56,8 @@ module trigger_block(
         .trig(curly_trig));
 
 
-    reg [3:0] moe_trigger_op;
-    reg moe_trigger_arg;
+    reg [3:0] moe_trigger_op = 0;
+    reg moe_trigger_arg = 0;
     reg moe_trig;
     trigger #(.INPUT_WIDTH(1)) moe_trigger(
         .clk(clk),
@@ -67,8 +67,8 @@ module trigger_block(
         .arg(moe_trigger_arg),
         .trig(moe_trig));
 
-    reg [3:0] shemp_trigger_op;
-    reg [3:0] shemp_trigger_arg;
+    reg [3:0] shemp_trigger_op = 0;
+    reg [3:0] shemp_trigger_arg = 0;
     reg shemp_trig;
     trigger #(.INPUT_WIDTH(4)) shemp_trigger(
         .clk(clk),
@@ -78,8 +78,7 @@ module trigger_block(
         .arg(shemp_trigger_arg),
         .trig(shemp_trig));
 
-    reg triggered;
-    assign triggered = larry_trig || curly_trig || moe_trig || shemp_trig;
+    assign trig = larry_trig || curly_trig || moe_trig || shemp_trig;
 
     // perform register operations
     always @(posedge clk) begin

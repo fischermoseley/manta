@@ -41,9 +41,10 @@ class UARTInterface:
         if "verbose" in config:
             self.verbose = config["verbose"]
 
-        # open port
-        import serial
-        self.ser = serial.Serial(self.port, self.baudrate)
+    def open_port_if_not_alredy_open(self):
+        if not hasattr(self, "ser"):
+            import serial
+            self.ser = serial.Serial(self.port, self.baudrate)
 
     def autodetect_port(self):
         # as far as I know the FT2232 is the only chip used on the icestick/digilent boards, so just look for that
@@ -65,6 +66,8 @@ class UARTInterface:
         return rd[0].device if rd[0].location > rd[1].location else rd[1].device
 
     def read_register(self, addr):
+        self.open_port_if_not_alredy_open()
+
         # request from the bus
         addr_str = '{:04X}'.format(addr)
         request = f"M{addr_str}\r\n".encode('ascii')
@@ -91,6 +94,8 @@ class UARTInterface:
         return data
 
     def write_register(self, addr, data):
+        self.open_port_if_not_alredy_open()
+
         # request from the bus
         addr_str = '{:04X}'.format(addr)
         data_str = '{:04X}'.format(data)

@@ -7,7 +7,8 @@ module sample_mem(
     // fifo
     input wire acquire,
     input wire pop,
-    output wire [AW:0] size,
+    output wire [BRAM_ADDR_WIDTH:0] size,
+    input wire clear,
 
     // probes
     input wire larry,
@@ -31,9 +32,10 @@ module sample_mem(
 
     parameter BASE_ADDR = 0;
     parameter SAMPLE_DEPTH = 0;
-
+    localparam BRAM_ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
+    
     // bus controller
-    reg [$clog2(SAMPLE_DEPTH):0] bram_read_addr;
+    reg [BRAM_ADDR_WIDTH-1:0] bram_read_addr;
     reg [15:0] bram_read_data;
     
     always @(*) begin
@@ -91,7 +93,7 @@ module sample_mem(
 		.rsta(1'b0),
 		.ena(1'b1),
 		.addra(bram_read_addr),
-		.dina(),
+		.dina(16'b0),
 		.wea(1'b0),
 		.regcea(1'b1),
 		.douta(bram_read_data),
@@ -100,24 +102,23 @@ module sample_mem(
 		.clkb(clk),
 		.rstb(1'b0),
 		.enb(1'b1),
-		.addrb(write_pointer),
-		.dinb({larry, curly, moe, shemp}),
+		.addrb(write_pointer[BRAM_ADDR_WIDTH-1:0]),
+		.dinb({9'b0, larry, curly, moe, shemp}),
 		.web(acquire),
 		.regceb(1'b1),
 		.doutb());
 
 
     // fifo
-	localparam AW = $clog2(SAMPLE_DEPTH);
-
-	reg [AW:0] write_pointer = 0;
-	reg [AW:0] read_pointer = 0;
+	reg [BRAM_ADDR_WIDTH:0] write_pointer = 0;
+	reg [BRAM_ADDR_WIDTH:0] read_pointer = 0;
 
 	assign size = write_pointer - read_pointer;
 
 	always @(posedge clk) begin
-		if (acquire) write_pointer <= write_pointer + 1'd1;
-	 	if (pop) read_pointer <= read_pointer + 1'd1;
+        if (clear) read_pointer <= write_pointer;
+		if (acquire && size < SAMPLE_DEPTH) write_pointer <= write_pointer + 1'd1;
+	 	if (pop && size > 0) read_pointer <= read_pointer + 1'd1;
 	end
 endmodule
 

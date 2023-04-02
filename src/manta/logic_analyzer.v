@@ -36,6 +36,7 @@ module logic_analyzer(
         .fifo_size(fifo_size),
         .fifo_acquire(fifo_acquire),
         .fifo_pop(fifo_pop),
+        .fifo_clear(fifo_clear),
 
         .addr_i(addr_i),
         .wdata_i(wdata_i),
@@ -59,6 +60,7 @@ module logic_analyzer(
     reg [$clog2(SAMPLE_DEPTH):0] fifo_size;
     reg fifo_acquire;
     reg fifo_pop;
+    reg fifo_clear;
      
 
     // trigger block
@@ -98,6 +100,7 @@ module logic_analyzer(
         .acquire(fifo_acquire),
         .pop(fifo_pop),
         .size(fifo_size),
+        .clear(fifo_clear),
 
         // probes
         .larry(larry),
