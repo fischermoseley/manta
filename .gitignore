@@ -7,11 +7,14 @@
 *.rpt
 *.bit
 
+# IceStorm output products
+*.bin
+
 # iVerilog output products
 *.vcd
 *.out
 
-# Python Packaging output
+# Python Packaging output products
 dist/
 *.egg-info
 __pycache__/
