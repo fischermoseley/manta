@@ -2,12 +2,27 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 14 Mar 2023 at 13:06:49 by fischerm
+This manta definition was generated on 02 Apr 2023 at 22:05:41 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
 
 Provided under a GNU GPLv3 license. Go wild.
+
+Here's an example instantiation of the Manta module you configured,
+feel free to copy-paste this into your source!
+
+manta manta_inst (
+    .clk(clk),
+
+    .rx(rx),
+    .tx(tx),
+
+    .larry(larry),
+    .curly(curly),
+    .moe(moe),
+    .shemp(shemp));
+
 */
 
 module manta (
@@ -46,7 +61,7 @@ module manta (
     reg brx_my_logic_analyzer_rw;
     reg brx_my_logic_analyzer_valid;
 
-    la_core my_logic_analyzer (
+    logic_analyzer #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) my_logic_analyzer (
         .clk(clk),
 
         .addr_i(brx_my_logic_analyzer_addr),
@@ -59,7 +74,7 @@ module manta (
 		.curly(curly),
 		.moe(moe),
 		.shemp(shemp),
-        
+
         .addr_o(),
         .wdata_o(),
         .rdata_o(my_logic_analyzer_btx_rdata),
@@ -72,7 +87,7 @@ module manta (
 
     bridge_tx btx (
         .clk(clk),
-        
+
         .rdata_i(my_logic_analyzer_btx_rdata),
         .rw_i(my_logic_analyzer_btx_rw),
         .valid_i(my_logic_analyzer_btx_valid),
@@ -84,7 +99,7 @@ module manta (
     logic utx_btx_ready;
     logic btx_utx_valid;
     logic [7:0] btx_utx_data;
-    
+
     uart_tx #(.CLOCKS_PER_BAUD(868)) utx (
         .clk(clk),
 
@@ -345,6 +360,672 @@ always @(posedge clk) begin
     end
 end
 
+endmodule
+
+
+
+
+module logic_analyzer(
+    input wire clk,
+
+    // probes  
+    input wire larry,
+    input wire curly,
+    input wire moe,
+    input wire [3:0] shemp,
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o
+    );
+
+    parameter BASE_ADDR = 0;
+    parameter SAMPLE_DEPTH = 0;
+
+    // fsm
+    la_fsm #(.BASE_ADDR(BASE_ADDR), .SAMPLE_DEPTH(SAMPLE_DEPTH)) fsm (
+        .clk(clk),
+
+        .trig(trig),
+        .fifo_size(fifo_size),
+        .fifo_acquire(fifo_acquire),
+        .fifo_pop(fifo_pop),
+        .fifo_clear(fifo_clear),
+
+        .addr_i(addr_i),
+        .wdata_i(wdata_i),
+        .rdata_i(rdata_i),
+        .rw_i(rw_i),
+        .valid_i(valid_i),
+
+        .addr_o(fsm_trig_blk_addr),
+        .wdata_o(fsm_trig_blk_wdata),
+        .rdata_o(fsm_trig_blk_rdata),
+        .rw_o(fsm_trig_blk_rw),
+        .valid_o(fsm_trig_blk_valid));
+    
+    reg [15:0] fsm_trig_blk_addr;
+    reg [15:0] fsm_trig_blk_wdata;
+    reg [15:0] fsm_trig_blk_rdata;
+    reg fsm_trig_blk_rw;
+    reg fsm_trig_blk_valid;
+
+    reg trig;
+    reg [$clog2(SAMPLE_DEPTH):0] fifo_size;
+    reg fifo_acquire;
+    reg fifo_pop;
+    reg fifo_clear;
+     
+
+    // trigger block
+    trigger_block #(.BASE_ADDR(BASE_ADDR + 2)) trig_blk(
+        .clk(clk),
+        
+        .larry(larry),
+        .curly(curly),
+        .moe(moe),
+        .shemp(shemp),
+
+        .trig(trig),
+        
+        .addr_i(fsm_trig_blk_addr),
+        .wdata_i(fsm_trig_blk_wdata),
+        .rdata_i(fsm_trig_blk_rdata),
+        .rw_i(fsm_trig_blk_rw),
+        .valid_i(fsm_trig_blk_valid),
+
+        .addr_o(trig_blk_sample_mem_addr),
+        .wdata_o(trig_blk_sample_mem_wdata),
+        .rdata_o(trig_blk_sample_mem_rdata),
+        .rw_o(trig_blk_sample_mem_rw),
+        .valid_o(trig_blk_sample_mem_valid));
+
+    reg [15:0] trig_blk_sample_mem_addr;
+    reg [15:0] trig_blk_sample_mem_wdata;
+    reg [15:0] trig_blk_sample_mem_rdata;
+    reg trig_blk_sample_mem_rw;
+    reg trig_blk_sample_mem_valid;
+
+    // sample memory
+    sample_mem #(.BASE_ADDR(BASE_ADDR + 10), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
+        .clk(clk),
+
+        // fifo
+        .acquire(fifo_acquire),
+        .pop(fifo_pop),
+        .size(fifo_size),
+        .clear(fifo_clear),
+
+        // probes
+        .larry(larry),
+        .curly(curly),
+        .moe(moe),
+        .shemp(shemp),
+
+        // input port
+        .addr_i(trig_blk_sample_mem_addr),
+        .wdata_i(trig_blk_sample_mem_wdata),
+        .rdata_i(trig_blk_sample_mem_rdata),
+        .rw_i(trig_blk_sample_mem_rw),
+        .valid_i(trig_blk_sample_mem_valid),
+
+        // output port
+        .addr_o(addr_o),
+        .wdata_o(wdata_o),
+        .rdata_o(rdata_o),
+        .rw_o(rw_o),
+        .valid_o(valid_o));
+endmodule
+
+
+
+
+module la_fsm(
+    input wire clk,
+
+    input wire trig,
+    input wire [$clog2(SAMPLE_DEPTH):0] fifo_size,
+    output reg fifo_acquire,
+    output reg fifo_pop,
+    output reg fifo_clear,
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o);
+
+    parameter BASE_ADDR = 0;
+    parameter SAMPLE_DEPTH = 0;
+
+    // state machine
+    localparam IDLE = 0;
+    localparam START_CAPTURE = 1;
+    localparam MOVE_TO_POSITION = 2;
+    localparam IN_POSITION = 3;
+    localparam FILLING_BUFFER = 4;
+    localparam FILLED = 5;
+
+    reg [3:0] state;
+    reg signed [15:0] trigger_loc;
+    reg signed [15:0] present_loc;
+
+    initial state = IDLE;
+    initial trigger_loc = 0;
+    initial present_loc = 0;
+
+    // perform register operations
+    always @(posedge clk) begin
+        addr_o <= addr_i;
+        wdata_o <= wdata_i;
+        rdata_o <= rdata_i;
+        rw_o <= rw_i;
+        valid_o <= valid_i;
+
+        // check if address is valid
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 2)) begin
+
+            if(!rw_i) begin // reads
+                case (addr_i)
+                    BASE_ADDR + 0: rdata_o <= state;
+                    BASE_ADDR + 1: rdata_o <= trigger_loc;
+                    BASE_ADDR + 2: rdata_o <= present_loc;
+                endcase
+            end
+
+            else begin // writes
+                case (addr_i)
+                    BASE_ADDR + 0: state <= wdata_i;
+                    BASE_ADDR + 1: trigger_loc <= wdata_i;
+                    BASE_ADDR + 2: present_loc <= wdata_i;
+                endcase
+            end
+        end
+//    end
+
+    // run state machine
+//    always @(posedge clk) begin
+        if(state == IDLE) begin
+            present_loc <= (trigger_loc < 0) ? trigger_loc : 0;
+        end
+
+        else if(state == START_CAPTURE) begin
+            // perform whatever setup is needed before starting the next capture
+            fifo_clear <= 1;
+            state <= MOVE_TO_POSITION;
+        end
+
+        else if(state == MOVE_TO_POSITION) begin
+            fifo_clear <= 0;
+            // if trigger location is negative or zero,
+            // then we're already in position
+            if(trigger_loc <= 0) state <= IN_POSITION;
+
+            // otherwise we'll need to wait a little,
+            // but we'll need to buffer along the way
+            else begin
+                present_loc <= present_loc + 1;
+                // add code to add samples to word FIFO
+                fifo_acquire <= 1;
+                if (present_loc == trigger_loc) state <= IN_POSITION;
+            end
+        end
+
+        else if(state == IN_POSITION) begin
+            // pop stuff out of the word FIFO in addition to pulling it in
+            fifo_acquire <= 1;
+            fifo_pop <= 1;
+
+            if(trig) state <= FILLING_BUFFER;
+        end
+
+        else if(state == FILLING_BUFFER) begin
+            fifo_acquire <= 1;
+            fifo_pop <= 0;
+            if(fifo_size == SAMPLE_DEPTH) state <= FILLED;
+        end
+
+        else if(state == FILLED) begin
+            // don't automatically go back to IDLE, the host will move
+            // the state to MOVE_TO_POSITION
+
+            present_loc <= (trigger_loc < 0) ? trigger_loc : 0;
+        end
+    end
+endmodule
+
+
+
+
+module sample_mem(
+    input wire clk,
+
+    // fifo
+    input wire acquire,
+    input wire pop,
+    output logic [BRAM_ADDR_WIDTH:0] size,
+    input wire clear,
+
+    // probes
+    input wire larry,
+    input wire curly,
+    input wire moe,
+    input wire [3:0] shemp,
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o);
+
+    parameter BASE_ADDR = 0;
+    parameter SAMPLE_DEPTH = 0;
+    localparam BRAM_ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
+    
+    // bus controller
+    reg [BRAM_ADDR_WIDTH-1:0] bram_read_addr;
+    reg [15:0] bram_read_data;
+    
+    always @(*) begin
+        // if address is valid
+        if ( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + SAMPLE_DEPTH) ) begin
+
+            // figure out proper place to read from
+            // want to read from the read pointer, and then loop back around 
+            if(read_pointer + (addr_i - BASE_ADDR) > SAMPLE_DEPTH)
+                bram_read_addr = read_pointer + (addr_i - BASE_ADDR) - SAMPLE_DEPTH;
+
+            else
+                bram_read_addr = read_pointer + (addr_i - BASE_ADDR);
+        end
+
+        else bram_read_addr = 0;
+    end
+
+
+    // pipeline bus to compensate for 2-cycles of delay in BRAM
+    reg [15:0] addr_pip;
+    reg [15:0] wdata_pip;
+    reg [15:0] rdata_pip;
+    reg rw_pip;
+    reg valid_pip;
+
+    always @(posedge clk) begin
+        addr_pip <= addr_i;
+        wdata_pip <= wdata_i;
+        rdata_pip <= rdata_i;
+        rw_pip <= rw_i;
+        valid_pip <= valid_i;
+
+        addr_o <= addr_pip;
+        wdata_o <= wdata_pip;
+        rdata_o <= rdata_pip;
+        rw_o <= rw_pip;
+        valid_o <= valid_pip;
+
+        if( valid_pip && !rw_pip && (addr_pip >= BASE_ADDR) && (addr_pip <= BASE_ADDR + SAMPLE_DEPTH) )
+            rdata_o <= bram_read_data;
+    end
+
+    
+    // bram
+    xilinx_true_dual_port_read_first_2_clock_ram #(
+		.RAM_WIDTH(16),
+		.RAM_DEPTH(SAMPLE_DEPTH),
+		.RAM_PERFORMANCE("HIGH_PERFORMANCE")
+
+    ) bram (
+
+		// read port (controlled by bus)
+		.clka(clk),
+		.rsta(1'b0),
+		.ena(1'b1),
+		.addra(bram_read_addr),
+		.dina(16'b0),
+		.wea(1'b0),
+		.regcea(1'b1),
+		.douta(bram_read_data),
+
+		// write port (controlled by FIFO)
+		.clkb(clk),
+		.rstb(1'b0),
+		.enb(1'b1),
+		.addrb(write_pointer[BRAM_ADDR_WIDTH-1:0]),
+		.dinb({9'b0, larry, curly, moe, shemp}),
+		.web(acquire),
+		.regceb(1'b1),
+		.doutb());
+
+
+    // fifo
+	reg [BRAM_ADDR_WIDTH:0] write_pointer = 0;
+	reg [BRAM_ADDR_WIDTH:0] read_pointer = 0;
+
+	assign size = write_pointer - read_pointer;
+
+	always @(posedge clk) begin
+        if (clear) read_pointer <= write_pointer;
+		if (acquire && size < SAMPLE_DEPTH) write_pointer <= write_pointer + 1'd1;
+	 	if (pop && size > 0) read_pointer <= read_pointer + 1'd1;
+	end
+endmodule
+
+
+//  Xilinx True Dual Port RAM, Read First, Dual Clock
+//  This code implements a parameterizable true dual port memory (both ports can read and write).
+//  The behavior of this RAM is when data is written, the prior memory contents at the write
+//  address are presented on the output port.  If the output data is
+//  not needed during writes or the last read value is desired to be retained,
+//  it is suggested to use a no change RAM as it is more power efficient.
+//  If a reset or enable is not necessary, it may be tied off or removed from the code.
+
+`default_nettype wire
+
+module xilinx_true_dual_port_read_first_2_clock_ram #(
+  parameter RAM_WIDTH = 18,                       // Specify RAM data width
+  parameter RAM_DEPTH = 1024,                     // Specify RAM depth (number of entries)
+  parameter RAM_PERFORMANCE = "HIGH_PERFORMANCE", // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
+  parameter INIT_FILE = ""                        // Specify name/location of RAM initialization file if using one (leave blank if not)
+) (
+  input  [clogb2(RAM_DEPTH-1)-1:0] addra,  // Port A address bus, width determined from RAM_DEPTH
+  input  [clogb2(RAM_DEPTH-1)-1:0] addrb,  // Port B address bus, width determined from RAM_DEPTH
+  input  [RAM_WIDTH-1:0] dina,           // Port A RAM input data
+  input  [RAM_WIDTH-1:0] dinb,           // Port B RAM input data
+  input  clka,                           // Port A clock
+  input  clkb,                           // Port B clock
+  input  wea,                            // Port A write enable
+  input  web,                            // Port B write enable
+  input  ena,                            // Port A RAM Enable, for additional power savings, disable port when not in use
+  input  enb,                            // Port B RAM Enable, for additional power savings, disable port when not in use
+  input  rsta,                           // Port A output reset (does not affect memory contents)
+  input  rstb,                           // Port B output reset (does not affect memory contents)
+  input  regcea,                         // Port A output register enable
+  input  regceb,                         // Port B output register enable
+  output [RAM_WIDTH-1:0] douta,         // Port A RAM output data
+  output [RAM_WIDTH-1:0] doutb          // Port B RAM output data
+);
+
+  reg [RAM_WIDTH-1:0] BRAM [RAM_DEPTH-1:0];
+  reg [RAM_WIDTH-1:0] ram_data_a = {RAM_WIDTH{1'b0}};
+  reg [RAM_WIDTH-1:0] ram_data_b = {RAM_WIDTH{1'b0}};
+
+  //this loop below allows for rendering with iverilog simulations!
+  /*
+  integer idx;
+  for(idx = 0; idx < RAM_DEPTH; idx = idx+1) begin: cats
+    wire [RAM_WIDTH-1:0] tmp;
+    assign tmp = BRAM[idx];
+  end
+  */
+
+  // The following code either initializes the memory values to a specified file or to all zeros to match hardware
+  generate
+    if (INIT_FILE != "") begin: use_init_file
+      initial
+        $readmemh(INIT_FILE, BRAM, 0, RAM_DEPTH-1);
+    end else begin: init_bram_to_zero
+      integer ram_index;
+      initial
+        for (ram_index = 0; ram_index < RAM_DEPTH; ram_index = ram_index + 1)
+          BRAM[ram_index] = {RAM_WIDTH{1'b0}};
+    end
+  endgenerate
+  integer idx;
+  // initial begin
+  //   for (idx = 0; idx < RAM_DEPTH; idx = idx + 1) begin
+  //     $dumpvars(0, BRAM[idx]);
+  //   end
+  // end
+  always @(posedge clka)
+    if (ena) begin
+      if (wea)
+        BRAM[addra] <= dina;
+      ram_data_a <= BRAM[addra];
+    end
+
+  always @(posedge clkb)
+    if (enb) begin
+      if (web)
+        BRAM[addrb] <= dinb;
+      ram_data_b <= BRAM[addrb];
+    end
+
+  //  The following code generates HIGH_PERFORMANCE (use output register) or LOW_LATENCY (no output register)
+  generate
+    if (RAM_PERFORMANCE == "LOW_LATENCY") begin: no_output_register
+
+      // The following is a 1 clock cycle read latency at the cost of a longer clock-to-out timing
+       assign douta = ram_data_a;
+       assign doutb = ram_data_b;
+
+    end else begin: output_register
+
+      // The following is a 2 clock cycle read latency with improve clock-to-out timing
+
+      reg [RAM_WIDTH-1:0] douta_reg = {RAM_WIDTH{1'b0}};
+      reg [RAM_WIDTH-1:0] doutb_reg = {RAM_WIDTH{1'b0}};
+
+      always @(posedge clka)
+        if (rsta)
+          douta_reg <= {RAM_WIDTH{1'b0}};
+        else if (regcea)
+          douta_reg <= ram_data_a;
+
+      always @(posedge clkb)
+        if (rstb)
+          doutb_reg <= {RAM_WIDTH{1'b0}};
+        else if (regceb)
+          doutb_reg <= ram_data_b;
+
+      assign douta = douta_reg;
+      assign doutb = doutb_reg;
+
+    end
+  endgenerate
+
+  //  The following function calculates the address width based on specified RAM depth
+  function integer clogb2;
+    input integer depth;
+      for (clogb2=0; depth>0; clogb2=clogb2+1)
+        depth = depth >> 1;
+  endfunction
+
+endmodule
+
+
+`default_nettype none
+
+
+module trigger_block(
+    input wire clk,
+
+    // probes
+    input wire larry,
+    input wire curly,
+    input wire moe,
+    input wire [3:0] shemp,
+
+    // trigger
+    output reg trig,
+
+    // input port
+    input wire [15:0] addr_i,
+    input wire [15:0] wdata_i,
+    input wire [15:0] rdata_i,
+    input wire rw_i,
+    input wire valid_i,
+
+    // output port
+    output reg [15:0] addr_o,
+    output reg [15:0] wdata_o,
+    output reg [15:0] rdata_o,
+    output reg rw_o,
+    output reg valid_o);
+
+    parameter BASE_ADDR = 0;
+
+    // trigger configuration registers
+    // - each probe gets an operation and a compare register
+    // - at the end we OR them all together. along with any custom probes the user specs
+
+    reg [3:0] larry_trigger_op = 0;
+    reg larry_trigger_arg = 0;
+    reg larry_trig;
+    trigger #(.INPUT_WIDTH(1)) larry_trigger(
+        .clk(clk),
+
+        .probe(larry),
+        .op(larry_trigger_op),
+        .arg(larry_trigger_arg),
+        .trig(larry_trig));
+
+    reg [3:0] curly_trigger_op = 0;
+    reg curly_trigger_arg = 0;
+    reg curly_trig;
+    trigger #(.INPUT_WIDTH(1)) curly_trigger(
+        .clk(clk),
+
+        .probe(curly),
+        .op(curly_trigger_op),
+        .arg(curly_trigger_arg),
+        .trig(curly_trig));
+
+
+    reg [3:0] moe_trigger_op = 0;
+    reg moe_trigger_arg = 0;
+    reg moe_trig;
+    trigger #(.INPUT_WIDTH(1)) moe_trigger(
+        .clk(clk),
+
+        .probe(moe),
+        .op(moe_trigger_op),
+        .arg(moe_trigger_arg),
+        .trig(moe_trig));
+
+    reg [3:0] shemp_trigger_op = 0;
+    reg [3:0] shemp_trigger_arg = 0;
+    reg shemp_trig;
+    trigger #(.INPUT_WIDTH(4)) shemp_trigger(
+        .clk(clk),
+
+        .probe(shemp),
+        .op(shemp_trigger_op),
+        .arg(shemp_trigger_arg),
+        .trig(shemp_trig));
+
+    assign trig = larry_trig || curly_trig || moe_trig || shemp_trig;
+
+    // perform register operations
+    always @(posedge clk) begin
+        addr_o <= addr_i;
+        wdata_o <= wdata_i;
+        rdata_o <= rdata_i;
+        rw_o <= rw_i;
+        valid_o <= valid_i;
+        rdata_o <= rdata_i;
+
+        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 9) ) begin
+            
+            // reads
+            if(valid_i && !rw_i) begin
+                case (addr_i)
+                    BASE_ADDR + 0: rdata_o <= larry_trigger_op;
+                    BASE_ADDR + 1: rdata_o <= larry_trigger_arg;
+                    BASE_ADDR + 2: rdata_o <= curly_trigger_op;
+                    BASE_ADDR + 3: rdata_o <= curly_trigger_arg;
+                    BASE_ADDR + 4: rdata_o <= moe_trigger_op;
+                    BASE_ADDR + 5: rdata_o <= moe_trigger_arg;
+                    BASE_ADDR + 6: rdata_o <= shemp_trigger_op;
+                    BASE_ADDR + 7: rdata_o <= shemp_trigger_arg;
+                endcase
+            end
+
+            // writes
+            else if(valid_i && rw_i) begin
+                case (addr_i)
+                    BASE_ADDR + 0: larry_trigger_op <= wdata_i;
+                    BASE_ADDR + 1: larry_trigger_arg <= wdata_i;
+                    BASE_ADDR + 2: curly_trigger_op <= wdata_i;
+                    BASE_ADDR + 3: curly_trigger_arg <= wdata_i;
+                    BASE_ADDR + 4: moe_trigger_op <= wdata_i;
+                    BASE_ADDR + 5: moe_trigger_arg <= wdata_i;
+                    BASE_ADDR + 6: shemp_trigger_op <= wdata_i;
+                    BASE_ADDR + 7: shemp_trigger_arg <= wdata_i;
+                endcase
+            end
+        end
+    end
+endmodule
+
+
+
+
+module trigger(
+    input wire clk,
+    
+    input wire [INPUT_WIDTH-1:0] probe,
+    input wire [3:0] op,
+    input wire [INPUT_WIDTH-1:0] arg,
+
+    output reg trig
+    );
+
+    parameter INPUT_WIDTH = 0;
+
+    localparam DISABLE = 0;
+    localparam RISING = 1;
+    localparam FALLING = 2;
+    localparam CHANGING = 3;
+    localparam GT = 4;
+    localparam LT = 5;
+    localparam GEQ = 6;
+    localparam LEQ = 7;
+    localparam EQ = 8;
+    localparam NEQ = 9;
+
+    reg [INPUT_WIDTH-1:0] probe_prev = 0;
+    always @(posedge clk) probe_prev <= probe;
+
+    always @(*) begin
+        case (op)
+            RISING :    trig = (probe > probe_prev);
+            FALLING :   trig = (probe < probe_prev);
+            CHANGING :  trig = (probe != probe_prev);
+            GT:         trig = (probe > arg);
+            LT:         trig = (probe < arg);
+            GEQ:        trig = (probe >= arg);
+            LEQ:        trig = (probe <= arg);
+            EQ:         trig = (probe == arg);
+            NEQ:        trig = (probe != arg);
+            default:    trig = 0; 
+        endcase
+    end
 endmodule
 
 

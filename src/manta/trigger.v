@@ -24,8 +24,7 @@ module trigger(
     localparam EQ = 8;
     localparam NEQ = 9;
 
-    reg [INPUT_WIDTH-1:0] probe_prev;
-    initial probe_prev = probe;
+    reg [INPUT_WIDTH-1:0] probe_prev = 0;
     always @(posedge clk) probe_prev <= probe;
 
     always @(*) begin

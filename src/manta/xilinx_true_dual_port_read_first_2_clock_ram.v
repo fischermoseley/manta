@@ -117,33 +117,3 @@ module xilinx_true_dual_port_read_first_2_clock_ram #(
   endfunction
 
 endmodule
-
-// The following is an instantiation template for xilinx_true_dual_port_read_first_2_clock_ram
-/*
-  //  Xilinx True Dual Port RAM, Read First, Dual Clock
-  xilinx_true_dual_port_read_first_2_clock_ram #(
-    .RAM_WIDTH(18),                       // Specify RAM data width
-    .RAM_DEPTH(1024),                     // Specify RAM depth (number of entries)
-    .RAM_PERFORMANCE("HIGH_PERFORMANCE"), // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
-    .INIT_FILE("")                        // Specify name/location of RAM initialization file if using one (leave blank if not)
-  ) your_instance_name (
-    .addra(addra),   // Port A address bus, width determined from RAM_DEPTH
-    .addrb(addrb),   // Port B address bus, width determined from RAM_DEPTH
-    .dina(dina),     // Port A RAM input data, width determined from RAM_WIDTH
-    .dinb(dinb),     // Port B RAM input data, width determined from RAM_WIDTH
-    .clka(clka),     // Port A clock
-    .clkb(clkb),     // Port B clock
-    .wea(wea),       // Port A write enable
-    .web(web),       // Port B write enable
-    .ena(ena),       // Port A RAM Enable, for additional power savings, disable port when not in use
-    .enb(enb),       // Port B RAM Enable, for additional power savings, disable port when not in use
-    .rsta(rsta),     // Port A output reset (does not affect memory contents)
-    .rstb(rstb),     // Port B output reset (does not affect memory contents)
-    .regcea(regcea), // Port A output register enable
-    .regceb(regceb), // Port B output register enable
-    .douta(douta),   // Port A RAM output data, width determined from RAM_WIDTH
-    .doutb(doutb)    // Port B RAM output data, width determined from RAM_WIDTH
-  );
-*/
-
-

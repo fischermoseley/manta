@@ -7,7 +7,7 @@ module sample_mem(
     // fifo
     input wire acquire,
     input wire pop,
-    output wire [BRAM_ADDR_WIDTH:0] size,
+    output logic [BRAM_ADDR_WIDTH:0] size,
     input wire clear,
 
     // probes
@@ -45,13 +45,13 @@ module sample_mem(
             // figure out proper place to read from
             // want to read from the read pointer, and then loop back around 
             if(read_pointer + (addr_i - BASE_ADDR) > SAMPLE_DEPTH)
-                bram_read_addr <= read_pointer + (addr_i - BASE_ADDR) - SAMPLE_DEPTH;
+                bram_read_addr = read_pointer + (addr_i - BASE_ADDR) - SAMPLE_DEPTH;
 
             else
                 bram_read_addr = read_pointer + (addr_i - BASE_ADDR);
         end
 
-        else bram_read_addr <= 0;
+        else bram_read_addr = 0;
     end
 
 

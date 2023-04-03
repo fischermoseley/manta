@@ -70,10 +70,10 @@ module la_fsm(
                 endcase
             end
         end
-    end
+//    end
 
     // run state machine
-    always @(posedge clk) begin
+//    always @(posedge clk) begin
         if(state == IDLE) begin
             present_loc <= (trigger_loc < 0) ? trigger_loc : 0;
         end
