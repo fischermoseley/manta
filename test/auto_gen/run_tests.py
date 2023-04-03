@@ -8,44 +8,49 @@ from manta import Manta
 # Valid Configurations
 
 # test that they make a python API without errors
-# test that their verilog passes lint
+# TODO: test that their verilog passes lint
 
 print(" ==== Testing valid configurations ====")
-valid_configs_path = 'test/auto_gen/valid_configs/'
+valid_configs_path = "test/auto_gen/valid_configs/"
 for config_file in sorted(listdir(valid_configs_path)):
     caught_exception = None
     try:
         m = Manta(valid_configs_path + config_file)
-    
+
     except Exception as e:
         caught_exception = e
-        
+
     if caught_exception is None:
-        print(f" -> config file {config_file} raised no exceptions.")
-    
+        print(f" -> no exceptions correctly raised by config file {config_file}")
+
     else:
-        raise RuntimeError(f"Configuration {config_file} shouldn't have raised an exception, but raised  {caught_exception}")
+        raise RuntimeError(
+            f"Configuration {config_file} shouldn't have raised an exception, but raised  {caught_exception}"
+        )
 
 
-
-print('\n')
+print("\n")
 
 # Invalid Configurations
 
 # test that they throw errors when generating a python API
 
 print(" ==== Testing invalid configurations ====")
-invalid_configs_path = 'test/auto_gen/invalid_configs/'
+invalid_configs_path = "test/auto_gen/invalid_configs/"
 for config_file in sorted(listdir(invalid_configs_path)):
     caught_exception = None
     try:
         m = Manta(invalid_configs_path + config_file)
-    
+
     except Exception as e:
         caught_exception = e
 
-    if caught_exception is not None: 
-        print(f" -> config file {config_file} raised the following exception:  {caught_exception}")
-    
+    if caught_exception is not None:
+        print(
+            f" -> exception correctly raised by config file {config_file}:  {caught_exception}"
+        )
+
     else:
-        raise RuntimeError(f"Configuration {config_file} should have raised an exception, but did not!")
+        raise RuntimeError(
+            f"Configuration {config_file} should have raised an exception, but did not!"
+        )
