@@ -1,4 +1,4 @@
-name: functional_simulation
+name: functional_sim
 on: [push]
 jobs:
   all:
@@ -6,4 +6,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt install iverilog
-      - run: make sim 
+      - run: make functional_sim

@@ -7,8 +7,11 @@ from manta import Manta
 
 # Valid Configurations
 
+# test that they make a python API without errors
+# test that their verilog passes lint
+
 print(" ==== Testing valid configurations ====")
-valid_configs_path = 'test/api_gen/valid_configs/'
+valid_configs_path = 'test/auto_gen/valid_configs/'
 for config_file in sorted(listdir(valid_configs_path)):
     caught_exception = None
     try:
@@ -29,8 +32,10 @@ print('\n')
 
 # Invalid Configurations
 
+# test that they throw errors when generating a python API
+
 print(" ==== Testing invalid configurations ====")
-invalid_configs_path = 'test/api_gen/invalid_configs/'
+invalid_configs_path = 'test/auto_gen/invalid_configs/'
 for config_file in sorted(listdir(invalid_configs_path)):
     caught_exception = None
     try:

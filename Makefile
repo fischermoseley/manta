@@ -15,59 +15,59 @@ total_loc:
 	find . -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.yml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
 
 real_loc:
-	find src ${TB} -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
+	find src test -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
 
-test: api_gen func_sim
+test: auto_gen functional_sim
 
 # API Generation Tests
-api_gen: 
-	python3 test/api_gen/run_test.py
+auto_gen: 
+	python3 test/auto_gen/run_tests.py
 
 # Functional Simulation
-func_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tb uart_tx_tb 
+functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tb uart_tx_tb 
 
 io_core_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/io_core_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/io_core_tb.sv
 	vvp sim.out
 	rm sim.out
 
 logic_analyzer_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/logic_analyzer_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/logic_analyzer_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bit_fifo_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/bit_fifo_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/bit_fifo_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bridge_rx_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/bridge_rx_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/bridge_rx_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bridge_tx_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/bridge_tx_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/bridge_tx_tb.sv
 	vvp sim.out
 	rm sim.out
 
 fifo_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/fifo_tb.sv 
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/fifo_tb.sv 
 	vvp sim.out >> /dev/null # this one is noisy right now
 	rm sim.out
 
 lut_ram_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/lut_ram_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/lut_ram_tb.sv
 	vvp sim.out
 	rm sim.out
 
 uart_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/uart_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/uart_tb.sv
 	vvp sim.out
 	rm sim.out
 
 uart_tx_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/hdl_tb/uart_tx_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/uart_tx_tb.sv
 	vvp sim.out
 	rm sim.out
 	

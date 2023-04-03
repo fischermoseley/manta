@@ -9,10 +9,7 @@ class UARTInterface:
     def __init__(self, config):
         # Obtain port. Try to automatically detect port if "auto" is specified
         assert "port" in config, "No serial port provided to UART core."
-
         self.port = config["port"]
-        if config["port"] == "auto":
-            self.port = self.autodetect_port()
 
         # Check that clock frequency is provided and positive
         assert "clock_freq" in config, "Clock frequency not provided to UART core."
@@ -42,6 +39,9 @@ class UARTInterface:
             self.verbose = config["verbose"]
 
     def open_port_if_not_alredy_open(self):
+        if self.port == "auto":
+            self.port = self.autodetect_port()
+
         if not hasattr(self, "ser"):
             import serial
             self.ser = serial.Serial(self.port, self.baudrate)
@@ -53,8 +53,8 @@ class UARTInterface:
         recognized_devices = []
         for port in serial.tools.list_ports.comports():
             if (port.vid == 0x403) and (port.pid == 0x6010):
-                recognized_devices.append(port)     
-        
+                recognized_devices.append(port)
+
         # board manufacturers seem to always make the 0th serial
         # interface on the FT2232 be for programming over JTAG,
         # and then the 1st to be for UART. as a result, we always
