@@ -66,7 +66,7 @@ module la_fsm(
                 case (addr_i)
                     BASE_ADDR + 0: state <= wdata_i;
                     BASE_ADDR + 1: trigger_loc <= wdata_i;
-                    BASE_ADDR + 2: present_loc <= wdata_i;
+                    //BASE_ADDR + 2: present_loc <= wdata_i;
                 endcase
             end
         end
@@ -119,6 +119,12 @@ module la_fsm(
             // the state to MOVE_TO_POSITION
 
             present_loc <= (trigger_loc < 0) ? trigger_loc : 0;
+        end
+
+
+        // return to IDLE state if somehow we get to a state that doesn't exist 
+        else begin
+            state <= IDLE;
         end
     end
 endmodule

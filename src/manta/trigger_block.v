@@ -89,8 +89,8 @@ module trigger_block(
         valid_o <= valid_i;
         rdata_o <= rdata_i;
 
-        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 9) ) begin
-            
+        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 7) ) begin
+
             // reads
             if(valid_i && !rw_i) begin
                 case (addr_i)

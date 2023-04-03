@@ -64,7 +64,7 @@ module logic_analyzer(
      
 
     // trigger block
-    trigger_block #(.BASE_ADDR(BASE_ADDR + 2)) trig_blk(
+    trigger_block #(.BASE_ADDR(BASE_ADDR + 3)) trig_blk(
         .clk(clk),
         
         .larry(larry),
@@ -93,7 +93,7 @@ module logic_analyzer(
     reg trig_blk_sample_mem_valid;
 
     // sample memory
-    sample_mem #(.BASE_ADDR(BASE_ADDR + 10), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
+    sample_mem #(.BASE_ADDR(BASE_ADDR + 11), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
         .clk(clk),
 
         // fifo

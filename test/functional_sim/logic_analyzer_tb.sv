@@ -4,23 +4,27 @@
 `define HCP 5
 
 task read_reg (
-        input [15:0] addr,
-        output [15:0] data
-        );
+    input [15:0] addr,
+    output [15:0] data,
+    input string desc
+    );
 
-        logic_analyzer_tb.tb_la_addr = addr;
-        logic_analyzer_tb.tb_la_rw = 0;
-        logic_analyzer_tb.tb_la_valid = 1;
-        #`CP
-        logic_analyzer_tb.tb_la_valid = 0;
-        while (!logic_analyzer_tb.la_tb_valid) #`CP;
-        data = logic_analyzer_tb.la_tb_rdata;
+    logic_analyzer_tb.tb_la_addr = addr;
+    logic_analyzer_tb.tb_la_rw = 0;
+    logic_analyzer_tb.tb_la_valid = 1;
+    #`CP
+    logic_analyzer_tb.tb_la_valid = 0;
+    while (!logic_analyzer_tb.la_tb_valid) #`CP;
+    data = logic_analyzer_tb.la_tb_rdata;
+
+    $display(" -> read  0x%h from addr 0x%h (%s)", data, addr, desc);
 
     endtask
 
 task write_reg(
     input [15:0] addr,
-    input [15:0] data
+    input [15:0] data,
+    input string desc
     );
 
     logic_analyzer_tb.tb_la_addr = addr;
@@ -31,17 +35,33 @@ task write_reg(
     logic_analyzer_tb.tb_la_valid = 0;
     while (!logic_analyzer_tb.la_tb_valid) #`CP;
 
+    $display(" -> wrote 0x%h to   addr 0x%h (%s)", data, addr, desc);
+
+endtask
+
+task write_and_verify(
+    input [15:0] addr,
+    input [15:0] write_data,
+    input string desc
+    );
+
+    reg [15:0] read_data;
+
+    write_reg(addr, write_data, desc);
+    read_reg(addr, read_data, desc);
+    assert(read_data == write_data) else $error("data read does not match data written!");
 endtask
 
 task read_all_reg();
+
+    string desc;
     for(int i = 0; i < (logic_analyzer_tb.la.sample_mem.BASE_ADDR + logic_analyzer_tb.la.SAMPLE_DEPTH); i++) begin
 
-        if(i == logic_analyzer_tb.la.fsm.BASE_ADDR) $display(" -> FSM MEMORY");
-        if(i == logic_analyzer_tb.la.trig_blk.BASE_ADDR) $display(" -> TRIG BLK MEMORY");
-        if(i == logic_analyzer_tb.la.sample_mem.BASE_ADDR) $display(" -> SAMPLE MEM MEMORY");
-        
-        read_reg(i, logic_analyzer_tb.read_value);
-        $display("  -> addr: 0x%h   rdata: 0x%b", i, logic_analyzer_tb.read_value);
+        if(i == logic_analyzer_tb.la.fsm.BASE_ADDR) desc = "FSM";
+        if(i == logic_analyzer_tb.la.trig_blk.BASE_ADDR) desc = "TRIG BLK";
+        if(i == logic_analyzer_tb.la.sample_mem.BASE_ADDR) desc = "SAMPLE MEM";
+
+        read_reg(i, logic_analyzer_tb.read_value, desc);
     end
 endtask
 
@@ -101,7 +121,7 @@ module logic_analyzer_tb;
     end
 
     reg [15:0] read_value;
-    
+
     initial begin
         $dumpfile("logic_analyzer_tb.vcd");
         $dumpvars(0, logic_analyzer_tb);
@@ -124,118 +144,116 @@ module logic_analyzer_tb;
         #(10*`CP);
 
         /* ==== Test 1 Begin ==== */
-        $display("\n=== test 1: read state register ===");
+        $display("\n=== test 1: read/write to FSM registers, verify ===");
         test_num = 1;
 
-        read_reg(0, read_value);
-        $display(" -> read  0x%h from state reg (addr 0x0000)", read_value);
+        // state register
+        write_and_verify(0, la.fsm.IDLE, "state reg");
+        write_and_verify(0, la.fsm.FILLED, "state reg");
+        write_and_verify(0, la.fsm.IDLE, "state reg");
 
+        // trigger_loc register
+        write_and_verify(1, 0, "trigger_loc reg");
+        write_and_verify(1, 'h69, "trigger_loc reg");
+        write_and_verify(1, 'h0612, "trigger_loc reg");
+
+        // since we just moved the trigger location, the core has started moving into position
+        // if it's functioning correctly. this means we need to reset the position and state
+        // before testing the present_loc register.
+
+        // write_and_verify(1, 0, "trigger_loc reg");
+        // write_and_verify(0, 0, "state reg");
+
+        // // present_loc register
+        // write_and_verify(2, 0, "present_loc reg");
+        // write_and_verify(2, 0, "present_loc reg");
         #(10*`CP);
+
         /* ==== Test 1 End ==== */
 
 
         /* ==== Test 2 Begin ==== */
-        $display("\n=== test 2: write to state register and verify ===");
+        $display("\n=== test 2: read/write to trigger block registers, verify ===");
         test_num = 2;
 
-        write_reg(0, 5);
-        $display(" -> wrote 0x0005 to state reg (addr 0x0000)");
+        // larry
+        write_and_verify(3, 0, "larry_op");
+        write_and_verify(3, 2, "larry_op");
+        write_and_verify(3, 0, "larry_op");
 
-        read_reg(0, read_value);
-        $display(" -> read  0x%h from state reg (addr 0x0000)", read_value);
+        write_and_verify(4, 0, "larry_arg");
+        write_and_verify(4, 1, "larry_arg");
+        write_and_verify(4, 0, "larry_arg");
 
-        write_reg(0, 0);
-        $display(" -> wrote 0x0000 to state reg (addr 0x0000)");
+        // curly
+        write_and_verify(5, 0, "curly_op");
+        write_and_verify(5, 3, "curly_op");
+        write_and_verify(5, 0, "curly_op");
 
-        read_reg(0, read_value);
-        $display(" -> read  0x%h from state reg (addr 0x0000)", la_tb_rdata);
+        write_and_verify(6, 0, "curly_arg");
+        write_and_verify(6, 1, "curly_arg");
+        write_and_verify(6, 0, "curly_arg");
+
+        // moe
+        write_and_verify(7, 0, "moe_op");
+        write_and_verify(7, 5, "moe_op");
+        write_and_verify(7, 0, "moe_op");
+
+        write_and_verify(8, 0, "moe_arg");
+        write_and_verify(8, 1, "moe_arg");
+        write_and_verify(8, 0, "moe_arg");
+
+        // shemp 
+        write_and_verify(9, 0, "shemp_op");
+        write_and_verify(9, 7, "shemp_op");
+        write_and_verify(9, 0, "shemp_op");
+
+        write_and_verify(10, 0, "shemp_arg");
+        write_and_verify(10, 7, "shemp_arg");
+        write_and_verify(10, 0, "shemp_arg");
 
         #(10*`CP);
+
         /* ==== Test 2 End ==== */
 
 
-
         /* ==== Test 3 Begin ==== */
-        $display("\n=== test 3: write to trigger_loc register and verify ===");
+        $display("\n=== test 3: verify FSM doesn't move out of IDLE when not running ===");
         test_num = 3;
 
-        write_reg(1, -16'sd69);
-        $display(" -> wrote -0d69 to trigger_loc reg (addr 0x0001)");
+        write_and_verify(3, 8, "larry_op");  // set operation to  eq 
+        write_and_verify(4, 1, "larry_arg"); // set argument to 1
 
-        read_reg(1, read_value);
-        $display(" -> read  0d%d from trigger_loc reg (addr 0x0001)", $signed(read_value));
+        // set larry = 1, verify core doesn't trigger
+        $display(" -> set larry = 1");
+        larry = 1;
 
-        write_reg(1, 0);
-        $display(" -> wrote 0x0000 to trigger_loc reg (addr 0x0001)");
+        $display(" -> la core is in state 0x%h", la.fsm.state);
+        assert(la.fsm.state == la.fsm.IDLE) else $error("core moved outside of IDLE state when not running!");
+        
+        $display(" -> wait a clock cycle");
+        #`CP
+        
+        $display(" -> la core is in state 0x%h", la.fsm.state);
+        assert(la.fsm.state == la.fsm.IDLE) else $error("core moved outside of IDLE state when not running!");
 
-        read_reg(1, read_value);
-        $display(" -> read  0x%h from trigger_loc reg (addr 0x0001)", $signed(read_value));
+        $display(" -> set larry = 0");
+        larry = 0;
 
         #(10*`CP);
         /* ==== Test 3 End ==== */
 
 
-
         /* ==== Test 4 Begin ==== */
-        $display("\n=== test 4: configure larry_op for equality and verify ===");
+        $display("\n=== test 4: verify FSM does move out of IDLE when running ===");
         test_num = 4;
 
-        write_reg(2, 8);
-        $display(" -> wrote 0x0008 to larry_op reg (addr 0x0002)");
-
-        read_reg(2, read_value);
-        $display(" -> read  0x%h from larry_op reg (addr 0x0002)", read_value);
-
-        #(10*`CP);
-        /* ==== Test 4 End ==== */
-
-
-
-        /* ==== Test 5 Begin ==== */
-        $display("\n=== test 5: write 0x0001 to larry_arg register and verify ===");
-        test_num = 5;
-
-        write_reg(3, 1);
-        $display(" -> wrote 0x0001 to larry_arg reg (addr 0x0003)");
-
-        read_reg(3, read_value);
-        $display(" -> read  0x%h from larry_arg reg (addr 0x0003)", read_value);
-
-        #(10*`CP);
-        /* ==== Test 5 End ==== */
-
-
-    
-        /* ==== Test 6 Begin ==== */
-        $display("\n=== test 6: set larry = 1, verify core does not trigger ===");
-        test_num = 6;
-
-        $display(" -> set larry = 1");
-        larry = 1; 
-
-        $display(" -> la core is in state 0x%h", la.fsm.state);
-        $display(" -> wait a clock cycle");
-        #`CP
-        $display(" -> la core is in state 0x%h", la.fsm.state);
-        $display(" -> set larry = 0");
-        larry = 0;
-
-        #(10*`CP);
-        /* ==== Test 6 End ==== */
-
-
-
-        /* ==== Test 7 Begin ==== */
-        $display("\n=== test 7: set larry = 1, verify core does trigger ===");
-        test_num = 7;
-
-        write_reg(0, 1);
-        $display(" -> wrote 0x0001 to state reg (addr 0x0000)");
-
+        $display(" -> moving core to START_CAPTURE");
+        write_reg(0, 1, "state");
         #`CP
 
         $display(" -> set larry = 1");
-        larry = 1; 
+        larry = 1;
 
         // read
         $display(" -> la core is in state 0x%h", la.fsm.state);
@@ -251,56 +269,27 @@ module logic_analyzer_tb;
         end
 
         $display(" -> read from sample memory:");
-        read_all_reg(); 
+        read_all_reg();
 
         #(200*`CP);
-        /* ==== Test 7 End ==== */
+        /* ==== Test 4 End ==== */
 
+        /* ==== Test 5 Begin ==== */
+        $display("\n=== test 5: change trigger to fire on shemp > 3, and verify ===");
+        test_num = 5;
+
+        write_and_verify(9, 6, "shemp_op");   // set operation to GT
+        write_and_verify(10, 3, "shemp_arg"); // set argument to 3
         
-        /* ==== Test 8 Begin ==== */
-        $display("\n=== test 8: change trigger to fire on shemp > 3, and verify ===");
-        test_num = 8;
-
-        write_reg(8, 6);
-        $display(" -> wrote 0x0006 to shemp_op reg (addr 0x0008)");
-
-        read_reg(8, read_value);  
-        $display(" -> read  0x%h from shemp_op reg (addr 0x0008)", la_tb_rdata);
-
-        write_reg(9, 3);
-        $display(" -> wrote 0x0003 to shemp_arg reg (addr 0x0009)");
-
-        read_reg(9, read_value);
-        $display(" -> read  0x%h from shemp_arg reg (addr 0x0009)", read_value);
-
-        #(10*`CP);
-        /* ==== Test 8 End ==== */
-
-        /* ==== Test 9 Begin ==== */
-        $display("\n=== test 9: set state machine to IDLE, verify core does not trigger ===");
-        test_num = 9;
-
-        read_reg(0, read_value);
-        $display(" -> read  0x%h from state reg (addr 0x0000)", read_value);
-
-        write_reg(0, 0);
-        $display(" -> wrote 0x0000 to state reg (addr 0x0000)");
-
-        read_reg(0, read_value);
-        $display(" -> read  0x%h from state reg (addr 0x0000)", read_value);
-        /* ==== Test 9 End ==== */
-        
-        /* ==== Test 10 Begin ==== */
-        $display("\n=== test 10: set shemp = 4, verify core does trigger ===");
-        test_num = 10;
+        assert( (la.fsm.state == la.fsm.IDLE) || (la.fsm.state == la.fsm.FILLED) ) 
+            else $error("core is running when it shouldn't be!");
 
         larry = 0;
         curly = 0;
         moe = 0;
         shemp = 0;
-
-        write_reg(0, 1);
-        $display(" -> wrote 0x0001 to state reg (addr 0x0000)"); 
+         
+        write_reg(0, la.fsm.START_CAPTURE, "state");
 
         shemp = 4;
         $display(" -> set shemp = 4");
@@ -314,9 +303,9 @@ module logic_analyzer_tb;
 
         $display(" -> read from sample memory:");
         read_all_reg();
-         
-        #(200*`CP);
-        /* ==== Test 10 End ==== */
+
+        #(10*`CP);
+        /* ==== Test 5 End ==== */
 
         $finish();
     end
