@@ -1,6 +1,9 @@
 # macOS being lame
 .DS_Store
 
+# VSCode being lame
+*.vscode/
+
 # Vivado output products
 *.log
 *.jou
