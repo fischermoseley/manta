@@ -22,7 +22,7 @@ module lut_ram(
 parameter DEPTH = 8;
 parameter BASE_ADDR = 0;
 parameter READ_ONLY = 0;
-reg [DEPTH-1:0][15:0] mem;
+reg [DEPTH-1:0] mem [15:0];
 
 always @(posedge clk) begin
     addr_o <= addr_i;
