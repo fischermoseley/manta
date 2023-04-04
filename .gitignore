@@ -17,6 +17,9 @@
 *.vcd
 *.out
 
+# Manta output products
+manta.v
+
 # Python Packaging output products
 dist/
 *.egg-info

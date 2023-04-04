@@ -19,6 +19,11 @@ real_loc:
 
 test: auto_gen functional_sim
 
+clean:
+	rm -f *.out *.vcd
+	rm -rf dist/
+	rm -rf src/mantaray.egg-info
+
 # API Generation Tests
 auto_gen:
 	python3 test/auto_gen/run_tests.py
@@ -66,7 +71,51 @@ uart_tx_tb:
 	vvp sim.out
 	rm sim.out
 
-clean:
-	rm -f *.out *.vcd
-	rm -rf dist/
-	rm -rf src/mantaray.egg-info
+# Build Examples
+
+examples: icestick nexys_a7
+
+nexys_a7: nexys_a7_io_core nexys_a7_logic_analyzer nexys_a7_lut_ram
+
+nexys_a7_io_core:
+	cd examples/nexys_a7/io_core/;   	\
+	manta gen manta.yaml src/manta.v;	\
+	python3 lab-bc.py
+
+nexys_a7_logic_analyzer:
+	cd examples/nexys_a7/logic_analyzer/;   \
+	manta gen manta.yaml src/manta.v;		\
+	python3 lab-bc.py
+
+nexys_a7_lut_ram:
+	cd examples/nexys_a7/lut_ram/;   	\
+	manta gen manta.yaml src/manta.v;	\
+	python3 lab-bc.py
+
+icestick: icestick_io_core icestick_lut_ram
+
+icestick_io_core:
+	cd examples/icestick/io_core/;	\
+	manta gen manta.yaml manta.v;  	\
+	./build.sh
+
+icestick_lut_ram:
+	cd examples/icestick/lut_ram/; 	\
+	manta gen manta.yaml manta.v;  	\
+	./build.sh
+
+clean_examples:
+	rm -f examples/nexys_a7/io_core/obj/*
+	rm -f examples/nexys_a7/io_core/src/manta.v
+
+	rm -f examples/nexys_a7/logic_analyzer/obj/*
+	rm -f examples/nexys_a7/logic_analyzer/src/manta.v
+
+	rm -f examples/nexys_a7/lut_ram/obj/*
+	rm -f examples/nexys_a7/lut_ram/src/manta.v
+
+	rm -f examples/icestick/io_core/*.bin
+	rm -f examples/icestick/io_core/manta.v
+
+	rm -f examples/icestick/lut_ram/*.bin
+	rm -f examples/icestick/lut_ram/manta.v
