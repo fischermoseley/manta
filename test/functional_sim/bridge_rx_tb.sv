@@ -21,7 +21,7 @@ logic rst;
 string message;
 integer test_num;
 
-// uart inputs and outputs 
+// uart inputs and outputs
 logic rx;
 logic [7:0] rx_data;
 logic rx_valid;
@@ -43,7 +43,7 @@ bridge_rx bridge_rx_uut(
     // connect to uart_rx
     .rx_data(rx_data),
     .rx_valid(rx_valid),
-    
+
     .addr_o(addr),
     .wdata_o(wdata),
     .rw_o(rw),
@@ -107,7 +107,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MBABE", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(addr == 16'hBABE) else $error("incorrect addr!");
     assert(rw == 0) else $error("incorrect rw!");
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state after transmission");
@@ -121,7 +121,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"M0000", 8'h0D};
     `SEND_MESSAGE(message)
-    
+
     assert(addr == 16'h0000) else $error("incorrect addr!");
     assert(rw == 0) else $error("incorrect rw!");
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state after transmission");
@@ -135,7 +135,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"M1234", 8'h0D};
     `SEND_MESSAGE(message)
-    
+
     assert(addr == 16'h1234) else $error("incorrect addr!");
     assert(rw == 0) else $error("incorrect rw!");
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state after transmission");
@@ -149,7 +149,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MF00DBEEF", 8'h0D};
     `SEND_MESSAGE(message)
-    
+
     assert(addr == 16'hF00D) else $error("incorrect addr!");
     assert(wdata == 16'hBEEF) else $error("incorrect data!");
     assert(rw == 1) else $error("incorrect rw!");
@@ -164,7 +164,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MB0BACAFE", 8'h0D};
     `SEND_MESSAGE(message)
-    
+
     assert(addr == 16'hB0BA) else $error("incorrect addr!");
     assert(wdata == 16'hCAFE) else $error("incorrect data!");
     assert(rw == 1) else $error("incorrect rw!");
@@ -180,7 +180,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MABC", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 
@@ -195,7 +195,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MABC", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 
@@ -210,7 +210,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MABC", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 
@@ -225,7 +225,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MABC", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 
@@ -240,7 +240,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MABCG", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 
@@ -255,7 +255,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"MABC[]()##*@", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 
@@ -270,7 +270,7 @@ initial begin
     assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state before transmission");
     message = {"M", 8'h0D, 8'h0A};
     `SEND_MESSAGE(message)
-    
+
     assert(valid == 0) else $error("valid asserted for bad message");
     assert(bridge_rx_uut.state == bridge_rx_uut.ERROR) else $error("not in error state after transmission");
 

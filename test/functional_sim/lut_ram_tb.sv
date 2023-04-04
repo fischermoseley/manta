@@ -42,7 +42,7 @@ module lut_ram_tb;
     logic mem_1_mem_2_rw;
     logic mem_1_mem_2_valid;
 
-    lut_ram #( 
+    lut_ram #(
         .DEPTH(8),
         .BASE_ADDR(8)
     ) mem_2 (
@@ -199,7 +199,7 @@ module lut_ram_tb;
         tb_mem_1_valid = 0;
         #(10*`CP);
         /* ==== Test 3 End ==== */
-        
+
         $finish();
     end
 endmodule

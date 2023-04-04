@@ -23,15 +23,15 @@ module uart_tx_tb();
 		.tx(utx_tb_tx));
 
 
-	logic zcpu_tb_tx; 
+	logic zcpu_tb_tx;
 	logic zcpu_tb_busy;
-	
+
 	tx_uart #(.CLOCKS_PER_BAUD(10)) zcpu_utx (
 		.i_clk(clk),
 
 		.i_wr(tb_utx_valid),
 		.i_data(tb_utx_data),
-		
+
 		.o_uart_tx(zcpu_tb_tx),
 		.o_busy(zcpu_tb_busy));
 
@@ -83,7 +83,7 @@ module uart_tx_tb();
 		tb_utx_valid = 0;
 
 		#(99*`CP);
-		
+
 		tb_utx_data = 8'h42;
 		tb_utx_valid = 1;
 		#`CP;
@@ -97,7 +97,7 @@ module uart_tx_tb();
 		#`CP;
 
 		#(99*`CP);
-		
+
 		tb_utx_data = 8'h42;
 		tb_utx_valid = 1;
 		#`CP;

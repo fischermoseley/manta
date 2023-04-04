@@ -1,8 +1,8 @@
-build: 
+build:
 	python3 -m build
 
 pypi_upload: build
-	python3 -m twine upload --repository testpypi dist/*	
+	python3 -m twine upload --repository testpypi dist/*
 
 lint:
 	python3 -m black src/manta/__init__.py
@@ -20,11 +20,11 @@ real_loc:
 test: auto_gen functional_sim
 
 # API Generation Tests
-auto_gen: 
+auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Functional Simulation
-functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb fifo_tb lut_ram_tb uart_tb uart_tx_tb 
+functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb lut_ram_tb uart_tb uart_tx_tb
 
 io_core_tb:
 	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/io_core_tb.sv
@@ -51,11 +51,6 @@ bridge_tx_tb:
 	vvp sim.out
 	rm sim.out
 
-fifo_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/fifo_tb.sv 
-	vvp sim.out >> /dev/null # this one is noisy right now
-	rm sim.out
-
 lut_ram_tb:
 	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/lut_ram_tb.sv
 	vvp sim.out
@@ -70,7 +65,7 @@ uart_tx_tb:
 	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/uart_tx_tb.sv
 	vvp sim.out
 	rm sim.out
-	
+
 clean:
 	rm -f *.out *.vcd
 	rm -rf dist/

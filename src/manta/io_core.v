@@ -47,7 +47,7 @@ module io_core(
         rw_o <= rw_i;
         valid_o <= valid_i;
         rdata_o <= rdata_i;
-        
+
 
         // check if address is valid
         if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 7)) begin

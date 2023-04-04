@@ -72,15 +72,15 @@ module bus_fix_tb;
         .rdata_o(mem_btx_rdata),
         .rw_o(mem_btx_rw),
         .valid_o(mem_btx_valid));
-    
-    // mem --> frizzle signals, it's frizzle because that's a bus you wanna get off of 
+
+    // mem --> frizzle signals, it's frizzle because that's a bus you wanna get off of
     logic [15:0] mem_btx_rdata;
     logic mem_btx_rw;
     logic mem_btx_valid;
 
     bridge_tx btx (
         .clk(clk),
-        
+
         .rdata_i(mem_btx_rdata),
         .rw_i(mem_btx_rw),
         .valid_i(mem_btx_valid),
@@ -92,7 +92,7 @@ module bus_fix_tb;
     logic utx_btx_ready;
     logic btx_utx_valid;
     logic [7:0] btx_utx_data;
-    
+
     uart_tx #(.CLOCKS_PER_BAUD(CLOCKS_PER_BAUD)) utx (
         .clk(clk),
 
@@ -140,7 +140,7 @@ module bus_fix_tb;
         #`HCP
 
         // throw some nonzero data in the memories just so we know that we're pulling from the right ones
-        
+
         for(int i=0; i< 32; i++) mem.mem[i] = i;
 
         #(10*`CP);
@@ -149,7 +149,7 @@ module bus_fix_tb;
         $display("\n=== test 1: write 0x5678 to 0x1234 for baseline functionality ===");
         test_num = 1;
         msg = {"M1234", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
+        `SEND_MSG_BITS(msg)
 
         #(10*`CP);
         /* ==== Test 1 End ==== */
@@ -158,7 +158,7 @@ module bus_fix_tb;
         $display("\n=== test 2: read from 0x0001 for baseline functionality ===");
         test_num = 2;
         msg = {"M1234", 8'h0D, 8'h0A};
-        `SEND_MSG_BITS(msg) 
+        `SEND_MSG_BITS(msg)
 
         #(1000*`CP);
         /* ==== Test 2 End ==== */
@@ -183,7 +183,7 @@ module bus_fix_tb;
         //     msg = {$sformatf("M%H", j), 8'h0D, 8'h0A};
         //     `SEND_MSG_BITS(msg)
         // end
-        
+
 
         #(10*`CP);
         /* ==== Test 3 End ==== */
@@ -196,7 +196,7 @@ module bus_fix_tb;
             msg = {"M12345678", 8'h0D, 8'h0A};
             `SEND_MSG_BITS(msg);
         end
- 
+
         /* ==== Test 4 End ==== */
 
         /* ==== Test 5 Begin ==== */
@@ -207,11 +207,11 @@ module bus_fix_tb;
             msg = {"M1234", 8'h0D, 8'h0A};
             `SEND_MSG_BITS(msg);
         end
- 
+
         /* ==== Test 5 End ==== */
 
 
-        
+
         #(1000*`CP)
 
         $finish();

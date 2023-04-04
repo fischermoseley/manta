@@ -31,12 +31,12 @@ always @(posedge clk) begin
     rw_o <= rw_i;
     valid_o <= valid_i;
     rdata_o <= rdata_i;
-    
+
 
     if(valid_i) begin
         // check if address is valid
         if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + DEPTH - 1) ) begin
-            
+
             // read/write
             if (rw_i && !READ_ONLY) mem[addr_i - BASE_ADDR] <= wdata_i;
             else rdata_o <= mem[addr_i - BASE_ADDR];

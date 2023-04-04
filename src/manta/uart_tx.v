@@ -3,7 +3,7 @@
 
 module uart_tx(
 	input wire clk,
-	
+
 	input wire [7:0] data,
 	input wire valid,
 	output reg busy,
@@ -11,7 +11,7 @@ module uart_tx(
 
 	output reg tx);
 
-	// this transmitter only works with 8N1 serial, at configurable baudrate	
+	// this transmitter only works with 8N1 serial, at configurable baudrate
 	parameter CLOCKS_PER_BAUD = 868;
 
 	reg [9:0] baud_counter;
@@ -57,7 +57,7 @@ module uart_tx(
 						busy <= 0;
 						ready <= 1;
 					end
-					// if valid happens here then we should bool 
+					// if valid happens here then we should bool
 				end
 
 				else begin
@@ -68,7 +68,7 @@ module uart_tx(
 		end
 	end
 
-	
+
 
 endmodule
 

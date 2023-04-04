@@ -99,7 +99,7 @@ module rx_uart(
 				state <= IDLE;
 				baud_counter <= 0;
 			end
-		end 
+		end
 
 		else baud_counter <= baud_counter - 1'b1;
 

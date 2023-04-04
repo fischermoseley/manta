@@ -203,7 +203,7 @@ module logic_analyzer_tb;
         write_and_verify(8, 1, "moe_arg");
         write_and_verify(8, 0, "moe_arg");
 
-        // shemp 
+        // shemp
         write_and_verify(9, 0, "shemp_op");
         write_and_verify(9, 7, "shemp_op");
         write_and_verify(9, 0, "shemp_op");
@@ -221,7 +221,7 @@ module logic_analyzer_tb;
         $display("\n=== test 3: verify FSM doesn't move out of IDLE when not running ===");
         test_num = 3;
 
-        write_and_verify(3, 8, "larry_op");  // set operation to  eq 
+        write_and_verify(3, 8, "larry_op");  // set operation to  eq
         write_and_verify(4, 1, "larry_arg"); // set argument to 1
 
         // set larry = 1, verify core doesn't trigger
@@ -230,10 +230,10 @@ module logic_analyzer_tb;
 
         $display(" -> la core is in state 0x%h", la.fsm.state);
         assert(la.fsm.state == la.fsm.IDLE) else $error("core moved outside of IDLE state when not running!");
-        
+
         $display(" -> wait a clock cycle");
         #`CP
-        
+
         $display(" -> la core is in state 0x%h", la.fsm.state);
         assert(la.fsm.state == la.fsm.IDLE) else $error("core moved outside of IDLE state when not running!");
 
@@ -280,15 +280,15 @@ module logic_analyzer_tb;
 
         write_and_verify(9, 6, "shemp_op");   // set operation to GT
         write_and_verify(10, 3, "shemp_arg"); // set argument to 3
-        
-        assert( (la.fsm.state == la.fsm.IDLE) || (la.fsm.state == la.fsm.FILLED) ) 
+
+        assert( (la.fsm.state == la.fsm.IDLE) || (la.fsm.state == la.fsm.FILLED) )
             else $error("core is running when it shouldn't be!");
 
         larry = 0;
         curly = 0;
         moe = 0;
         shemp = 0;
-         
+
         write_reg(0, la.fsm.START_CAPTURE, "state");
 
         shemp = 4;

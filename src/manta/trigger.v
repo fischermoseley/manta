@@ -3,7 +3,7 @@
 
 module trigger(
     input wire clk,
-    
+
     input wire [INPUT_WIDTH-1:0] probe,
     input wire [3:0] op,
     input wire [INPUT_WIDTH-1:0] arg,
@@ -38,7 +38,7 @@ module trigger(
             LEQ:        trig = (probe <= arg);
             EQ:         trig = (probe == arg);
             NEQ:        trig = (probe != arg);
-            default:    trig = 0; 
+            default:    trig = 0;
         endcase
     end
 endmodule

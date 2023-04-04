@@ -14,7 +14,7 @@ module bit_fifo(
     parameter OWIDTH = 0;
 
     localparam BWIDTH = OWIDTH-1 + IWIDTH;
-    
+
     reg [OWIDTH-1:0] buffer;
     reg [$clog2(OWIDTH)-1:0] buffer_size;
 
@@ -31,10 +31,10 @@ module bit_fifo(
     reg [OWIDTH-1:0] joined_halves;
 
     always @(*) begin
-        mask = (1 << buffer_size) - 1; 
+        mask = (1 << buffer_size) - 1;
         top_half = (buffer & mask) << (OWIDTH - buffer_size);
         bottom_half = in >> (IWIDTH- (OWIDTH - buffer_size));
-        joined_halves = top_half | bottom_half; 
+        joined_halves = top_half | bottom_half;
     end
 
     always @(posedge clk) begin
@@ -53,7 +53,7 @@ module bit_fifo(
                 //      so what we put back in the buffer is purely what's left over
                 //      from our input data once we've sliced out what we need
                 buffer_size <= buffer_size + IWIDTH - OWIDTH;
-                
+
                 // compute buffer contents
                 buffer <= ( (1 << (buffer_size + IWIDTH - OWIDTH)) - 1 ) & in;
 
@@ -64,9 +64,9 @@ module bit_fifo(
                 $display("   top_half:    %b", top_half);
                 $display("   bottom_half: %b", bottom_half);
                 $display("   out:         %b \n", joined_halves);
-                */ 
+                */
 
-                // compute output 
+                // compute output
                 out <= joined_halves;
                 out_valid <= 1;
             end

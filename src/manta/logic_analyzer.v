@@ -4,7 +4,7 @@
 module logic_analyzer(
     input wire clk,
 
-    // probes  
+    // probes
     input wire larry,
     input wire curly,
     input wire moe,
@@ -49,7 +49,7 @@ module logic_analyzer(
         .rdata_o(fsm_trig_blk_rdata),
         .rw_o(fsm_trig_blk_rw),
         .valid_o(fsm_trig_blk_valid));
-    
+
     reg [15:0] fsm_trig_blk_addr;
     reg [15:0] fsm_trig_blk_wdata;
     reg [15:0] fsm_trig_blk_rdata;
@@ -61,19 +61,19 @@ module logic_analyzer(
     reg fifo_acquire;
     reg fifo_pop;
     reg fifo_clear;
-     
+
 
     // trigger block
     trigger_block #(.BASE_ADDR(BASE_ADDR + 3)) trig_blk(
         .clk(clk),
-        
+
         .larry(larry),
         .curly(curly),
         .moe(moe),
         .shemp(shemp),
 
         .trig(trig),
-        
+
         .addr_i(fsm_trig_blk_addr),
         .wdata_i(fsm_trig_blk_wdata),
         .rdata_i(fsm_trig_blk_rdata),

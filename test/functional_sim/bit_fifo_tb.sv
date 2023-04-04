@@ -65,7 +65,7 @@ module bit_fifo_tb;
         #(10*`CP);
         in_valid = 0;
         en = 0;
-        
+
         #(10*`CP);
         /* ==== Test 2 End ==== */
         $finish();

@@ -81,31 +81,22 @@ module sample_mem(
 
     
     // bram
-    xilinx_true_dual_port_read_first_2_clock_ram #(
+    dual_port_bram #(
 		.RAM_WIDTH(16),
-		.RAM_DEPTH(SAMPLE_DEPTH),
-		.RAM_PERFORMANCE("HIGH_PERFORMANCE")
-
+		.RAM_DEPTH(SAMPLE_DEPTH)
     ) bram (
-
 		// read port (controlled by bus)
 		.clka(clk),
-		.rsta(1'b0),
-		.ena(1'b1),
 		.addra(bram_read_addr),
 		.dina(16'b0),
 		.wea(1'b0),
-		.regcea(1'b1),
 		.douta(bram_read_data),
 
 		// write port (controlled by FIFO)
 		.clkb(clk),
-		.rstb(1'b0),
-		.enb(1'b1),
 		.addrb(write_pointer[BRAM_ADDR_WIDTH-1:0]),
 		.dinb({9'b0, larry, curly, moe, shemp}),
 		.web(acquire),
-		.regceb(1'b1),
 		.doutb());
 
 

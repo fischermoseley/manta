@@ -30,7 +30,7 @@ module trigger_block (
     // trigger configuration registers
     // - each probe gets an operation and a compare register
     // - at the end we OR them all together. along with any custom probes the user specs
-    
+
     // @TRIGGER_MODULE_INSTS
 
     // @COMBINE_INDIV_TRIGGERS

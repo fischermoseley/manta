@@ -40,14 +40,14 @@
 //
 //
 module tx_uart(
-	input wire i_clk, 
+	input wire i_clk,
 	input wire i_wr,
-	input wire [7:0] i_data, 
-	output reg o_uart_tx, 
+	input wire [7:0] i_data,
+	output reg o_uart_tx,
 	output reg o_busy);
 
 	parameter	[23:0]	CLOCKS_PER_BAUD = 24'd868;
-	
+
 	// A line to tell others when we are ready to accept data.  If
 	// (i_wr)&&(!o_busy) is ever true, then the core has accepted a byte
 	// for transmission.

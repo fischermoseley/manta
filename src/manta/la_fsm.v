@@ -122,7 +122,7 @@ module la_fsm(
         end
 
 
-        // return to IDLE state if somehow we get to a state that doesn't exist 
+        // return to IDLE state if somehow we get to a state that doesn't exist
         else begin
             state <= IDLE;
         end

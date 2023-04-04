@@ -39,11 +39,11 @@ module io_core_tb;
     io_core #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) io(
         .clk(clk),
 
-        // inputs 
+        // inputs
         .picard(picard),
         .data(data),
         .laforge(laforge),
-        .troi(troi),     
+        .troi(troi),
 
         // outputs
         .kirk(kirk),
@@ -88,7 +88,7 @@ module io_core_tb;
         data = 0;
         laforge = 0;
         troi = 0;
-        
+
         #`HCP
         #(10*`CP);
 
@@ -106,7 +106,7 @@ module io_core_tb;
 
         #(10*`CP);
         /* ==== Test 1 End ==== */
-        
+
         $finish();
     end
 endmodule

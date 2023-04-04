@@ -547,13 +547,13 @@ class LogicAnalyzerCore:
         logic_analyzer_hdl = pkgutil.get_data(__name__, "logic_analyzer.v").decode()
         la_fsm_hdl = pkgutil.get_data(__name__, "la_fsm.v").decode()
         sample_mem_hdl = pkgutil.get_data(__name__, "sample_mem.v").decode()
-        xilinx_bram_hdl = pkgutil.get_data(__name__, "xilinx_true_dual_port_read_first_2_clock_ram.v").decode()
+        dual_port_bram_hdl = pkgutil.get_data(__name__, "dual_port_bram.v").decode()
         trigger_hdl = pkgutil.get_data(__name__, "trigger.v").decode()
 
         # generate trigger block
         trigger_block_hdl = self.generate_trigger_block()
 
-        return logic_analyzer_hdl + la_fsm_hdl + sample_mem_hdl + xilinx_bram_hdl + trigger_block_hdl + trigger_hdl
+        return logic_analyzer_hdl + la_fsm_hdl + sample_mem_hdl + dual_port_bram_hdl + trigger_block_hdl + trigger_hdl
 
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but as a list of verilog ports
