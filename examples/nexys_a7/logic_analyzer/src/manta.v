@@ -2,7 +2,7 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 03 Apr 2023 at 21:11:41 by fischerm
+This manta definition was generated on 03 Apr 2023 at 22:52:39 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
@@ -55,13 +55,13 @@ module manta (
         .wdata_o(brx_my_logic_analyzer_wdata),
         .rw_o(brx_my_logic_analyzer_rw),
         .valid_o(brx_my_logic_analyzer_valid));
-
+        
     reg [15:0] brx_my_logic_analyzer_addr;
     reg [15:0] brx_my_logic_analyzer_wdata;
     reg brx_my_logic_analyzer_rw;
     reg brx_my_logic_analyzer_valid;
 
-    logic_analyzer #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) my_logic_analyzer (
+    logic_analyzer my_logic_analyzer (
         .clk(clk),
 
         .addr_i(brx_my_logic_analyzer_addr),
@@ -161,7 +161,6 @@ endmodule
 //
 //
 
-
 module rx_uart(
 	input wire i_clk,
 	input wire i_uart_rx,
@@ -228,8 +227,6 @@ module rx_uart(
 		o_wr <= ((zero_baud_counter)&&(state == STOP_BIT));
 
 endmodule
-
-
 
 
 module bridge_rx(
@@ -362,17 +359,14 @@ end
 
 endmodule
 
-
-
-
-module logic_analyzer(
+module logic_analyzer (
     input wire clk,
 
     // probes
     input wire larry,
-    input wire curly,
-    input wire moe,
-    input wire [3:0] shemp,
+	input wire curly,
+	input wire moe,
+	input wire [3:0] shemp,
 
     // input port
     input wire [15:0] addr_i,
@@ -389,11 +383,11 @@ module logic_analyzer(
     output reg valid_o
     );
 
-    parameter BASE_ADDR = 0;
-    parameter SAMPLE_DEPTH = 0;
-
     // fsm
-    la_fsm #(.BASE_ADDR(BASE_ADDR), .SAMPLE_DEPTH(SAMPLE_DEPTH)) fsm (
+    la_fsm #(
+        .BASE_ADDR(0),
+        .SAMPLE_DEPTH(4096)
+        ) fsm (
         .clk(clk),
 
         .trig(trig),
@@ -421,20 +415,20 @@ module logic_analyzer(
     reg fsm_trig_blk_valid;
 
     reg trig;
-    reg [$clog2(SAMPLE_DEPTH):0] fifo_size;
+    reg [$clog2(4096):0] fifo_size;
     reg fifo_acquire;
     reg fifo_pop;
     reg fifo_clear;
 
 
     // trigger block
-    trigger_block #(.BASE_ADDR(BASE_ADDR + 3)) trig_blk(
+    trigger_block #(.BASE_ADDR(3)) trig_blk (
         .clk(clk),
 
         .larry(larry),
-        .curly(curly),
-        .moe(moe),
-        .shemp(shemp),
+		.curly(curly),
+		.moe(moe),
+		.shemp(shemp),
 
         .trig(trig),
 
@@ -457,7 +451,10 @@ module logic_analyzer(
     reg trig_blk_sample_mem_valid;
 
     // sample memory
-    sample_mem #(.BASE_ADDR(BASE_ADDR + 11), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
+    sample_mem #(
+        .BASE_ADDR(11),
+        .SAMPLE_DEPTH(4096)
+        ) sample_mem (
         .clk(clk),
 
         // fifo
@@ -468,9 +465,9 @@ module logic_analyzer(
 
         // probes
         .larry(larry),
-        .curly(curly),
-        .moe(moe),
-        .shemp(shemp),
+		.curly(curly),
+		.moe(moe),
+		.shemp(shemp),
 
         // input port
         .addr_i(trig_blk_sample_mem_addr),
@@ -486,8 +483,6 @@ module logic_analyzer(
         .rw_o(rw_o),
         .valid_o(valid_o));
 endmodule
-
-
 
 
 module la_fsm(
@@ -619,8 +614,6 @@ module la_fsm(
 endmodule
 
 
-
-
 module sample_mem(
     input wire clk,
 
@@ -632,9 +625,9 @@ module sample_mem(
 
     // probes
     input wire larry,
-    input wire curly,
-    input wire moe,
-    input wire [3:0] shemp,
+	input wire curly,
+	input wire moe,
+	input wire [3:0] shemp,
 
     // input port
     input wire [15:0] addr_i,
@@ -733,7 +726,6 @@ module sample_mem(
 	end
 endmodule
 
-
 //  Xilinx True Dual Port RAM, Read First, Dual Clock
 //  This code implements a parameterizable true dual port memory (both ports can read and write).
 //  The behavior of this RAM is when data is written, the prior memory contents at the write
@@ -745,19 +737,19 @@ endmodule
 //  Modified from the xilinx_true_dual_port_read_first_2_clock_ram verilog language template.
 
 module dual_port_bram #(
-    parameter RAM_WIDTH = 0,                        // Specify RAM data width
-    parameter RAM_DEPTH = 0                         // Specify RAM depth (number of entries)
+    parameter RAM_WIDTH = 0,
+    parameter RAM_DEPTH = 0
     ) (
-    input wire [$clog2(RAM_DEPTH-1)-1:0] addra,  // Port A address bus, width determined from RAM_DEPTH
-    input wire [$clog2(RAM_DEPTH-1)-1:0] addrb,  // Port B address bus, width determined from RAM_DEPTH
-    input wire [RAM_WIDTH-1:0] dina,           // Port A RAM input data
-    input wire [RAM_WIDTH-1:0] dinb,           // Port B RAM input data
-    input wire clka,                           // Port A clock
-    input wire clkb,                           // Port B clock
-    input wire wea,                            // Port A write enable
-    input wire web,                            // Port B write enable
-    output wire [RAM_WIDTH-1:0] douta,         // Port A RAM output data
-    output wire [RAM_WIDTH-1:0] doutb          // Port B RAM output data
+    input wire [$clog2(RAM_DEPTH-1)-1:0] addra,
+    input wire [$clog2(RAM_DEPTH-1)-1:0] addrb,
+    input wire [RAM_WIDTH-1:0] dina,
+    input wire [RAM_WIDTH-1:0] dinb,
+    input wire clka,
+    input wire clkb,
+    input wire wea,
+    input wire web,
+    output wire [RAM_WIDTH-1:0] douta,
+    output wire [RAM_WIDTH-1:0] doutb
     );
 
     reg [RAM_WIDTH-1:0] BRAM [RAM_DEPTH-1:0];
@@ -774,7 +766,7 @@ module dual_port_bram #(
         ram_data_b <= BRAM[addrb];
     end
 
-    // The following is a 2 clock cycle read latency with improve clock-to-out timing
+    // Add a 2 clock cycle read latency to improve clock-to-out timing
     reg [RAM_WIDTH-1:0] douta_reg = {RAM_WIDTH{1'b0}};
     reg [RAM_WIDTH-1:0] doutb_reg = {RAM_WIDTH{1'b0}};
 
@@ -784,8 +776,6 @@ module dual_port_bram #(
     assign douta = douta_reg;
     assign doutb = doutb_reg;
 endmodule
-
-
 
 module trigger_block (
     input wire clk,
@@ -823,7 +813,7 @@ module trigger_block (
     reg [3:0] larry_trigger_op = 0;
 	reg larry_trigger_arg = 0;
 	reg larry_trig;
-
+	
     trigger #(.INPUT_WIDTH(1)) larry_trigger (
         .clk(clk),
 
@@ -835,7 +825,7 @@ module trigger_block (
     reg [3:0] curly_trigger_op = 0;
 	reg curly_trigger_arg = 0;
 	reg curly_trig;
-
+	
     trigger #(.INPUT_WIDTH(1)) curly_trigger (
         .clk(clk),
 
@@ -847,7 +837,7 @@ module trigger_block (
     reg [3:0] moe_trigger_op = 0;
 	reg moe_trigger_arg = 0;
 	reg moe_trig;
-
+	
     trigger #(.INPUT_WIDTH(1)) moe_trigger (
         .clk(clk),
 
@@ -859,7 +849,7 @@ module trigger_block (
     reg [3:0] shemp_trigger_op = 0;
 	reg [3:0] shemp_trigger_arg = 0;
 	reg shemp_trig;
-
+	
     trigger #(.INPUT_WIDTH(4)) shemp_trigger (
         .clk(clk),
 
@@ -914,8 +904,6 @@ module trigger_block (
 endmodule
 
 
-
-
 module trigger(
     input wire clk,
 
@@ -957,9 +945,6 @@ module trigger(
         endcase
     end
 endmodule
-
-
-
 
 
 module bridge_tx(
@@ -1031,9 +1016,6 @@ end
 
 endmodule
 
-
-
-
 module uart_tx(
 	input wire clk,
 
@@ -1104,6 +1086,5 @@ module uart_tx(
 
 
 endmodule
-
 
 `default_nettype wire

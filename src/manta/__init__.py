@@ -437,9 +437,15 @@ class LogicAnalyzerCore:
         assert len(config["triggers"]) > 0, "Must specify at least one trigger."
         self.triggers = config["triggers"]
 
-        # need 3 addresses for configuration (state, current_loc, trigger_loc)
-        # and 2 address for each trigger (operation and argument)
-        self.max_addr = self.base_addr + 2 + (2*len(self.probes))
+
+        # compute addresses
+        # - need 3 addresses for configuration (state, current_loc, trigger_loc)
+        #   and 2 address for each trigger (operation and argument)
+
+        self.fsm_base_addr = self.base_addr
+        self.trigger_block_base_addr = self.fsm_base_addr + 3
+        self.sample_mem_base_addr = self.trigger_block_base_addr + (2*len(self.probes))
+        self.max_addr = self.sample_mem_base_addr + self.sample_depth
 
     def hdl_inst(self):
         ports = []
@@ -448,7 +454,7 @@ class LogicAnalyzerCore:
         ports = "\n\t\t".join(ports)
 
         hdl = f"""
-    logic_analyzer #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) {self.name} (
+    logic_analyzer {self.name} (
         .clk(clk),
 
         .addr_i(),
@@ -481,7 +487,7 @@ class LogicAnalyzerCore:
                 probe_ports.append(f"input wire [{width-1}:0] {name}")
 
         probe_ports = ",\n\t".join(probe_ports)
-        probe_ports = probe_ports + "," 
+        probe_ports = probe_ports + ","
         trigger_block_hdl = trigger_block_hdl.replace("// @PROBE_PORTS", probe_ports)
 
         # add trigger cores to module definition
@@ -490,18 +496,18 @@ class LogicAnalyzerCore:
         trigger_module_insts = []
         for name, width in self.probes.items():
             trigger_module_inst = f"reg [3:0] {name}_trigger_op = 0;\n\t"
-            
+
             if width == 1:
                 trigger_module_inst += f"reg {name}_trigger_arg = 0;\n\t"
-            
+
             else:
                 trigger_module_inst += f"reg [{width-1}:0] {name}_trigger_arg = 0;\n\t"
-    
+
             trigger_module_inst += f"reg {name}_trig;\n\t"
-            trigger_module_inst += f""" 
+            trigger_module_inst += f"""
     trigger #(.INPUT_WIDTH({width})) {name}_trigger (
         .clk(clk),
-        
+
         .probe({name}),
         .op({name}_trigger_op),
         .arg({name}_trigger_arg),
@@ -509,9 +515,9 @@ class LogicAnalyzerCore:
     );
     """
             trigger_module_insts.append(trigger_module_inst)
-        
+
         trigger_module_insts = "".join(trigger_module_insts)
-        trigger_module_insts = trigger_module_insts.rstrip() 
+        trigger_module_insts = trigger_module_insts.rstrip()
         trigger_block_hdl = trigger_block_hdl.replace("// @TRIGGER_MODULE_INSTS", trigger_module_insts)
 
         # add combined individual triggers
@@ -541,17 +547,91 @@ class LogicAnalyzerCore:
         trigger_block_hdl = trigger_block_hdl.replace("// @MAX_ADDR", str(addr))
         return trigger_block_hdl
 
+    def generate_sample_mem(self):
+        sample_mem_hdl = pkgutil.get_data(__name__, "sample_mem_template.v").decode()
+
+        # add probe ports to module declaration
+        # - these are the ports that belong to the logic analyzer, but
+        #   need to be included in the trigger_block module declaration
+        probe_ports = []
+        for name, width in self.probes.items():
+            if width == 1:
+                probe_ports.append(f"input wire {name}")
+            else:
+                probe_ports.append(f"input wire [{width-1}:0] {name}")
+
+        probe_ports = ",\n\t".join(probe_ports)
+        probe_ports = probe_ports + ","
+        sample_mem_hdl = sample_mem_hdl.replace("/* PROBE_PORTS */", probe_ports)
+
+
+        # concatenate probes to BRAM input
+        total_probe_width = sum([width for name, width in self.probes.items()])
+
+        if total_probe_width > 16:
+            # TODO: implement > 16 bit addressing
+            raise NotImplementedError("ummm i'm getting around to it calm down calm down")
+
+        zero_pad_width = 16 - total_probe_width
+        concat = ", ".join([name for name in self.probes])
+        concat = f"{{{zero_pad_width}'b0, {concat}}}"
+
+        sample_mem_hdl = sample_mem_hdl.replace("/* CONCAT */", concat)
+
+        return sample_mem_hdl
+
+    def generate_logic_analyzer(self):
+        logic_analyzer_hdl = pkgutil.get_data(__name__, "logic_analyzer_template.v").decode()
+
+        # add top level probe ports to module declaration
+        # - these are the ports that belong to the logic analyzer, but
+        #   need to be included in the trigger_block module declaration
+
+        tlpp = [] # top level probe ports
+        for name, width in self.probes.items():
+            if width == 1:
+                tlpp.append(f"input wire {name}")
+            else:
+                tlpp.append(f"input wire [{width-1}:0] {name}")
+
+        tlpp = ",\n\t".join(tlpp)
+        tlpp = tlpp + ","
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* TOP_LEVEL_PROBE_PORTS */", tlpp)
+
+        # assign base addresses to the FSM, trigger block, and sample mem
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* FSM_BASE_ADDR */", str(self.fsm_base_addr))
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* TRIGGER_BLOCK_BASE_ADDR */", str(self.trigger_block_base_addr))
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* SAMPLE_MEM_BASE_ADDR */", str(self.sample_mem_base_addr))
+
+        # set sample depth
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* SAMPLE_DEPTH */", str(self.sample_depth))
+
+        # set probe ports for the trigger block and sample mem
+        pp = [] # probe ports
+        pp = [f".{name}({name})" for name in self.probes]
+        pp = ",\n\t\t".join(pp)
+        pp = pp + ","
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* TRIGGER_BLOCK_PROBE_PORTS */", pp)
+        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* SAMPLE_MEM_PROBE_PORTS */", pp)
+
+        return logic_analyzer_hdl
+
+
     def hdl_def(self):
         # Return an autogenerated verilog module definition for the core.
-        # load source files
-        logic_analyzer_hdl = pkgutil.get_data(__name__, "logic_analyzer.v").decode()
+        # load source files=
         la_fsm_hdl = pkgutil.get_data(__name__, "la_fsm.v").decode()
-        sample_mem_hdl = pkgutil.get_data(__name__, "sample_mem.v").decode()
         dual_port_bram_hdl = pkgutil.get_data(__name__, "dual_port_bram.v").decode()
         trigger_hdl = pkgutil.get_data(__name__, "trigger.v").decode()
 
         # generate trigger block
         trigger_block_hdl = self.generate_trigger_block()
+
+        # generate sample memory
+        sample_mem_hdl = self.generate_sample_mem()
+
+        # generate logic analyzer
+        logic_analyzer_hdl = self.generate_logic_analyzer()
 
         return logic_analyzer_hdl + la_fsm_hdl + sample_mem_hdl + dual_port_bram_hdl + trigger_block_hdl + trigger_hdl
 
@@ -568,7 +648,7 @@ class LogicAnalyzerCore:
         return ports
 
     def run(self):
-        pass 
+        pass
 
     def part_select(self, data, width):
         top, bottom = width
@@ -946,6 +1026,10 @@ module manta (
         hdl += module_defs
 
         # default_nettype and timescale directives only at the beginning and end
+        hdl = hdl.replace("`default_nettype none\n", "")
+        hdl = hdl.replace("`default_nettype wire\n", "")
+        hdl = hdl.replace("`timescale 1ns/1ps\n", "")
+
         hdl = hdl.replace("`default_nettype none", "")
         hdl = hdl.replace("`default_nettype wire", "")
         hdl = hdl.replace("`timescale 1ns/1ps", "")

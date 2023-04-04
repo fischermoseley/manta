@@ -18,8 +18,7 @@ task read_reg (
     data = logic_analyzer_tb.la_tb_rdata;
 
     $display(" -> read  0x%h from addr 0x%h (%s)", data, addr, desc);
-
-    endtask
+endtask
 
 task write_reg(
     input [15:0] addr,
@@ -36,7 +35,6 @@ task write_reg(
     while (!logic_analyzer_tb.la_tb_valid) #`CP;
 
     $display(" -> wrote 0x%h to   addr 0x%h (%s)", data, addr, desc);
-
 endtask
 
 task write_and_verify(
