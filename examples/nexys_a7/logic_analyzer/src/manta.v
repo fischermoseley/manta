@@ -2,7 +2,7 @@
 `timescale 1ns/1ps
 
 /*
-This manta definition was generated on 02 Apr 2023 at 22:05:41 by fischerm
+This manta definition was generated on 03 Apr 2023 at 21:11:41 by fischerm
 
 If this breaks or if you've got dank formal verification memes,
 please contact fischerm [at] mit.edu
@@ -55,7 +55,7 @@ module manta (
         .wdata_o(brx_my_logic_analyzer_wdata),
         .rw_o(brx_my_logic_analyzer_rw),
         .valid_o(brx_my_logic_analyzer_valid));
-        
+
     reg [15:0] brx_my_logic_analyzer_addr;
     reg [15:0] brx_my_logic_analyzer_wdata;
     reg brx_my_logic_analyzer_rw;
@@ -212,7 +212,7 @@ module rx_uart(
 				state <= IDLE;
 				baud_counter <= 0;
 			end
-		end 
+		end
 
 		else baud_counter <= baud_counter - 1'b1;
 
@@ -368,7 +368,7 @@ endmodule
 module logic_analyzer(
     input wire clk,
 
-    // probes  
+    // probes
     input wire larry,
     input wire curly,
     input wire moe,
@@ -413,7 +413,7 @@ module logic_analyzer(
         .rdata_o(fsm_trig_blk_rdata),
         .rw_o(fsm_trig_blk_rw),
         .valid_o(fsm_trig_blk_valid));
-    
+
     reg [15:0] fsm_trig_blk_addr;
     reg [15:0] fsm_trig_blk_wdata;
     reg [15:0] fsm_trig_blk_rdata;
@@ -425,19 +425,19 @@ module logic_analyzer(
     reg fifo_acquire;
     reg fifo_pop;
     reg fifo_clear;
-     
+
 
     // trigger block
-    trigger_block #(.BASE_ADDR(BASE_ADDR + 2)) trig_blk(
+    trigger_block #(.BASE_ADDR(BASE_ADDR + 3)) trig_blk(
         .clk(clk),
-        
+
         .larry(larry),
         .curly(curly),
         .moe(moe),
         .shemp(shemp),
 
         .trig(trig),
-        
+
         .addr_i(fsm_trig_blk_addr),
         .wdata_i(fsm_trig_blk_wdata),
         .rdata_i(fsm_trig_blk_rdata),
@@ -457,7 +457,7 @@ module logic_analyzer(
     reg trig_blk_sample_mem_valid;
 
     // sample memory
-    sample_mem #(.BASE_ADDR(BASE_ADDR + 10), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
+    sample_mem #(.BASE_ADDR(BASE_ADDR + 11), .SAMPLE_DEPTH(SAMPLE_DEPTH)) sample_mem(
         .clk(clk),
 
         // fifo
@@ -555,7 +555,7 @@ module la_fsm(
                 case (addr_i)
                     BASE_ADDR + 0: state <= wdata_i;
                     BASE_ADDR + 1: trigger_loc <= wdata_i;
-                    BASE_ADDR + 2: present_loc <= wdata_i;
+                    //BASE_ADDR + 2: present_loc <= wdata_i;
                 endcase
             end
         end
@@ -609,6 +609,12 @@ module la_fsm(
 
             present_loc <= (trigger_loc < 0) ? trigger_loc : 0;
         end
+
+
+        // return to IDLE state if somehow we get to a state that doesn't exist
+        else begin
+            state <= IDLE;
+        end
     end
 endmodule
 
@@ -647,17 +653,17 @@ module sample_mem(
     parameter BASE_ADDR = 0;
     parameter SAMPLE_DEPTH = 0;
     localparam BRAM_ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
-    
+
     // bus controller
     reg [BRAM_ADDR_WIDTH-1:0] bram_read_addr;
     reg [15:0] bram_read_data;
-    
+
     always @(*) begin
         // if address is valid
         if ( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + SAMPLE_DEPTH) ) begin
 
             // figure out proper place to read from
-            // want to read from the read pointer, and then loop back around 
+            // want to read from the read pointer, and then loop back around
             if(read_pointer + (addr_i - BASE_ADDR) > SAMPLE_DEPTH)
                 bram_read_addr = read_pointer + (addr_i - BASE_ADDR) - SAMPLE_DEPTH;
 
@@ -693,33 +699,24 @@ module sample_mem(
             rdata_o <= bram_read_data;
     end
 
-    
+
     // bram
-    xilinx_true_dual_port_read_first_2_clock_ram #(
+    dual_port_bram #(
 		.RAM_WIDTH(16),
-		.RAM_DEPTH(SAMPLE_DEPTH),
-		.RAM_PERFORMANCE("HIGH_PERFORMANCE")
-
+		.RAM_DEPTH(SAMPLE_DEPTH)
     ) bram (
-
 		// read port (controlled by bus)
 		.clka(clk),
-		.rsta(1'b0),
-		.ena(1'b1),
 		.addra(bram_read_addr),
 		.dina(16'b0),
 		.wea(1'b0),
-		.regcea(1'b1),
 		.douta(bram_read_data),
 
 		// write port (controlled by FIFO)
 		.clkb(clk),
-		.rstb(1'b0),
-		.enb(1'b1),
 		.addrb(write_pointer[BRAM_ADDR_WIDTH-1:0]),
 		.dinb({9'b0, larry, curly, moe, shemp}),
 		.web(acquire),
-		.regceb(1'b1),
 		.doutb());
 
 
@@ -745,131 +742,59 @@ endmodule
 //  it is suggested to use a no change RAM as it is more power efficient.
 //  If a reset or enable is not necessary, it may be tied off or removed from the code.
 
-`default_nettype wire
+//  Modified from the xilinx_true_dual_port_read_first_2_clock_ram verilog language template.
 
-module xilinx_true_dual_port_read_first_2_clock_ram #(
-  parameter RAM_WIDTH = 18,                       // Specify RAM data width
-  parameter RAM_DEPTH = 1024,                     // Specify RAM depth (number of entries)
-  parameter RAM_PERFORMANCE = "HIGH_PERFORMANCE", // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
-  parameter INIT_FILE = ""                        // Specify name/location of RAM initialization file if using one (leave blank if not)
-) (
-  input  [clogb2(RAM_DEPTH-1)-1:0] addra,  // Port A address bus, width determined from RAM_DEPTH
-  input  [clogb2(RAM_DEPTH-1)-1:0] addrb,  // Port B address bus, width determined from RAM_DEPTH
-  input  [RAM_WIDTH-1:0] dina,           // Port A RAM input data
-  input  [RAM_WIDTH-1:0] dinb,           // Port B RAM input data
-  input  clka,                           // Port A clock
-  input  clkb,                           // Port B clock
-  input  wea,                            // Port A write enable
-  input  web,                            // Port B write enable
-  input  ena,                            // Port A RAM Enable, for additional power savings, disable port when not in use
-  input  enb,                            // Port B RAM Enable, for additional power savings, disable port when not in use
-  input  rsta,                           // Port A output reset (does not affect memory contents)
-  input  rstb,                           // Port B output reset (does not affect memory contents)
-  input  regcea,                         // Port A output register enable
-  input  regceb,                         // Port B output register enable
-  output [RAM_WIDTH-1:0] douta,         // Port A RAM output data
-  output [RAM_WIDTH-1:0] doutb          // Port B RAM output data
-);
+module dual_port_bram #(
+    parameter RAM_WIDTH = 0,                        // Specify RAM data width
+    parameter RAM_DEPTH = 0                         // Specify RAM depth (number of entries)
+    ) (
+    input wire [$clog2(RAM_DEPTH-1)-1:0] addra,  // Port A address bus, width determined from RAM_DEPTH
+    input wire [$clog2(RAM_DEPTH-1)-1:0] addrb,  // Port B address bus, width determined from RAM_DEPTH
+    input wire [RAM_WIDTH-1:0] dina,           // Port A RAM input data
+    input wire [RAM_WIDTH-1:0] dinb,           // Port B RAM input data
+    input wire clka,                           // Port A clock
+    input wire clkb,                           // Port B clock
+    input wire wea,                            // Port A write enable
+    input wire web,                            // Port B write enable
+    output wire [RAM_WIDTH-1:0] douta,         // Port A RAM output data
+    output wire [RAM_WIDTH-1:0] doutb          // Port B RAM output data
+    );
 
-  reg [RAM_WIDTH-1:0] BRAM [RAM_DEPTH-1:0];
-  reg [RAM_WIDTH-1:0] ram_data_a = {RAM_WIDTH{1'b0}};
-  reg [RAM_WIDTH-1:0] ram_data_b = {RAM_WIDTH{1'b0}};
+    reg [RAM_WIDTH-1:0] BRAM [RAM_DEPTH-1:0];
+    reg [RAM_WIDTH-1:0] ram_data_a = {RAM_WIDTH{1'b0}};
+    reg [RAM_WIDTH-1:0] ram_data_b = {RAM_WIDTH{1'b0}};
 
-  //this loop below allows for rendering with iverilog simulations!
-  /*
-  integer idx;
-  for(idx = 0; idx < RAM_DEPTH; idx = idx+1) begin: cats
-    wire [RAM_WIDTH-1:0] tmp;
-    assign tmp = BRAM[idx];
-  end
-  */
-
-  // The following code either initializes the memory values to a specified file or to all zeros to match hardware
-  generate
-    if (INIT_FILE != "") begin: use_init_file
-      initial
-        $readmemh(INIT_FILE, BRAM, 0, RAM_DEPTH-1);
-    end else begin: init_bram_to_zero
-      integer ram_index;
-      initial
-        for (ram_index = 0; ram_index < RAM_DEPTH; ram_index = ram_index + 1)
-          BRAM[ram_index] = {RAM_WIDTH{1'b0}};
-    end
-  endgenerate
-  integer idx;
-  // initial begin
-  //   for (idx = 0; idx < RAM_DEPTH; idx = idx + 1) begin
-  //     $dumpvars(0, BRAM[idx]);
-  //   end
-  // end
-  always @(posedge clka)
-    if (ena) begin
-      if (wea)
-        BRAM[addra] <= dina;
-      ram_data_a <= BRAM[addra];
+    always @(posedge clka) begin
+        if (wea) BRAM[addra] <= dina;
+        ram_data_a <= BRAM[addra];
     end
 
-  always @(posedge clkb)
-    if (enb) begin
-      if (web)
-        BRAM[addrb] <= dinb;
-      ram_data_b <= BRAM[addrb];
+    always @(posedge clkb) begin
+        if (web) BRAM[addrb] <= dinb;
+        ram_data_b <= BRAM[addrb];
     end
 
-  //  The following code generates HIGH_PERFORMANCE (use output register) or LOW_LATENCY (no output register)
-  generate
-    if (RAM_PERFORMANCE == "LOW_LATENCY") begin: no_output_register
+    // The following is a 2 clock cycle read latency with improve clock-to-out timing
+    reg [RAM_WIDTH-1:0] douta_reg = {RAM_WIDTH{1'b0}};
+    reg [RAM_WIDTH-1:0] doutb_reg = {RAM_WIDTH{1'b0}};
 
-      // The following is a 1 clock cycle read latency at the cost of a longer clock-to-out timing
-       assign douta = ram_data_a;
-       assign doutb = ram_data_b;
+    always @(posedge clka) douta_reg <= ram_data_a;
+    always @(posedge clkb) doutb_reg <= ram_data_b;
 
-    end else begin: output_register
-
-      // The following is a 2 clock cycle read latency with improve clock-to-out timing
-
-      reg [RAM_WIDTH-1:0] douta_reg = {RAM_WIDTH{1'b0}};
-      reg [RAM_WIDTH-1:0] doutb_reg = {RAM_WIDTH{1'b0}};
-
-      always @(posedge clka)
-        if (rsta)
-          douta_reg <= {RAM_WIDTH{1'b0}};
-        else if (regcea)
-          douta_reg <= ram_data_a;
-
-      always @(posedge clkb)
-        if (rstb)
-          doutb_reg <= {RAM_WIDTH{1'b0}};
-        else if (regceb)
-          doutb_reg <= ram_data_b;
-
-      assign douta = douta_reg;
-      assign doutb = doutb_reg;
-
-    end
-  endgenerate
-
-  //  The following function calculates the address width based on specified RAM depth
-  function integer clogb2;
-    input integer depth;
-      for (clogb2=0; depth>0; clogb2=clogb2+1)
-        depth = depth >> 1;
-  endfunction
-
+    assign douta = douta_reg;
+    assign doutb = doutb_reg;
 endmodule
 
 
-`default_nettype none
 
-
-module trigger_block(
+module trigger_block (
     input wire clk,
 
     // probes
     input wire larry,
-    input wire curly,
-    input wire moe,
-    input wire [3:0] shemp,
+	input wire curly,
+	input wire moe,
+	input wire [3:0] shemp,
 
     // trigger
     output reg trig,
@@ -889,55 +814,60 @@ module trigger_block(
     output reg valid_o);
 
     parameter BASE_ADDR = 0;
+    localparam MAX_ADDR = 7;
 
     // trigger configuration registers
     // - each probe gets an operation and a compare register
     // - at the end we OR them all together. along with any custom probes the user specs
 
     reg [3:0] larry_trigger_op = 0;
-    reg larry_trigger_arg = 0;
-    reg larry_trig;
-    trigger #(.INPUT_WIDTH(1)) larry_trigger(
+	reg larry_trigger_arg = 0;
+	reg larry_trig;
+
+    trigger #(.INPUT_WIDTH(1)) larry_trigger (
         .clk(clk),
 
         .probe(larry),
         .op(larry_trigger_op),
         .arg(larry_trigger_arg),
-        .trig(larry_trig));
-
+        .trig(larry_trig)
+    );
     reg [3:0] curly_trigger_op = 0;
-    reg curly_trigger_arg = 0;
-    reg curly_trig;
-    trigger #(.INPUT_WIDTH(1)) curly_trigger(
+	reg curly_trigger_arg = 0;
+	reg curly_trig;
+
+    trigger #(.INPUT_WIDTH(1)) curly_trigger (
         .clk(clk),
 
         .probe(curly),
         .op(curly_trigger_op),
         .arg(curly_trigger_arg),
-        .trig(curly_trig));
-
-
+        .trig(curly_trig)
+    );
     reg [3:0] moe_trigger_op = 0;
-    reg moe_trigger_arg = 0;
-    reg moe_trig;
-    trigger #(.INPUT_WIDTH(1)) moe_trigger(
+	reg moe_trigger_arg = 0;
+	reg moe_trig;
+
+    trigger #(.INPUT_WIDTH(1)) moe_trigger (
         .clk(clk),
 
         .probe(moe),
         .op(moe_trigger_op),
         .arg(moe_trigger_arg),
-        .trig(moe_trig));
-
+        .trig(moe_trig)
+    );
     reg [3:0] shemp_trigger_op = 0;
-    reg [3:0] shemp_trigger_arg = 0;
-    reg shemp_trig;
-    trigger #(.INPUT_WIDTH(4)) shemp_trigger(
+	reg [3:0] shemp_trigger_arg = 0;
+	reg shemp_trig;
+
+    trigger #(.INPUT_WIDTH(4)) shemp_trigger (
         .clk(clk),
 
         .probe(shemp),
         .op(shemp_trigger_op),
         .arg(shemp_trigger_arg),
-        .trig(shemp_trig));
+        .trig(shemp_trig)
+    );
 
     assign trig = larry_trig || curly_trig || moe_trig || shemp_trig;
 
@@ -950,19 +880,19 @@ module trigger_block(
         valid_o <= valid_i;
         rdata_o <= rdata_i;
 
-        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 9) ) begin
-            
+        if( (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + MAX_ADDR) ) begin
+
             // reads
             if(valid_i && !rw_i) begin
                 case (addr_i)
                     BASE_ADDR + 0: rdata_o <= larry_trigger_op;
-                    BASE_ADDR + 1: rdata_o <= larry_trigger_arg;
-                    BASE_ADDR + 2: rdata_o <= curly_trigger_op;
-                    BASE_ADDR + 3: rdata_o <= curly_trigger_arg;
-                    BASE_ADDR + 4: rdata_o <= moe_trigger_op;
-                    BASE_ADDR + 5: rdata_o <= moe_trigger_arg;
-                    BASE_ADDR + 6: rdata_o <= shemp_trigger_op;
-                    BASE_ADDR + 7: rdata_o <= shemp_trigger_arg;
+					BASE_ADDR + 1: rdata_o <= larry_trigger_arg;
+					BASE_ADDR + 2: rdata_o <= curly_trigger_op;
+					BASE_ADDR + 3: rdata_o <= curly_trigger_arg;
+					BASE_ADDR + 4: rdata_o <= moe_trigger_op;
+					BASE_ADDR + 5: rdata_o <= moe_trigger_arg;
+					BASE_ADDR + 6: rdata_o <= shemp_trigger_op;
+					BASE_ADDR + 7: rdata_o <= shemp_trigger_arg;
                 endcase
             end
 
@@ -970,13 +900,13 @@ module trigger_block(
             else if(valid_i && rw_i) begin
                 case (addr_i)
                     BASE_ADDR + 0: larry_trigger_op <= wdata_i;
-                    BASE_ADDR + 1: larry_trigger_arg <= wdata_i;
-                    BASE_ADDR + 2: curly_trigger_op <= wdata_i;
-                    BASE_ADDR + 3: curly_trigger_arg <= wdata_i;
-                    BASE_ADDR + 4: moe_trigger_op <= wdata_i;
-                    BASE_ADDR + 5: moe_trigger_arg <= wdata_i;
-                    BASE_ADDR + 6: shemp_trigger_op <= wdata_i;
-                    BASE_ADDR + 7: shemp_trigger_arg <= wdata_i;
+					BASE_ADDR + 1: larry_trigger_arg <= wdata_i;
+					BASE_ADDR + 2: curly_trigger_op <= wdata_i;
+					BASE_ADDR + 3: curly_trigger_arg <= wdata_i;
+					BASE_ADDR + 4: moe_trigger_op <= wdata_i;
+					BASE_ADDR + 5: moe_trigger_arg <= wdata_i;
+					BASE_ADDR + 6: shemp_trigger_op <= wdata_i;
+					BASE_ADDR + 7: shemp_trigger_arg <= wdata_i;
                 endcase
             end
         end
@@ -988,7 +918,7 @@ endmodule
 
 module trigger(
     input wire clk,
-    
+
     input wire [INPUT_WIDTH-1:0] probe,
     input wire [3:0] op,
     input wire [INPUT_WIDTH-1:0] arg,
@@ -1023,7 +953,7 @@ module trigger(
             LEQ:        trig = (probe <= arg);
             EQ:         trig = (probe == arg);
             NEQ:        trig = (probe != arg);
-            default:    trig = 0; 
+            default:    trig = 0;
         endcase
     end
 endmodule
@@ -1054,7 +984,7 @@ logic [3:0] byte_counter;
 initial begin
     busy = 0;
     buffer = 0;
-    byte_counter = 0; 
+    byte_counter = 0;
     valid_o = 0;
 end
 
@@ -1072,7 +1002,7 @@ always @(posedge clk) begin
 
         if(ready_i) begin
             byte_counter <= byte_counter + 1;
-            
+
             if (byte_counter > 5) begin
                 byte_counter <= 0;
 
@@ -1090,7 +1020,7 @@ always @(*) begin
     case (byte_counter)
         0: data_o = PREAMBLE;
         1: data_o = (buffer[15:12] < 10) ? (buffer[15:12] + 8'h30) : (buffer[15:12] + 8'h41 - 'd10);
-        2: data_o = (buffer[11:8] < 10) ? (buffer[11:8] + 8'h30) : (buffer[11:8] + 8'h41 - 'd10); 
+        2: data_o = (buffer[11:8] < 10) ? (buffer[11:8] + 8'h30) : (buffer[11:8] + 8'h41 - 'd10);
         3: data_o = (buffer[7:4] < 10) ? (buffer[7:4] + 8'h30) : (buffer[7:4] + 8'h41 - 'd10);
         4: data_o = (buffer[3:0] < 10) ? (buffer[3:0] + 8'h30) : (buffer[3:0] + 8'h41 - 'd10);
         5: data_o = CR;
@@ -1106,7 +1036,7 @@ endmodule
 
 module uart_tx(
 	input wire clk,
-	
+
 	input wire [7:0] data,
 	input wire valid,
 	output reg busy,
@@ -1114,7 +1044,7 @@ module uart_tx(
 
 	output reg tx);
 
-	// this transmitter only works with 8N1 serial, at configurable baudrate	
+	// this transmitter only works with 8N1 serial, at configurable baudrate
 	parameter CLOCKS_PER_BAUD = 868;
 
 	reg [9:0] baud_counter;
@@ -1160,7 +1090,7 @@ module uart_tx(
 						busy <= 0;
 						ready <= 1;
 					end
-					// if valid happens here then we should bool 
+					// if valid happens here then we should bool
 				end
 
 				else begin
@@ -1171,7 +1101,7 @@ module uart_tx(
 		end
 	end
 
-	
+
 
 endmodule
 

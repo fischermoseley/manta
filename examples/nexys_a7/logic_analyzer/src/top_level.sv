@@ -26,7 +26,7 @@ module top_level (
         .larry(larry),
         .curly(curly),
         .moe(moe),
-        .shemp(shemp)); 
+        .shemp(shemp));
 
 endmodule
 
