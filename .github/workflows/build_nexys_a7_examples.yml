@@ -26,13 +26,11 @@ jobs:
 
           python3 -m pip install .
 
-      - name: Generate Core
-        run: manta gen examples/nexys_a7/counter/manta.yaml examples/nexys_a7/counter/src/debug.sv
+      - name: Build io_core
+        run: make nexys_a7_io_core
 
-      - name: Build Verilog
-        working-directory: examples/nexys_a7/counter
-        run: mkdir obj && python3 lab-bc.py
+      - name: Build logic_analyzer
+        run: make nexys_a7_logic_analyzer
 
-      - name: Print build.log
-        working-directory: examples/nexys_a7/counter
-        run: cat obj/build.log
+      - name: Build lut_ram
+        run: make nexys_a7_lut_ram

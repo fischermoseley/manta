@@ -5,6 +5,94 @@ from datetime import datetime
 
 version = "0.0.0"
 
+class VerilogManipulator:
+    def __init__(self, filepath=None):
+        if filepath is not None:
+            self.hdl = pkgutil.get_data(__name__, filepath).decode()
+
+        else:
+            self.hdl = None
+
+    def sub(self, replace, find):
+        # sometimes we have integer inputs, want to accomodate
+        if isinstance(replace, str):
+            replace_str = replace
+
+        elif isinstance(replace, int):
+            replace_str = str(replace)
+
+        else:
+            raise ValueError("Only string and integer arguments supported.")
+
+
+        # if the string being subbed in isn't multiline, just
+        # find-and-replace like normal:
+        if "\n" not in replace_str:
+            self.hdl = self.hdl.replace(find, replace_str)
+
+        # if the string being substituted in is multiline,
+        # make sure the replace text gets put at the same
+        # indentation level by adding whitespace to left
+        # of the line.
+        else:
+            for line in self.hdl.split("\n"):
+                if find in line:
+                    # get whitespace that's on the left side of the line
+                    whitespace = line.rstrip().replace(line.lstrip(), "")
+
+                    # add it to every line, except the first
+                    replace_as_lines = replace_str.split("\n")
+                    replace_with_whitespace = f"\n{whitespace}".join(replace_as_lines)
+
+                    # replace the first occurance in the HDL with it
+                    self.hdl = self.hdl.replace(find, replace_with_whitespace, 1)
+
+    def get_hdl(self):
+        return self.hdl
+
+    def net_dec(self, nets, net_type, trailing_comma = False):
+        """Takes a dictonary of nets in the format {probe: width}, and generates
+        the net declarations that would go in a Verilog module definition.
+
+        For example, calling net_dec({foo : 1, bar : 4}, "input wire") would produce:
+
+        input wire foo,
+        input [3:0] wire bar
+
+        Which you'd then slap into your module declaration, along with all the other
+        inputs and outputs the module needs."""
+
+        dec = []
+        for name, width in nets.items():
+            if width == 1:
+                dec.append(f"{net_type} {name}")
+
+            else:
+                dec.append(f"{net_type} [{width-1}:0] {name}")
+
+        dec = ",\n".join(dec)
+        dec = dec + "," if trailing_comma else dec
+        return dec
+
+    def net_conn(self, nets, trailing_comma = False):
+        """Takes a dictionary of nets in the format {probe: width}, and generates
+        the net connections that would go in the Verilog module instantiation.
+
+        For example, calling net_conn({foo: 1, bar: 4}) would produce:
+
+        .foo(foo),
+        .bar(bar)
+
+        Which you'd then slap into your module instantiation, along with all the other
+        module inputs and outputs that get connected elsewhere."""
+
+
+        conn = [f".{name}({name})" for name in nets]
+        conn = ",\n".join(conn)
+        conn = conn + "," if trailing_comma else conn
+
+        return conn
+
 class UARTInterface:
     def __init__(self, config):
         # Obtain port. Try to automatically detect port if "auto" is specified
@@ -112,63 +200,24 @@ class UARTInterface:
         return ["input wire rx", "output reg tx"]
 
     def rx_hdl_def(self):
-        uart_rx_def = pkgutil.get_data(__name__, "rx_uart.v").decode()
-        bridge_rx_def = pkgutil.get_data(__name__, "bridge_rx.v").decode()
+        uart_rx_def = VerilogManipulator("rx_uart.v").get_hdl()
+        bridge_rx_def = VerilogManipulator("bridge_rx.v").get_hdl()
         return uart_rx_def + '\n' + bridge_rx_def
 
     def tx_hdl_def(self):
-        uart_tx_def = pkgutil.get_data(__name__, "uart_tx.v").decode()
-        bridge_tx_def = pkgutil.get_data(__name__, "bridge_tx.v").decode()
+        uart_tx_def = VerilogManipulator("uart_tx.v").get_hdl()
+        bridge_tx_def = VerilogManipulator("bridge_tx.v").get_hdl()
         return bridge_tx_def + '\n' + uart_tx_def
 
     def rx_hdl_inst(self):
-        return f"""
-    rx_uart #(.CLOCKS_PER_BAUD({self.clocks_per_baud})) urx (
-        .i_clk(clk),
-        .i_uart_rx(rx),
-        .o_wr(urx_brx_axiv),
-        .o_data(urx_brx_axid));
-
-    logic [7:0] urx_brx_axid;
-    logic urx_brx_axiv;
-
-    bridge_rx brx (
-        .clk(clk),
-
-        .rx_data(urx_brx_axid),
-        .rx_valid(urx_brx_axiv),
-
-        .addr_o(),
-        .wdata_o(),
-        .rw_o(),
-        .valid_o());
-        """
+        rx = VerilogManipulator("uart_rx_bridge_rx_inst_templ.v")
+        rx.sub(self.clocks_per_baud, "/* CLOCKS_PER_BAUD */")
+        return rx.get_hdl()
 
     def tx_hdl_inst(self):
-        return f"""
-    bridge_tx btx (
-        .clk(clk),
-
-        .rdata_i(),
-        .rw_i(),
-        .valid_i(),
-
-        .ready_i(utx_btx_ready),
-        .data_o(btx_utx_data),
-        .valid_o(btx_utx_valid));
-
-    logic utx_btx_ready;
-    logic btx_utx_valid;
-    logic [7:0] btx_utx_data;
-
-    uart_tx #(.CLOCKS_PER_BAUD({self.clocks_per_baud})) utx (
-        .clk(clk),
-
-        .data(btx_utx_data),
-        .valid(btx_utx_valid),
-        .ready(utx_btx_ready),
-
-        .tx(tx));\n"""
+        tx = VerilogManipulator("uart_tx_bridge_tx_inst_templ.v")
+        tx.sub(self.clocks_per_baud, "/* CLOCKS_PER_BAUD */")
+        return tx.get_hdl()
 
 class IOCoreProbe:
     def __init__(self, name, width, direction, base_addr, interface):
@@ -241,120 +290,62 @@ class IOCore:
 
 
     def hdl_inst(self):
-        # TODO: make this a string comprehension
-        inst_ports = [f".{probe.name}({probe.name}),\n    " for probe in self.probes]
-        inst_ports = "".join(inst_ports)
-        inst_ports = inst_ports.rstrip()
+        inst = VerilogManipulator("io_core_inst_tmpl.v")
+        inst.sub(self.name, "/* MODULE_NAME */")
+        inst.sub(self.name + "_inst", "/* INST_NAME */")
 
-        return f"""
-{self.name} {self.name}_inst(
-    .clk(clk),
+        probes = {probe.name:probe.width for probe in self.probes}
 
-    // ports
-    {inst_ports}
+        inst_ports = inst.net_conn(probes, trailing_comma=True)
+        inst.sub(inst_ports, "/* INST_PORTS */")
 
-    // input port
-    .addr_i(),
-    .wdata_i(),
-    .rdata_i(),
-    .rw_i(),
-    .valid_i(),
+        return inst.get_hdl()
 
-    // output port
-    .addr_o(),
-    .wdata_o(),
-    .rdata_o(),
-    .rw_o(),
-    .valid_o()
-    );
-"""
 
     def hdl_def(self):
+        io_core = VerilogManipulator("io_core_def_tmpl.v")
+        io_core.sub(self.name, "/* MODULE_NAME */")
+        io_core.sub(self.max_addr, "/* MAX_ADDR */")
+
         # generate declaration
-        top_level_ports = ',\n    '.join(self.hdl_top_level_ports())
+        top_level_ports = ',\n'.join(self.hdl_top_level_ports())
         top_level_ports += ','
-        declaration = f"""
-module {self.name} (
-    input wire clk,
-
-    // ports
-    {top_level_ports}
-
-    // input port
-    input wire [15:0] addr_i,
-    input wire [15:0] wdata_i,
-    input wire [15:0] rdata_i,
-    input wire rw_i,
-    input wire valid_i,
-
-    // output port
-    output reg [15:0] addr_o,
-    output reg [15:0] wdata_o,
-    output reg [15:0] rdata_o,
-    output reg rw_o,
-    output reg valid_o
-    );
-"""
+        io_core.sub(top_level_ports, "/* TOP_LEVEL_PORTS */")
 
         # generate memory handling
-        read_case_statement_body = ""
-        write_case_statement_body = ""
+        rcsb = "" # read case statement body
+        wcsb = "" # write case statement body
         for probe in self.probes:
 
             # add to read block
             if probe.width == 16:
-                read_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: rdata_o <= {probe.name};\n"
+                rcsb += f"{probe.base_addr}: rdata_o <= {probe.name};\n"
 
             else:
-                read_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: rdata_o <= {{{16-probe.width}'b0, {probe.name}}};\n"
+                rcsb += f"{probe.base_addr}: rdata_o <= {{{16-probe.width}'b0, {probe.name}}};\n"
 
 
             # if output, add to write block
             if probe.direction == "output":
                 if probe.width == 1:
-                    write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i[0];\n"
+                    wcsb += f"{probe.base_addr}: {probe.name} <= wdata_i[0];\n"
 
                 elif probe.width == 16:
-                    write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i;\n"
+                    wcsb += f"{probe.base_addr}: {probe.name} <= wdata_i;\n"
 
                 else:
-                    write_case_statement_body += f"\t\t\t\t\t{probe.base_addr}: {probe.name} <= wdata_i[{probe.width-1}:0];\n"
+                    wcsb += f"{probe.base_addr}: {probe.name} <= wdata_i[{probe.width-1}:0];\n"
 
         # remove trailing newline
-        read_case_statement_body = read_case_statement_body.rstrip()
-        write_case_statement_body = write_case_statement_body.rstrip()
+        rcsb = rcsb.rstrip()
+        wcsb = wcsb.rstrip()
 
-        memory_handler_hdl = f"""
-parameter BASE_ADDR = 0;
-always @(posedge clk) begin
-        addr_o <= addr_i;
-        wdata_o <= wdata_i;
-        rdata_o <= rdata_i;
-        rw_o <= rw_i;
-        valid_o <= valid_i;
-        rdata_o <= rdata_i;
+        io_core.sub(rcsb, "/* READ_CASE_STATEMENT_BODY */")
+        io_core.sub(wcsb, "/* WRITE_CASE_STATEMENT_BODY */")
+
+        return io_core.get_hdl()
 
 
-        // check if address is valid
-        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + {self.max_addr})) begin
-
-            if(!rw_i) begin // reads
-                case (addr_i)
-{read_case_statement_body}
-                endcase
-            end
-
-            else begin // writes
-                case (addr_i)
-{write_case_statement_body}
-                endcase
-            end
-        end
-    end
-"""
-
-        hdl = declaration + memory_handler_hdl + "endmodule"
-        return hdl
 
     def hdl_top_level_ports(self):
         ports = []
@@ -379,31 +370,17 @@ class LUTRAMCore:
         self.max_addr = self.base_addr + self.size - 1
 
     def hdl_inst(self):
-        hdl = f"""
-    lut_ram #(.DEPTH({self.size})) {self.name} (
-        .clk(clk),
-
-        .addr_i(),
-        .wdata_i(),
-        .rdata_i(),
-        .rw_i(),
-        .valid_i(),
-
-        .addr_o(),
-        .wdata_o(),
-        .rdata_o(),
-        .rw_o(),
-        .valid_o());\n"""
-
-        return hdl
+        inst = VerilogManipulator("lut_ram_inst_tmpl.v")
+        inst.sub(self.size, "/* DEPTH */")
+        inst.sub(self.name, "/* INST_NAME */")
+        return inst.get_hdl()
 
     def hdl_def(self):
-        hdl = pkgutil.get_data(__name__, "lut_ram.v").decode()
-        return hdl
+        return VerilogManipulator("lut_ram.v").get_hdl()
 
     def hdl_top_level_ports(self):
         # no top_level connections since this core just lives on the bus
-        return []
+        return ""
 
     def read(self, addr):
         return self.interface.read_register(addr + self.base_addr)
@@ -448,83 +425,59 @@ class LogicAnalyzerCore:
         self.max_addr = self.sample_mem_base_addr + self.sample_depth
 
     def hdl_inst(self):
-        ports = []
+        la_inst = VerilogManipulator("logic_analyzer_inst_tmpl.v")
 
-        ports = [f".{name}({name})," for name in self.probes.keys()]
-        ports = "\n\t\t".join(ports)
+        # add module name to instantiation
+        la_inst.sub(self.name, "/* INST_NAME */")
 
-        hdl = f"""
-    logic_analyzer {self.name} (
-        .clk(clk),
+        # add net connections to instantiation
+        conns = la_inst.net_conn(self.probes, trailing_comma=True)
+        la_inst.sub(conns, "/* NET_CONNS */")
+        return la_inst.get_hdl()
 
-        .addr_i(),
-        .wdata_i(),
-        .rdata_i(),
-        .rw_i(),
-        .valid_i(),
-
-        {ports}
-
-        .addr_o(),
-        .wdata_o(),
-        .rdata_o(),
-        .rw_o(),
-        .valid_o());\n"""
-
-        return hdl
-
-    def generate_trigger_block(self):
-        trigger_block_hdl = pkgutil.get_data(__name__, "trigger_block_template.v").decode()
+    def gen_trigger_block_def(self):
+        trigger_block = VerilogManipulator("trigger_block_template.v")
 
         # add probe ports to module declaration
-        # - these are the ports that belong to the logic analyzer, but
-        #   need to be included in the trigger_block module declaration
-        probe_ports = []
-        for name, width in self.probes.items():
-            if width == 1:
-                probe_ports.append(f"input wire {name}")
-            else:
-                probe_ports.append(f"input wire [{width-1}:0] {name}")
+        # these ports belong to the logic analyzer, but
+        # need to be included in the trigger_block module declaration
+        probe_ports = trigger_block.net_dec(self.probes, "input wire", trailing_comma=True)
+        trigger_block.sub(probe_ports, "/* PROBE_PORTS */")
 
-        probe_ports = ",\n\t".join(probe_ports)
-        probe_ports = probe_ports + ","
-        trigger_block_hdl = trigger_block_hdl.replace("// @PROBE_PORTS", probe_ports)
 
         # add trigger cores to module definition
-        # - these are instances of the trigger module, of which one gets wired
-        #   into each probe
+        # these are instances of the trigger module, of which one gets wired
+        # into each probe
         trigger_module_insts = []
         for name, width in self.probes.items():
-            trigger_module_inst = f"reg [3:0] {name}_trigger_op = 0;\n\t"
+            trig_inst = VerilogManipulator("trigger_block_inst_tmpl.v")
+            trig_inst.sub(width, "/* INPUT_WIDTH */")
+            trig_inst.sub(f"{name}_trigger", "/* NAME */")
+
+            trig_inst.sub(f"reg [3:0] {name}_op = 0;", "/* OP_DEC */")
+            trig_inst.sub(f"reg {name}_trig;", "/* TRIG_DEC */")
 
             if width == 1:
-                trigger_module_inst += f"reg {name}_trigger_arg = 0;\n\t"
+                trig_inst.sub(f"reg {name}_arg = 0;", "/* ARG_DEC */")
 
             else:
-                trigger_module_inst += f"reg [{width-1}:0] {name}_trigger_arg = 0;\n\t"
+                trig_inst.sub(f"reg [{width-1}:0] {name}_arg = 0;", "/* ARG_DEC */")
 
-            trigger_module_inst += f"reg {name}_trig;\n\t"
-            trigger_module_inst += f"""
-    trigger #(.INPUT_WIDTH({width})) {name}_trigger (
-        .clk(clk),
+            trig_inst.sub(name, "/* PROBE */")
+            trig_inst.sub(f"{name}_op", "/* OP */")
+            trig_inst.sub(f"{name}_arg", "/* ARG */")
+            trig_inst.sub(f"{name}_trig", "/* TRIG */")
 
-        .probe({name}),
-        .op({name}_trigger_op),
-        .arg({name}_trigger_arg),
-        .trig({name}_trig)
-    );
-    """
-            trigger_module_insts.append(trigger_module_inst)
+            trigger_module_insts.append(trig_inst.get_hdl())
 
-        trigger_module_insts = "".join(trigger_module_insts)
-        trigger_module_insts = trigger_module_insts.rstrip()
-        trigger_block_hdl = trigger_block_hdl.replace("// @TRIGGER_MODULE_INSTS", trigger_module_insts)
+        trigger_module_insts = "\n".join(trigger_module_insts)
+        trigger_block.sub(trigger_module_insts, "/* TRIGGER_MODULE_INSTS */")
 
         # add combined individual triggers
-        combined_individual_triggers = [f"{name}_trig" for name in self.probes]
-        combined_individual_triggers = " || ".join(combined_individual_triggers)
-        combined_individual_triggers = f"assign trig = {combined_individual_triggers};"
-        trigger_block_hdl = trigger_block_hdl.replace("// @COMBINE_INDIV_TRIGGERS", combined_individual_triggers)
+        cit = [f"{name}_trig" for name in self.probes]
+        cit = " || ".join(cit)
+        cit = f"assign trig = {cit};"
+        trigger_block.sub(cit, " /* COMBINE_INDIV_TRIGGERS */")
 
         # add read and write block case statement bodies
         rcsb = "" # read case statement body
@@ -532,38 +485,30 @@ class LogicAnalyzerCore:
         addr = 0
         for i, name in enumerate(self.probes):
             addr = 2 * i
-            rcsb += f"\t\t\t\t\tBASE_ADDR + {addr}: rdata_o <= {name}_trigger_op;\n"
-            wcsb += f"\t\t\t\t\tBASE_ADDR + {addr}: {name}_trigger_op <= wdata_i;\n"
+            rcsb += f"BASE_ADDR + {addr}: rdata_o <= {name}_op;\n"
+            wcsb += f"BASE_ADDR + {addr}: {name}_op <= wdata_i;\n"
 
             addr = (2 * i) + 1
-            rcsb += f"\t\t\t\t\tBASE_ADDR + {addr}: rdata_o <= {name}_trigger_arg;\n"
-            wcsb += f"\t\t\t\t\tBASE_ADDR + {addr}: {name}_trigger_arg <= wdata_i;\n"
+            rcsb += f"BASE_ADDR + {addr}: rdata_o <= {name}_arg;\n"
+            wcsb += f"BASE_ADDR + {addr}: {name}_arg <= wdata_i;\n"
 
         rcsb = rcsb.strip()
         wcsb = wcsb.strip()
 
-        trigger_block_hdl = trigger_block_hdl.replace("// @READ_CASE_STATEMENT_BODY", rcsb)
-        trigger_block_hdl = trigger_block_hdl.replace("// @WRITE_CASE_STATEMENT_BODY", wcsb)
-        trigger_block_hdl = trigger_block_hdl.replace("// @MAX_ADDR", str(addr))
-        return trigger_block_hdl
+        trigger_block.sub(rcsb, "/* READ_CASE_STATEMENT_BODY */")
+        trigger_block.sub(wcsb, "/* WRITE_CASE_STATEMENT_BODY */")
+        trigger_block.sub(addr, "/* MAX_ADDR */")
 
-    def generate_sample_mem(self):
-        sample_mem_hdl = pkgutil.get_data(__name__, "sample_mem_template.v").decode()
+        return trigger_block.get_hdl()
+
+    def gen_sample_mem_def(self):
+        sample_mem = VerilogManipulator("sample_mem_tmpl.v")
 
         # add probe ports to module declaration
         # - these are the ports that belong to the logic analyzer, but
         #   need to be included in the trigger_block module declaration
-        probe_ports = []
-        for name, width in self.probes.items():
-            if width == 1:
-                probe_ports.append(f"input wire {name}")
-            else:
-                probe_ports.append(f"input wire [{width-1}:0] {name}")
-
-        probe_ports = ",\n\t".join(probe_ports)
-        probe_ports = probe_ports + ","
-        sample_mem_hdl = sample_mem_hdl.replace("/* PROBE_PORTS */", probe_ports)
-
+        probe_ports = sample_mem.net_dec(self.probes, "input wire", trailing_comma=True)
+        sample_mem.sub(probe_ports, "/* PROBE_PORTS */")
 
         # concatenate probes to BRAM input
         total_probe_width = sum([width for name, width in self.probes.items()])
@@ -576,76 +521,54 @@ class LogicAnalyzerCore:
         concat = ", ".join([name for name in self.probes])
         concat = f"{{{zero_pad_width}'b0, {concat}}}"
 
-        sample_mem_hdl = sample_mem_hdl.replace("/* CONCAT */", concat)
+        sample_mem.sub(concat, "/* CONCAT */")
+        return sample_mem.get_hdl()
 
-        return sample_mem_hdl
-
-    def generate_logic_analyzer(self):
-        logic_analyzer_hdl = pkgutil.get_data(__name__, "logic_analyzer_template.v").decode()
+    def gen_logic_analyzer_def(self):
+        la = VerilogManipulator("logic_analyzer_tmpl.v")
 
         # add top level probe ports to module declaration
-        # - these are the ports that belong to the logic analyzer, but
-        #   need to be included in the trigger_block module declaration
-
-        tlpp = [] # top level probe ports
-        for name, width in self.probes.items():
-            if width == 1:
-                tlpp.append(f"input wire {name}")
-            else:
-                tlpp.append(f"input wire [{width-1}:0] {name}")
-
-        tlpp = ",\n\t".join(tlpp)
-        tlpp = tlpp + ","
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* TOP_LEVEL_PROBE_PORTS */", tlpp)
+        ports = la.net_dec(self.probes, "input wire", trailing_comma=True)
+        la.sub(ports, "/* TOP_LEVEL_PROBE_PORTS */")
 
         # assign base addresses to the FSM, trigger block, and sample mem
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* FSM_BASE_ADDR */", str(self.fsm_base_addr))
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* TRIGGER_BLOCK_BASE_ADDR */", str(self.trigger_block_base_addr))
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* SAMPLE_MEM_BASE_ADDR */", str(self.sample_mem_base_addr))
+        la.sub(self.fsm_base_addr, "/* FSM_BASE_ADDR */")
+        la.sub(self.trigger_block_base_addr, "/* TRIGGER_BLOCK_BASE_ADDR */")
+        la.sub(self.sample_mem_base_addr, "/* SAMPLE_MEM_BASE_ADDR */")
 
         # set sample depth
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* SAMPLE_DEPTH */", str(self.sample_depth))
+        la.sub(self.sample_depth, "/* SAMPLE_DEPTH */")
 
         # set probe ports for the trigger block and sample mem
-        pp = [] # probe ports
-        pp = [f".{name}({name})" for name in self.probes]
-        pp = ",\n\t\t".join(pp)
-        pp = pp + ","
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* TRIGGER_BLOCK_PROBE_PORTS */", pp)
-        logic_analyzer_hdl = logic_analyzer_hdl.replace("/* SAMPLE_MEM_PROBE_PORTS */", pp)
+        probe_ports = la.net_conn(self.probes, trailing_comma=True)
+        la.sub(probe_ports, "/* TRIGGER_BLOCK_PROBE_PORTS */")
+        la.sub(probe_ports, "/* SAMPLE_MEM_PROBE_PORTS */")
 
-        return logic_analyzer_hdl
-
+        return la.get_hdl()
 
     def hdl_def(self):
         # Return an autogenerated verilog module definition for the core.
-        # load source files=
-        la_fsm_hdl = pkgutil.get_data(__name__, "la_fsm.v").decode()
-        dual_port_bram_hdl = pkgutil.get_data(__name__, "dual_port_bram.v").decode()
-        trigger_hdl = pkgutil.get_data(__name__, "trigger.v").decode()
+        # load source files
+        la_fsm = VerilogManipulator("la_fsm.v").get_hdl()
+        dual_port_bram = VerilogManipulator("dual_port_bram.v").get_hdl()
+        trigger = VerilogManipulator("trigger.v").get_hdl()
+        trigger_block = self.gen_trigger_block_def()
+        sample_mem = self.gen_sample_mem_def()
+        logic_analyzer = self.gen_logic_analyzer_def()
 
-        # generate trigger block
-        trigger_block_hdl = self.generate_trigger_block()
-
-        # generate sample memory
-        sample_mem_hdl = self.generate_sample_mem()
-
-        # generate logic analyzer
-        logic_analyzer_hdl = self.generate_logic_analyzer()
-
-        return logic_analyzer_hdl + la_fsm_hdl + sample_mem_hdl + dual_port_bram_hdl + trigger_block_hdl + trigger_hdl
+        return logic_analyzer + la_fsm + sample_mem + dual_port_bram + trigger_block + trigger
 
     def hdl_top_level_ports(self):
-        # this should return the probes that we want to connect to top-level, but as a list of verilog ports
-
+        # the probes that we want as ports on the top-level manta module
         ports = []
         for name, width in self.probes.items():
             if width == 1:
                 ports.append(f"input wire {name}")
+
             else:
                 ports.append(f"input wire [{width-1}:0] {name}")
-
         return ports
+        #return VerilogManipulator().net_dec(self.probes, "input wire")
 
     def run(self):
         pass
@@ -780,7 +703,7 @@ class Manta:
 
         return config
 
-    def generate_connections(self):
+    def gen_connections(self):
         # generates hdl for registers that connect two modules together
 
         # make pairwise cores
@@ -800,7 +723,7 @@ class Manta:
 
         return conns
 
-    def generate_instances(self):
+    def gen_instances(self):
         # generates hdl for modules that need to be connected together
 
         insts = []
@@ -841,9 +764,9 @@ class Manta:
 
         return insts
 
-    def generate_core_chain(self):
-        insts = self.generate_instances()
-        conns = self.generate_connections()
+    def gen_core_chain(self):
+        insts = self.gen_instances()
+        conns = self.gen_connections()
         core_chain = []
         for i, inst in enumerate(insts):
             core_chain.append(inst)
@@ -853,7 +776,7 @@ class Manta:
 
         return '\n'.join(core_chain)
 
-    def generate_header(self):
+    def gen_header(self):
         # generate header
         user = os.environ.get("USER", os.environ.get("USERNAME"))
         timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
@@ -869,7 +792,7 @@ Provided under a GNU GPLv3 license. Go wild.
 """
         return header
 
-    def generate_ex_inst(self):
+    def gen_example_inst(self):
         # this is a C-style block comment that contains an instantiation
         # of the configured manta instance - the idea is that a user
         # can copy-paste that into their design instead of trying to spot
@@ -918,7 +841,7 @@ manta manta_inst (
 */
 """
 
-    def generate_declaration(self):
+    def gen_declaration(self):
         # get all the top level connections for each module.
 
         interface_ports = self.interface.hdl_top_level_ports()
@@ -947,7 +870,7 @@ module manta (
 {ports});
 """
 
-    def generate_interface_rx(self):
+    def gen_interface_rx(self):
         # instantiate interface_rx, substitute in register names
         interface_rx_inst = self.interface.rx_hdl_inst()
 
@@ -965,7 +888,7 @@ module manta (
 
         return interface_rx_inst + interface_rx_conn
 
-    def generate_interface_tx(self):
+    def gen_interface_tx(self):
 
         # connect core_chain to interface_tx
         interface_tx_conn = f"""
@@ -983,45 +906,28 @@ module manta (
 
         return interface_tx_conn + interface_tx_inst
 
-    def generate_footer(self):
+    def gen_footer(self):
         return """endmodule\n"""
 
-    def generate_module_defs(self):
+    def gen_module_defs(self):
         # aggregate module definitions and remove duplicates
         module_defs_with_dups = [self.interface.rx_hdl_def()] + [core.hdl_def() for core in self.cores] + [self.interface.tx_hdl_def()]
         module_defs = []
         module_defs = [m_def for m_def in module_defs_with_dups if m_def not in module_defs]
         return '\n'.join(module_defs)
 
-
-
     def generate_hdl(self, output_filepath):
-        # generate header
-        header = self.generate_header()
-
-        # generate example instantiation
-        ex_inst = self.generate_ex_inst()
-
-        # generate module declaration
-        declar = self.generate_declaration()
-
-        # generate interface_rx
-        interface_rx = self.generate_interface_rx()
-
-        # generate core chain
-        core_chain = self.generate_core_chain()
-
-        # generate interface_tx
-        interface_tx = self.generate_interface_tx()
-
-        # generate footer
-        footer = self.generate_footer()
-
-        # generate module definitions
-        module_defs = self.generate_module_defs()
+        header = self.gen_header()
+        ex_inst = self.gen_example_inst()
+        declaration = self.gen_declaration() + "\n"
+        interface_rx = self.gen_interface_rx()
+        core_chain = self.gen_core_chain()
+        interface_tx = self.gen_interface_tx()
+        footer = self.gen_footer()
+        module_defs = self.gen_module_defs()
 
         # assemble all the parts
-        hdl = header + ex_inst + declar + interface_rx + core_chain + interface_tx + footer
+        hdl = header + ex_inst + declaration + interface_rx + core_chain + interface_tx + footer
         hdl += "\n /* ---- Module Definitions ----  */\n"
         hdl += module_defs
 

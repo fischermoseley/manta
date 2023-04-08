@@ -5,10 +5,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: install yosys
+
+    - name: Install Manta from Source
+        run: |
+          pip install setuptools --upgrade
+
+          # omitting the following commmand causes the version of setuptools
+          # used by python to get confused, and it doesn't detect the name
+          # or version of the package from pyproject.toml - so the following
+          # workaround is used:
+          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
+          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+
+          python3 -m pip install .
+
+    - name: Install Icestorm Tools
       run: |
         wget --no-verbose https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-02-23/oss-cad-suite-linux-x64-20230223.tgz
-        tar -xzf oss-cad-suite-linux-x64-20230223.tgz 
+        tar -xzf oss-cad-suite-linux-x64-20230223.tgz
         export PATH="$(pwd)/oss-cad-suite/bin/:$PATH"
-        cd examples/icestick/counter
-        ./build.sh
+
+    - name: Build io_core
+      run: make icestick_io_core
+
+    - name: Build lut_ram
+      run: make icestick_lut_ram
