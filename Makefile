@@ -80,16 +80,19 @@ nexys_a7: nexys_a7_io_core nexys_a7_logic_analyzer nexys_a7_lut_ram
 nexys_a7_io_core:
 	cd examples/nexys_a7/io_core/;   	\
 	manta gen manta.yaml src/manta.v;	\
+	mkdir -p obj/; 						\
 	python3 lab-bc.py
 
 nexys_a7_logic_analyzer:
 	cd examples/nexys_a7/logic_analyzer/;   \
 	manta gen manta.yaml src/manta.v;		\
+	mkdir -p obj/; 							\
 	python3 lab-bc.py
 
 nexys_a7_lut_ram:
 	cd examples/nexys_a7/lut_ram/;   	\
 	manta gen manta.yaml src/manta.v;	\
+	mkdir -p obj/;						\
 	python3 lab-bc.py
 
 icestick: icestick_io_core icestick_lut_ram

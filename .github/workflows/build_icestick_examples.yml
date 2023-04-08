@@ -7,17 +7,17 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install Manta from Source
-        run: |
-          pip install setuptools --upgrade
+      run: |
+        pip install setuptools --upgrade
 
-          # omitting the following commmand causes the version of setuptools
-          # used by python to get confused, and it doesn't detect the name
-          # or version of the package from pyproject.toml - so the following
-          # workaround is used:
-          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
-          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+        # omitting the following commmand causes the version of setuptools
+        # used by python to get confused, and it doesn't detect the name
+        # or version of the package from pyproject.toml - so the following
+        # workaround is used:
+        # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
+        export DEB_PYTHON_INSTALL_LAYOUT=deb_system
 
-          python3 -m pip install .
+        python3 -m pip install .
 
     - name: Install Icestorm Tools
       run: |
