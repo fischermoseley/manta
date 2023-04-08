@@ -57,7 +57,7 @@ jobs:
       run: |
         wget --no-verbose https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-02-23/oss-cad-suite-linux-x64-20230223.tgz
         tar -xzf oss-cad-suite-linux-x64-20230223.tgz
-        export PATH="$(pwd)/oss-cad-suite/bin/:$PATH"
+        export "$(pwd)/oss-cad-suite/bin" >> $GITHUB_PATH
 
     - name: Build io_core
       run: make icestick_io_core
