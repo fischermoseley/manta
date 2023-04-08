@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module sample_mem(
+module sample_mem (
     input wire clk,
 
     // fifo

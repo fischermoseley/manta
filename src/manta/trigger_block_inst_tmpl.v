@@ -8,5 +8,4 @@ trigger #(.INPUT_WIDTH(/* INPUT_WIDTH */)) /* NAME */ (
     .probe(/* PROBE */),
     .op(/* OP */),
     .arg(/* ARG */),
-    .trig(/* TRIG */)
-);
+    .trig(/* TRIG */));

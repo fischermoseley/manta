@@ -1,15 +1,14 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module trigger(
+module trigger (
     input wire clk,
 
     input wire [INPUT_WIDTH-1:0] probe,
     input wire [3:0] op,
     input wire [INPUT_WIDTH-1:0] arg,
 
-    output reg trig
-    );
+    output reg trig);
 
     parameter INPUT_WIDTH = 0;
 

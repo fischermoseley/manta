@@ -10,6 +10,11 @@ class VerilogManipulator:
         if filepath is not None:
             self.hdl = pkgutil.get_data(__name__, filepath).decode()
 
+            # scrub any default_nettype or timescale directives from the source
+            self.hdl = self.hdl.replace("`default_nettype none", "")
+            self.hdl = self.hdl.replace("`default_nettype wire", "")
+            self.hdl = self.hdl.replace("`timescale 1ns/1ps", "")
+
         else:
             self.hdl = None
 
@@ -436,7 +441,7 @@ class LogicAnalyzerCore:
         return la_inst.get_hdl()
 
     def gen_trigger_block_def(self):
-        trigger_block = VerilogManipulator("trigger_block_template.v")
+        trigger_block = VerilogManipulator("trigger_block_def_tmpl.v")
 
         # add probe ports to module declaration
         # these ports belong to the logic analyzer, but
@@ -502,7 +507,7 @@ class LogicAnalyzerCore:
         return trigger_block.get_hdl()
 
     def gen_sample_mem_def(self):
-        sample_mem = VerilogManipulator("sample_mem_tmpl.v")
+        sample_mem = VerilogManipulator("sample_mem_def_tmpl.v")
 
         # add probe ports to module declaration
         # - these are the ports that belong to the logic analyzer, but
@@ -525,7 +530,7 @@ class LogicAnalyzerCore:
         return sample_mem.get_hdl()
 
     def gen_logic_analyzer_def(self):
-        la = VerilogManipulator("logic_analyzer_tmpl.v")
+        la = VerilogManipulator("logic_analyzer_def_tmpl.v")
 
         # add top level probe ports to module declaration
         ports = la.net_dec(self.probes, "input wire", trailing_comma=True)
@@ -776,23 +781,7 @@ class Manta:
 
         return '\n'.join(core_chain)
 
-    def gen_header(self):
-        # generate header
-        user = os.environ.get("USER", os.environ.get("USERNAME"))
-        timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
-
-        header = f"""
-/*
-This manta definition was generated on {timestamp} by {user}
-
-If this breaks or if you've got dank formal verification memes,
-please contact fischerm [at] mit.edu
-
-Provided under a GNU GPLv3 license. Go wild.
-"""
-        return header
-
-    def gen_example_inst(self):
+    def gen_example_inst_ports(self):
         # this is a C-style block comment that contains an instantiation
         # of the configured manta instance - the idea is that a user
         # can copy-paste that into their design instead of trying to spot
@@ -806,16 +795,14 @@ Provided under a GNU GPLv3 license. Go wild.
         interface_ports = self.interface.hdl_top_level_ports()
         interface_ports = [port.split(',')[0] for port in interface_ports]
         interface_ports = [port.split(' ')[-1] for port in interface_ports]
-        interface_ports = [f".{port}({port})" for port in interface_ports]
-        interface_ports = [f"    {port},\n" for port in interface_ports]
+        interface_ports = [f".{port}({port}),\n" for port in interface_ports]
         interface_ports = "".join(interface_ports)
 
         core_chain_ports = []
         for core in self.cores:
             ports = [port.split(',')[0] for port in core.hdl_top_level_ports()]
             ports = [port.split(' ')[-1] for port in ports]
-            ports = [f".{port}({port})" for port in ports]
-            ports = [f"    {port},\n" for port in ports]
+            ports = [f".{port}({port}), \n" for port in ports]
             ports = "".join(ports)
             ports = "\n" + ports
             core_chain_ports.append(ports)
@@ -829,28 +816,18 @@ Provided under a GNU GPLv3 license. Go wild.
         if ports[-1] == ",":
             ports = ports[:-1]
 
-        return f"""
-Here's an example instantiation of the Manta module you configured,
-feel free to copy-paste this into your source!
+        return ports
 
-manta manta_inst (
-    .clk(clk),
-
-{ports});
-
-*/
-"""
-
-    def gen_declaration(self):
+    def gen_top_level_ports(self):
         # get all the top level connections for each module.
 
         interface_ports = self.interface.hdl_top_level_ports()
-        interface_ports = [f"    {port},\n" for port in interface_ports]
+        interface_ports = [f"{port},\n" for port in interface_ports]
         interface_ports = "".join(interface_ports) + "\n"
 
         core_chain_ports = []
         for core in self.cores:
-            ports = [f"    {port},\n" for port in core.hdl_top_level_ports()]
+            ports = [f"{port},\n" for port in core.hdl_top_level_ports()]
             ports = "".join(ports)
             core_chain_ports.append(ports)
 
@@ -863,12 +840,7 @@ manta manta_inst (
         if ports[-1] == ",":
             ports = ports[:-1]
 
-        return f"""
-module manta (
-    input wire clk,
-
-{ports});
-"""
+        return ports
 
     def gen_interface_rx(self):
         # instantiate interface_rx, substitute in register names
@@ -906,45 +878,41 @@ module manta (
 
         return interface_tx_conn + interface_tx_inst
 
-    def gen_footer(self):
-        return """endmodule\n"""
-
     def gen_module_defs(self):
         # aggregate module definitions and remove duplicates
         module_defs_with_dups = [self.interface.rx_hdl_def()] + [core.hdl_def() for core in self.cores] + [self.interface.tx_hdl_def()]
         module_defs = []
         module_defs = [m_def for m_def in module_defs_with_dups if m_def not in module_defs]
-        return '\n'.join(module_defs)
+        module_defs = [m_def.strip() for m_def in module_defs]
+        return '\n\n'.join(module_defs)
 
     def generate_hdl(self, output_filepath):
-        header = self.gen_header()
-        ex_inst = self.gen_example_inst()
-        declaration = self.gen_declaration() + "\n"
+        manta = VerilogManipulator("manta_def_tmpl.v")
+
+        timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
+        manta.sub(timestamp, "/* TIMESTAMP */")
+
+        user = os.environ.get("USER", os.environ.get("USERNAME"))
+        manta.sub(user, "/* USER */")
+
+        ex_inst_ports = self.gen_example_inst_ports()
+        manta.sub(ex_inst_ports, "/* EX_INST_PORTS */")
+
+        top_level_ports = self.gen_top_level_ports()
+        manta.sub(top_level_ports, "/* TOP_LEVEL_PORTS */")
+
         interface_rx = self.gen_interface_rx()
+        manta.sub(interface_rx, "/* INTERFACE_RX */")
+
         core_chain = self.gen_core_chain()
+        manta.sub(core_chain, "/* CORE_CHAIN */")
+
         interface_tx = self.gen_interface_tx()
-        footer = self.gen_footer()
+        manta.sub(interface_tx, "/* INTERFACE_TX */")
+
         module_defs = self.gen_module_defs()
-
-        # assemble all the parts
-        hdl = header + ex_inst + declaration + interface_rx + core_chain + interface_tx + footer
-        hdl += "\n /* ---- Module Definitions ----  */\n"
-        hdl += module_defs
-
-        # default_nettype and timescale directives only at the beginning and end
-        hdl = hdl.replace("`default_nettype none\n", "")
-        hdl = hdl.replace("`default_nettype wire\n", "")
-        hdl = hdl.replace("`timescale 1ns/1ps\n", "")
-
-        hdl = hdl.replace("`default_nettype none", "")
-        hdl = hdl.replace("`default_nettype wire", "")
-        hdl = hdl.replace("`timescale 1ns/1ps", "")
-
-        hdl = "`default_nettype none\n" + "`timescale 1ns/1ps\n" + hdl + "`default_nettype wire"
-
-        with open(output_filepath, 'w') as f:
-            f.write(hdl)
-
+        manta.sub(module_defs, "/* MODULE_DEFS */")
+        return manta.get_hdl()
 
 def main():
     # print help menu if no args passed or help menu requested
@@ -994,7 +962,9 @@ Supported commands:
         ), "Wrong number of arguments, only a config file and output file must both be specified."
 
         manta = Manta(argv[2])
-        manta.generate_hdl(argv[3])
+        hdl = manta.generate_hdl(argv[3])
+        with open(argv[3], "w") as f:
+            f.write(hdl)
 
     # run the specified core
     elif argv[1] == "run":

@@ -16,5 +16,4 @@
     .wdata_o(),
     .rdata_o(),
     .rw_o(),
-    .valid_o()
-    );
+    .valid_o());

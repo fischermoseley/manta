@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module uart_tx(
+module uart_tx (
 	input wire clk,
 
 	input wire [7:0] data,
@@ -67,9 +67,6 @@ module uart_tx(
 			end
 		end
 	end
-
-
-
 endmodule
 
 `default_nettype wire
