@@ -36,7 +36,7 @@ module io_core_tb;
     logic la_tb_valid;
 
 
-    io_core #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) io(
+    io_core #(.BASE_ADDR(0)) io(
         .clk(clk),
 
         // inputs
