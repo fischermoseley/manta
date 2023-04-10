@@ -25,44 +25,28 @@ module bram_core (
     output reg [BRAM_WIDTH-1:0] dout,
     input wire we);
 
-    parameter BASE_ADDR = 0;
-
-
-    // for now, let's pretend that this bram has a width of 33, and a depth of 256
     // parameter BRAM_WIDTH = 0;
     // parameter BRAM_DEPTH = 0;
     parameter BRAM_WIDTH = 18;
     parameter BRAM_DEPTH = 256;
+    parameter BASE_ADDR = 0;
+
+    localparam N_BRAMS = 2;
+    localparam MAX_ADDR = BASE_ADDR + (2*N_BRAMS);
     localparam ADDR_WIDTH = $clog2(BRAM_DEPTH);
 
     // Bus-Controlled side of BRAMs
-    localparam N_BRAMS = 2;
-    reg [ADDR_WIDTH-1:0] addra [N_BRAMS-1:0];
-    reg [15:0] dina  [N_BRAMS-1:0];
-    reg [15:0] douta [N_BRAMS-1:0];
-    reg wea [N_BRAMS-1:0];
-
-    // reg [N_BRAMS-1:0][ADDR_WIDTH-1:0] addra = 0;
-    // reg [N_BRAMS-1:0][15:0] dina = 0;
-    // reg [N_BRAMS-1:0][15:0] douta;
-    // reg [N_BRAMS-1:0] wea = 0;
-
-    // this will work by having each BRAM's porta signals
-    // wrapped up in the stuff above, and then for the
-    // stubby BRAM at the end we'll just mask off dina and dout
+    reg [N_BRAMS-1:0][ADDR_WIDTH-1:0] addra = 0;
+    reg [N_BRAMS-1:0][15:0] dina = 0;
+    reg [N_BRAMS-1:0][15:0] douta;
+    reg [N_BRAMS-1:0] wea = 0;
 
     // Pipelining
-    reg [15:0] addr_pipe [3:0];
-    reg [15:0] wdata_pipe [3:0];
-    reg [15:0] rdata_pipe [3:0];
-    reg valid_pipe [3:0];
-    reg rw_pipe [3:0];
-
-    // reg [15:0][3:0] addr_pipe = 0;
-    // reg [15:0][3:0] wdata_pipe = 0;
-    // reg [15:0][3:0] rdata_pipe = 0;
-    // reg [3:0] valid_pipe = 0;
-    // reg [3:0] rw_pipe = 0;
+    reg [3:0][15:0] addr_pipe = 0;
+    reg [3:0][15:0] wdata_pipe = 0;
+    reg [3:0][15:0] rdata_pipe = 0;
+    reg [3:0] valid_pipe = 0;
+    reg [3:0] rw_pipe = 0;
 
     always @(posedge clk) begin
         addr_pipe[0] <= addr_i;
@@ -86,23 +70,21 @@ module bram_core (
         end
 
         // throw BRAM operations into the front of the pipeline
-        wea[0] <= 0;
-        wea[1] <= 0;
-        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + (2 * BRAM_DEPTH))) begin
+        wea <= 0;
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= MAX_ADDR)) begin
             wea[addr_i % N_BRAMS]   <= rw_i;
             addra[addr_i % N_BRAMS] <= (addr_i - BASE_ADDR) / N_BRAMS;
             dina[addr_i % N_BRAMS]  <= wdata_i;
         end
 
         // pull BRAM reads from the back of the pipeline
-        if( (valid_pipe[2]) && (addr_pipe[2] >= BASE_ADDR) && (addr_pipe[2] <= BASE_ADDR + (2 * BRAM_DEPTH))) begin
-            rdata_o <= douta[ addr_pipe[2] % N_BRAMS];
+        if( (valid_pipe[2]) && (addr_pipe[2] >= BASE_ADDR) && (addr_pipe[2] <= MAX_ADDR)) begin
+            rdata_o <= douta[addr_pipe[2] % N_BRAMS];
         end
     end
 
 
     // User-Controlled Side of BRAMs
-
     reg [15:0] dinb_0;
     reg [15:0] doutb_0;
     reg [1:0] dinb_1;
@@ -152,7 +134,5 @@ module bram_core (
         .dinb(dinb_1),
         .doutb(doutb_1),
         .web(we));
-
-
 endmodule
 `default_nettype wire
