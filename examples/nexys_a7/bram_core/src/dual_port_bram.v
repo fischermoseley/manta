@@ -25,15 +25,6 @@ module dual_port_bram #(
     output wire [RAM_WIDTH-1:0] doutb
     );
 
-    // The following code either initializes the memory values to a specified file or to all zeros to match hardware
-    generate
-        integer i;
-        initial begin
-            for (i = 0; i < RAM_DEPTH; i = i + 1)
-                BRAM[i] = {RAM_WIDTH{1'b0}};
-        end
-    endgenerate
-
     reg [RAM_WIDTH-1:0] BRAM [RAM_DEPTH-1:0];
     reg [RAM_WIDTH-1:0] ram_data_a = {RAM_WIDTH{1'b0}};
     reg [RAM_WIDTH-1:0] ram_data_b = {RAM_WIDTH{1'b0}};
