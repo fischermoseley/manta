@@ -79,6 +79,7 @@ module bram_core (
         wea_0 <= 0;
         wea_1 <= 0;
 
+        // put re
         if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + (2 * BRAM_DEPTH))) begin
             // compute correct bram to talk to
             case (addr_i % 2)

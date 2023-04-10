@@ -36,22 +36,33 @@ module bram_core (
     localparam ADDR_WIDTH = $clog2(BRAM_DEPTH);
 
     // Bus-Controlled side of BRAMs
-    reg [ADDR_WIDTH-1:0] addra_0 = 0;
-    reg [15:0] dina_0 = 0;
-    reg [15:0] douta_0;
-    reg wea_0 = 0;
+    localparam N_BRAMS = 2;
+    reg [ADDR_WIDTH-1:0] addra [N_BRAMS-1:0];
+    reg [15:0] dina  [N_BRAMS-1:0];
+    reg [15:0] douta [N_BRAMS-1:0];
+    reg wea [N_BRAMS-1:0];
 
-    reg [ADDR_WIDTH-1:0] addra_1 = 0;
-    reg [1:0] dina_1 = 0;
-    reg [1:0] douta_1;
-    reg wea_1 = 0;
+    // reg [N_BRAMS-1:0][ADDR_WIDTH-1:0] addra = 0;
+    // reg [N_BRAMS-1:0][15:0] dina = 0;
+    // reg [N_BRAMS-1:0][15:0] douta;
+    // reg [N_BRAMS-1:0] wea = 0;
+
+    // this will work by having each BRAM's porta signals
+    // wrapped up in the stuff above, and then for the
+    // stubby BRAM at the end we'll just mask off dina and dout
 
     // Pipelining
-    reg [15:0][3:0] addr_pipe = 0;
-    reg [15:0][3:0] wdata_pipe = 0;
-    reg [15:0][3:0] rdata_pipe = 0;
-    reg [3:0] valid_pipe = 0;
-    reg [3:0] rw_pipe = 0;
+    reg [15:0] addr_pipe [3:0];
+    reg [15:0] wdata_pipe [3:0];
+    reg [15:0] rdata_pipe [3:0];
+    reg valid_pipe [3:0];
+    reg rw_pipe [3:0];
+
+    // reg [15:0][3:0] addr_pipe = 0;
+    // reg [15:0][3:0] wdata_pipe = 0;
+    // reg [15:0][3:0] rdata_pipe = 0;
+    // reg [3:0] valid_pipe = 0;
+    // reg [3:0] rw_pipe = 0;
 
     always @(posedge clk) begin
         addr_pipe[0] <= addr_i;
@@ -60,11 +71,11 @@ module bram_core (
         valid_pipe[0] <= valid_i;
         rw_pipe[0] <= rw_i;
 
-        addr_o <= addr_pipe[3];
-        wdata_o <= wdata_pipe[3];
-        rdata_o <= rdata_pipe[3];
-        valid_o <= valid_pipe[3];
-        rw_o <= rw_pipe[3];
+        addr_o <= addr_pipe[2];
+        wdata_o <= wdata_pipe[2];
+        rdata_o <= rdata_pipe[2];
+        valid_o <= valid_pipe[2];
+        rw_o <= rw_pipe[2];
 
         for(int i=1; i<4; i=i+1) begin
             addr_pipe[i] <= addr_pipe[i-1];
@@ -74,48 +85,24 @@ module bram_core (
             rw_pipe[i] <= rw_pipe[i-1];
         end
 
-
-
-        wea_0 <= 0;
-        wea_1 <= 0;
-
+        // throw BRAM operations into the front of the pipeline
+        wea[0] <= 0;
+        wea[1] <= 0;
         if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + (2 * BRAM_DEPTH))) begin
-            // compute correct bram to talk to
-            case (addr_i % 2)
-                0: begin
-                    wea_0 <= rw_i;
-                    addra_0 <= (addr_i - BASE_ADDR) / 2;
-                    dina_0 <= wdata_i;
-                    rdata_o <= douta_0;
-                end
-
-                1: begin
-                    wea_1 <= rw_i;
-                    addra_1 <= (addr_i - BASE_ADDR) / 2;
-                    dina_1 <= wdata_i[1:0];
-                    rdata_o <= {14'b0, douta_1};
-                end
-            endcase
+            wea[addr_i % N_BRAMS]   <= rw_i;
+            addra[addr_i % N_BRAMS] <= (addr_i - BASE_ADDR) / N_BRAMS;
+            dina[addr_i % N_BRAMS]  <= wdata_i;
         end
 
-            if( (valid_pipe[3]) && (addr_pipe[3] >= BASE_ADDR) && (addr_pipe[3] <= BASE_ADDR + (2 * BRAM_DEPTH))) begin
-            // compute correct bram to talk to
-            case (addr_pipe[3] % 2)
-                0: begin
-                    rdata_o <= douta_0;
-                end
-
-                1: begin
-                    rdata_o <= {14'b0, douta_1};
-                end
-            endcase
-
+        // pull BRAM reads from the back of the pipeline
+        if( (valid_pipe[2]) && (addr_pipe[2] >= BASE_ADDR) && (addr_pipe[2] <= BASE_ADDR + (2 * BRAM_DEPTH))) begin
+            rdata_o <= douta[ addr_pipe[2] % N_BRAMS];
         end
-
     end
 
 
     // User-Controlled Side of BRAMs
+
     reg [15:0] dinb_0;
     reg [15:0] doutb_0;
     reg [1:0] dinb_1;
@@ -132,10 +119,10 @@ module bram_core (
 
         // port A is controlled by the bus
         .clka(clk),
-        .addra(addra_0),
-        .dina(dina_0),
-        .douta(douta_0),
-        .wea(wea_0),
+        .addra(addra[0]),
+        .dina(dina[0]),
+        .douta(douta[0]),
+        .wea(wea[0]),
 
         // port B is exposed to the user
         .clkb(bram_clk),
@@ -144,6 +131,9 @@ module bram_core (
         .doutb(doutb_0),
         .web(we));
 
+    reg [1:0] stub_bram_douta;
+    assign douta[N_BRAMS-1] = {14'b0, stub_bram_douta};
+
     dual_port_bram #(
         .RAM_WIDTH(2),
         .RAM_DEPTH(BRAM_DEPTH)
@@ -151,10 +141,10 @@ module bram_core (
 
         // port A is controlled by the bus
         .clka(clk),
-        .addra(addra_1),
-        .dina(dina_1),
-        .douta(douta_1),
-        .wea(wea_1),
+        .addra(addra[1]),
+        .dina(dina[1][1:0]),
+        .douta(stub_bram_douta),
+        .wea(wea[1]),
 
         // port B is exposed to the user
         .clkb(bram_clk),
