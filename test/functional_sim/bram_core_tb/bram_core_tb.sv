@@ -13,6 +13,7 @@ task read_reg (
     bram_core_tb.tb_bc_rw = 0;
     bram_core_tb.tb_bc_valid = 1;
     #`CP
+    bram_core_tb.tb_bc_rw = 0;
     bram_core_tb.tb_bc_valid = 0;
     while (!bram_core_tb.bc_tb_valid) #`CP;
     data = bram_core_tb.bc_tb_rdata;
@@ -31,6 +32,7 @@ task write_reg(
     bram_core_tb.tb_bc_rw = 1;
     bram_core_tb.tb_bc_valid = 1;
     #`CP
+    bram_core_tb.tb_bc_rw = 0;
     bram_core_tb.tb_bc_valid = 0;
     while (!bram_core_tb.bc_tb_valid) #`CP;
 

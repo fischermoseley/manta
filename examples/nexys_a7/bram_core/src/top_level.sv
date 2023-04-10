@@ -3,24 +3,32 @@
 
 module top_level (
 	input wire clk,
-	input wire [7:0] ja,
-	input wire [7:0] jb,
-	input wire [1:0] jc,
-	output logic [1:0] jd);
+	input wire btnc,
 
-	dual_port_bram #(.RAM_DEPTH(256), .RAM_WIDTH(2)) bram_0 (
-		.clka(clk),
-		.addra(ja),
-		.dina(jc),
-		.douta(),
-		.wea(1'b1),
+	output logic [15:0] led,
+    output logic ca, cb, cc, cd, ce, cf, cg,
+    output logic [7:0] an,
 
-		.clkb(clk),
-		.addrb(jb),
-		.dinb(8'b0),
-		.doutb(jd),
-		.web(1'b0)
+	input wire uart_txd_in,
+	output logic uart_rxd_out
 	);
+
+    manta manta_inst (
+        .clk(clk),
+
+        .rx(uart_txd_in),
+        .tx(uart_rxd_out));
+
+    assign led = manta_inst.brx_my_bram_core_addr;
+
+    logic [6:0] cat;
+	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
+    ssd ssd (
+        .clk_in(clk),
+        .rst_in(btnc),
+        .val_in( {manta_inst.my_bram_core_btx_rdata, manta_inst.brx_my_bram_core_wdata} ),
+        .cat_out(cat),
+        .an_out(an));
 
 endmodule
 

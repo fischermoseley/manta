@@ -47,9 +47,9 @@ module bram_core (
     reg wea_1 = 0;
 
     // Pipelining
-    reg [15:0][3:0] addr_pipe = 0;
-    reg [15:0][3:0] wdata_pipe = 0;
-    reg [15:0][3:0] rdata_pipe = 0;
+    reg [3:0][15:0] addr_pipe = 0;
+    reg [3:0][15:0] wdata_pipe = 0;
+    reg [3:0][15:0] rdata_pipe = 0;
     reg [3:0] valid_pipe = 0;
     reg [3:0] rw_pipe = 0;
 
