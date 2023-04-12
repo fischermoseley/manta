@@ -23,25 +23,28 @@ module my_bram (
     input wire user_we);
 
     parameter BASE_ADDR = 0;
-    localparam BRAM_WIDTH = 18;
-    localparam BRAM_DEPTH = 256;
+    parameter BRAM_WIDTH = 0;
+    parameter BRAM_DEPTH = 0;
     localparam ADDR_WIDTH = $clog2(BRAM_DEPTH);
 
-    localparam MAX_ADDR = 512;
-    localparam N_BRAMS = 2;
-    localparam N_FULL_WIDTH_BRAMS = 1;
-    localparam PARTIAL_BRAM_WIDTH = 2;
+    localparam MAX_ADDR = BASE_ADDR + (BRAM_DEPTH * N_BRAMS);
+    localparam N_BRAMS = int'($ceil(real'(BRAM_WIDTH) / 16.0));
 
-    // Bus-Controlled side of BRAMs
+    // Port A of BRAMs
     reg [N_BRAMS-1:0][ADDR_WIDTH-1:0] addra = 0;
     reg [N_BRAMS-1:0][15:0] dina = 0;
     reg [N_BRAMS-1:0][15:0] douta;
     reg [N_BRAMS-1:0] wea = 0;
 
-    // User-Controlled Side of BRAMs
-    reg [N_BRAMS-1:0][15:0] dinb = 0;
+    // Port B of BRAMs
+    reg [N_BRAMS-1:0][15:0] dinb;
     reg [N_BRAMS-1:0][15:0] doutb;
-    assign dout = {doutb[1], doutb[0]};
+    assign dinb = user_din;
+
+    // kind of a hack to part select from a 2d array that's been flattened to 1d
+    reg [(N_BRAMS*16)-1:0] doutb_flattened;
+    assign doutb_flattened = doutb;
+    assign user_dout = doutb_flattened[BRAM_WIDTH-1:0];
 
     // Pipelining
     reg [3:0][15:0] addr_pipe = 0;
@@ -85,10 +88,10 @@ module my_bram (
         end
     end
 
-    // generate the full-width BRAMs
+    // generate the BRAMs
     genvar i;
     generate
-        for(i=0; i<N_FULL_WIDTH_BRAMS; i=i+1) begin
+        for(i=0; i<N_BRAMS; i=i+1) begin
             dual_port_bram #(
                 .RAM_WIDTH(16),
                 .RAM_DEPTH(BRAM_DEPTH)
@@ -106,27 +109,6 @@ module my_bram (
                 .addrb(user_addr),
                 .dinb(dinb[i]),
                 .doutb(doutb[i]),
-                .web(user_we));
-        end
-
-        if(PARTIAL_BRAM_WIDTH > 0) begin
-            dual_port_bram #(
-                .RAM_WIDTH(PARTIAL_BRAM_WIDTH),
-                .RAM_DEPTH(BRAM_DEPTH)
-                ) bram_partial_width (
-
-                // port A is controlled by the bus
-                .clka(clk),
-                .addra(addra[N_BRAMS-1]),
-                .dina(dina[N_BRAMS-1][PARTIAL_BRAM_WIDTH-1:0]),
-                .douta(douta[N_BRAMS-1]),
-                .wea(wea[N_BRAMS-1]),
-
-                // port B is exposed to the user
-                .clkb(user_clk),
-                .addrb(user_addr),
-                .dinb(dinb[N_BRAMS-1][PARTIAL_BRAM_WIDTH-1:0]),
-                .doutb(doutb[N_BRAMS-1]),
                 .web(user_we));
         end
     endgenerate

@@ -673,8 +673,6 @@ class BlockMemoryCore:
         from math import ceil, floor, log2
         self.addr_width = ceil(log2(self.depth))
         self.n_brams = ceil(self.width / 16)
-        self.n_full_width_brams = floor(self.width / 16)
-        self.partial_bram_width = self.width - (16 * self.n_full_width_brams)
         self.max_addr = self.base_addr + (self.depth * self.n_brams)
 
     def hdl_inst(self):
@@ -687,12 +685,6 @@ class BlockMemoryCore:
     def hdl_def(self):
         bram_core = VerilogManipulator("block_memory_tmpl.v")
         bram_core.sub(self.name, "/* NAME */")
-        bram_core.sub(self.width, "/* WIDTH */")
-        bram_core.sub(self.depth, "/* DEPTH */")
-        bram_core.sub(self.max_addr, "/* MAX_ADDR */")
-        bram_core.sub(self.n_brams, "/* N_BRAMS */")
-        bram_core.sub(self.n_full_width_brams, "/* N_FULL_WIDTH_BRAMS */")
-        bram_core.sub(self.partial_bram_width, "/* PARTIAL_BRAM_WIDTH */")
         return bram_core.get_hdl()
 
 

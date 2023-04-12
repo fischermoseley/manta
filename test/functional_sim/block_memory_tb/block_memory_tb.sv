@@ -74,12 +74,15 @@ module block_memory_tb;
     logic bc_tb_valid;
 
     // bram itself
-    logic [7:0] bram_user_addr = 0;
-    logic [17:0] bram_user_din = 0;
-    logic [17:0] bram_user_dout;
+    localparam BRAM_DEPTH = 256;
+    localparam BRAM_WIDTH = 33;
+    localparam ADDR_WIDTH = $clog2(BRAM_WIDTH);
+    logic [ADDR_WIDTH-1:0] bram_user_addr = 0;
+    logic [BRAM_WIDTH-1:0] bram_user_din = 0;
+    logic [BRAM_WIDTH-1:0] bram_user_dout;
     logic bram_user_we = 0;
 
-    my_bram my_bram_inst(
+    my_bram #(.BRAM_DEPTH(BRAM_DEPTH), .BRAM_WIDTH(BRAM_WIDTH)) my_bram_inst(
         .clk(clk),
 
         .addr_i(tb_bc_addr),
@@ -109,6 +112,8 @@ module block_memory_tb;
         $dumpfile("block_memory_tb.vcd");
         $dumpvars(0, block_memory_tb);
 
+        $display("i am going to vomit %d", my_bram_inst.N_BRAMS);
+
         // setup and reset
         clk = 0;
         test_num = 0;
@@ -132,11 +137,14 @@ module block_memory_tb;
         /* ==== Test 1 Begin ==== */
         $display("\n=== test 1: read/write from BRAM, verify ===");
         test_num = 1;
-        //read_reg(0, read_value, "lmao");
-        write_and_verify(0, 4, "larry_op");
-        write_and_verify(1, 3, "larry_op");
+        write_and_verify(3, 'h1234, "");
+        write_and_verify(4, 'h5678, "");
+        write_and_verify(5, 'h0001, "");
 
         // now query what's on the the user side at address 0
+        bram_user_addr = 1;
+        #(3*`CP);
+        $display("Found 0x%h on the other side", bram_user_dout);
 
         #(10*`CP);
 
