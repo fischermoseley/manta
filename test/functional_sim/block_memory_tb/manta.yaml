@@ -1,0 +1,11 @@
+---
+cores:
+  my_bram:
+    type: block_memory
+    width: 18
+    depth: 256
+
+uart:
+  port: "auto"
+  baudrate: 115200
+  clock_freq: 100000000
