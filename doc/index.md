@@ -2,7 +2,7 @@
 
 ## Manta: An In-Situ Debugging Tool for Programmable Hardware
 
-Manta is a tool for getting information into and out of FPGAs over an interface like UART or Ethernet. It's primarily intended for debugging, but it's robust enough to be a simple, reliable transport layer between a FPGA and a host machine. It lets you configure a series of cores on a shared bus via a YAML or JSON file, and then provides a Python API to each core, along with vendor-agnostic Verilog HDL to instantiate them on your FPGA. 
+Manta is a tool for getting information into and out of FPGAs over an interface like UART or Ethernet. It's primarily intended for debugging, but it's robust enough to be a simple, reliable transport layer between a FPGA and a host machine. It lets you configure a series of cores on a shared bus via a YAML or JSON file, and then provides a Python API to each core, along with vendor-agnostic Verilog HDL to instantiate them on your FPGA.
 
 
 You might find Manta useful for:
@@ -29,11 +29,15 @@ These are more explicity described on their individual pages.
 
 ## Design Philosophy
 
-* _Things that are easy to misconfigure should be easy to reconfigure_. For instance, it's easy to accidentally put the wrong amount of holdoff in a logic analyzer core and shouldn't require regenerating a bitstream to fix. 
+* _Things that are easy to misconfigure should be easy to reconfigure_. For instance, it's easy to accidentally put the wrong amount of holdoff in a logic analyzer core and shouldn't require regenerating a bitstream to fix.
 
 * _Don't use macros._ There's a possibility that they'll conflict with something in user code.
 
 * _Autogenerate Verilog 2001 for compatibility._ However, some SystemVerilog 2012 is used for simulation and test.
+
+* _Separate data and operations on it._ This basically means that there shouldn't be much Verilog in the Python, and vice versa. As a result, the code autogeneration is done with a series of HDL templates that have sections filled in by Python. This is done with a bunch of find-and-replace, where hooks in the template file are replaced with the customized Verilog needed at that particular point.
+
+* _Make no assumptions about what the tools can do._ For instance, if you want to make a logic analyzer that has an input probe that's ten billion bits wide, Manta shouldn't complain - it'll leave that to your implementation engine. This allows Manta to maintain portability.
 
 ## About
 Manta was originally developed as part of my [Master's Thesis at MIT](dspace.mit.edu) in 2023, done under the supervision of Dr. Joe Steinmeyer. But I think it's a neat tool, so I'm still working on it :)
