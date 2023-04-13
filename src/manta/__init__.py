@@ -16,6 +16,13 @@ class VerilogManipulator:
             self.hdl = self.hdl.replace("`timescale 1ns/1ps", "")
             self.hdl = self.hdl.strip()
 
+            # python tries to be cute and automatically convert
+            # line endings on Windows, but Manta's source comes
+            # with (and injects) UNIX line endings, so Python
+            # ends up adding way too many line breaks, so we just
+            # undo anything it's done when we load the file
+            self.hdl = self.hdl.replace("\r\n", "\n")
+
         else:
             self.hdl = None
 
