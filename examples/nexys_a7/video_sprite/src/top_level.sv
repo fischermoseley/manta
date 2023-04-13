@@ -12,16 +12,16 @@ module top_level(
   output logic vga_hs, vga_vs
   );
 
-  /* Video Pipeline */
   logic clk_65mhz;
 
   clk_wiz_lab3 clk_gen(
     .clk_in1(clk_100mhz),
     .clk_out1(clk_65mhz));
 
-  logic [10:0] hcount;    // pixel on current line
-  logic [9:0] vcount;     // line number
-  logic hsync, vsync, blank; //control signals for vga
+  // VGA signals
+  logic [10:0] hcount;
+  logic [9:0] vcount;
+  logic hsync, vsync, blank;
 
   vga vga_gen(
     .pixel_clk_in(clk_65mhz),
@@ -31,14 +31,51 @@ module top_level(
     .vsync_out(vsync),
     .blank_out(blank));
 
-  image_sprite img_sprite (
-    .pixel_clk_in(clk_65mhz),
-    .rst_in(btnc),
-    .x_in(0),
-    .hcount_in(hcount),
-    .y_in(0),
-    .vcount_in(vcount),
-    .pixel_out(color));
+  localparam WIDTH = 256;
+  localparam HEIGHT = 256;
+
+  // calculate rom address
+  logic [$clog2(WIDTH*HEIGHT)-1:0] image_addr;
+  assign image_addr = (hcount_in - x_in) + ((vcount_in - y_in) * WIDTH);
+
+  logic in_sprite;
+  assign in_sprite = ((hcount_in >= x_in && hcount_in < (x_in + WIDTH)) &&
+                      (vcount_in >= y_in && vcount_in < (y_in + HEIGHT)));
+
+  // image BRAM
+  xilinx_single_port_ram_read_first #(
+    .RAM_WIDTH(8),
+    .RAM_DEPTH(WIDTH*HEIGHT),
+    .RAM_PERFORMANCE("HIGH_PERFORMANCE"),
+    .INIT_FILE(`FPATH(image.mem))
+  ) image_bram (
+    .addra(image_addr),
+    .dina(),
+    .clka(clk_65mhz),
+    .wea(1'b0),
+    .ena(1'b1),
+    .rsta(1'b0),
+    .regcea(1'b1),
+    .douta(color_lookup));
+
+  // lookup
+  logic [7:0] color_lookup;
+
+  // pallete BRAM
+  xilinx_single_port_ram_read_first #(
+    .RAM_WIDTH(12),
+    .RAM_DEPTH(256),
+    .RAM_PERFORMANCE("HIGH_PERFORMANCE"),
+    .INIT_FILE(`FPATH(palette.mem))
+  ) pallete_bram (
+    .addra(color_lookup),
+    .dina(),
+    .clka(clk_65mhz),
+    .wea(1'b0),
+    .ena(1'b1),
+    .rsta(1'b0),
+    .regcea(1'b1),
+    .douta(color));
 
   logic [11:0] color;
 
