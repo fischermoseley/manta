@@ -71,6 +71,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Add SSH Keys
         run: |
+          mkdir $env:USERPROFILE\.ssh$
           echo "$env:LAB_BC_KNOWN_HOSTS" > $env:USERPROFILE\.ssh\known_hosts
           echo "$env:LAB_BC_PRIVATE_KEY" > $env:USERPROFILE\.ssh\id_rsa
           chmod 600 $env:USERPROFILE\.ssh\id_rsa
