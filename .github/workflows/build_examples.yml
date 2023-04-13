@@ -64,26 +64,3 @@ jobs:
 
     - name: Build lut_ram
       run: make icestick_lut_ram
-
-  windows_nexys_a7_examples:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Add SSH Keys
-        run: |
-          mkdir $env:USERPROFILE\.ssh
-          echo "$env:LAB_BC_KNOWN_HOSTS" > $env:USERPROFILE\.ssh\known_hosts
-          echo "$env:LAB_BC_PRIVATE_KEY" > $env:USERPROFILE\.ssh\id_rsa
-          chmod 600 $env:USERPROFILE\.ssh\id_rsa
-
-      - name: Install Manta from Source
-        run: python3 -m pip install .
-
-      - name: Build io_core
-        run: make nexys_a7_io_core
-
-      - name: Build logic_analyzer
-        run: make nexys_a7_logic_analyzer
-
-      - name: Build lut_ram
-        run: make nexys_a7_lut_ram
