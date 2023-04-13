@@ -71,10 +71,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: Add SSH Keys
         run: |
-          dir
-          pwd
-          $file = "$env:userprofile\.ssh\id_rsa"
-          Set-Content -Path $file -Value ${{ secrets.LAB_BC_KNOWN_HOSTS }}
+          echo "$env:LAB_BC_KNOWN_HOSTS" > $env:USERPROFILE\.ssh\known_hosts
+          echo "$env:LAB_BC_PRIVATE_KEY" > $env:USERPROFILE\.ssh\id_rsa
+          chmod 600 $env:USERPROFILE\.ssh\id_rsa
 
       - name: Install Manta from Source
         run: |
