@@ -13,6 +13,8 @@ theme:
   features:
     - content.code.copy
     - content.code.annotate
+    - navigation.sections
+    - navigation.expand
 
   palette:
     # Palette toggle for light mode
