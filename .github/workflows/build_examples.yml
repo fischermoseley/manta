@@ -64,3 +64,39 @@ jobs:
 
     - name: Build lut_ram
       run: make icestick_lut_ram
+
+  windows_nexys_a7_examples:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Add SSH Keys
+        run: |
+          dir
+          pwd
+          mkdir ~/.ssh
+          touch ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.LAB_BC_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Install Manta from Source
+        run: |
+          pip install setuptools --upgrade
+
+          # omitting the following commmand causes the version of setuptools
+          # used by python to get confused, and it doesn't detect the name
+          # or version of the package from pyproject.toml - so the following
+          # workaround is used:
+          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
+          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+
+          python3 -m pip install .
+
+      - name: Build io_core
+        run: make nexys_a7_io_core
+
+      - name: Build logic_analyzer
+        run: make nexys_a7_logic_analyzer
+
+      - name: Build lut_ram
+        run: make nexys_a7_lut_ram
