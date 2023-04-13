@@ -73,10 +73,8 @@ jobs:
         run: |
           dir
           pwd
-          dir "$env:USERPROFILE\.ssh"
-          mkdir "$env:USERPROFILE\.ssh"
-          "${{ secrets.LAB_BC_PRIVATE_KEY }}" | "$env:USERPROFILE\.ssh\id_rsa"
-          "${{ secrets.LAB_BC_KNOWN_HOSTS }}" | "$env:USERPROFILE\.ssh\known_hosts"
+          $file = "$env:userprofile\.ssh\id_rsa"
+          Set-Content -Path $file -Value ${{ secrets.LAB_BC_KNOWN_HOSTS }}
 
       - name: Install Manta from Source
         run: |
