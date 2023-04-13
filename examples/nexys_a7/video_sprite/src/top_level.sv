@@ -1,91 +1,89 @@
-`timescale 1ns / 1ps
-`default_nettype none
+    `timescale 1ns / 1ps
+    `default_nettype none
 
-module top_level(
-  input wire clk_100mhz,
-  input wire [15:0] sw,
-  input wire btnc, btnu, btnl, btnr, btnd,
+    module top_level(
+        input wire clk_100mhz,
 
-  output logic [15:0] led,
+        output logic [3:0] vga_r, vga_g, vga_b,
+        output logic vga_hs, vga_vs,
 
-  output logic [3:0] vga_r, vga_g, vga_b,
-  output logic vga_hs, vga_vs
-  );
+        input wire btnc,
+        output logic [15:0] led,
+        output logic ca, cb, cc, cd, ce, cf, cg,
+        output logic [7:0] an,
 
-  logic clk_65mhz;
+        input wire uart_txd_in,
+	    output logic uart_rxd_out);
 
-  clk_wiz_lab3 clk_gen(
-    .clk_in1(clk_100mhz),
-    .clk_out1(clk_65mhz));
+    logic clk_65mhz;
 
-  // VGA signals
-  logic [10:0] hcount;
-  logic [9:0] vcount;
-  logic hsync, vsync, blank;
+    clk_wiz_lab3 clk_gen(
+        .clk_in1(clk_100mhz),
+        .clk_out1(clk_65mhz));
 
-  vga vga_gen(
-    .pixel_clk_in(clk_65mhz),
-    .hcount_out(hcount),
-    .vcount_out(vcount),
-    .hsync_out(hsync),
-    .vsync_out(vsync),
-    .blank_out(blank));
+    // VGA signals
+    logic [10:0] hcount;
+    logic [9:0] vcount;
+    logic hsync, vsync, blank;
 
-  localparam WIDTH = 256;
-  localparam HEIGHT = 256;
+    vga vga_gen(
+        .pixel_clk_in(clk_65mhz),
+        .hcount_out(hcount),
+        .vcount_out(vcount),
+        .hsync_out(hsync),
+        .vsync_out(vsync),
+        .blank_out(blank));
 
-  // calculate rom address
-  logic [$clog2(WIDTH*HEIGHT)-1:0] image_addr;
-  assign image_addr = (hcount_in - x_in) + ((vcount_in - y_in) * WIDTH);
+    localparam WIDTH = 128;
+    localparam HEIGHT = 128;
 
-  logic in_sprite;
-  assign in_sprite = ((hcount_in >= x_in && hcount_in < (x_in + WIDTH)) &&
-                      (vcount_in >= y_in && vcount_in < (y_in + HEIGHT)));
+    localparam X = 0;
+    localparam Y = 0;
 
-  // image BRAM
-  xilinx_single_port_ram_read_first #(
-    .RAM_WIDTH(8),
-    .RAM_DEPTH(WIDTH*HEIGHT),
-    .RAM_PERFORMANCE("HIGH_PERFORMANCE"),
-    .INIT_FILE(`FPATH(image.mem))
-  ) image_bram (
-    .addra(image_addr),
-    .dina(),
-    .clka(clk_65mhz),
-    .wea(1'b0),
-    .ena(1'b1),
-    .rsta(1'b0),
-    .regcea(1'b1),
-    .douta(color_lookup));
+    // calculate rom address
+    logic [$clog2(WIDTH*HEIGHT)-1:0] image_addr;
+    assign image_addr = (hcount - X) + ((vcount - Y) * WIDTH);
 
-  // lookup
-  logic [7:0] color_lookup;
+    logic in_sprite;
+    assign in_sprite = ((hcount >= X && hcount < (X + WIDTH)) &&
+                        (vcount >= Y && vcount < (Y + HEIGHT)));
 
-  // pallete BRAM
-  xilinx_single_port_ram_read_first #(
-    .RAM_WIDTH(12),
-    .RAM_DEPTH(256),
-    .RAM_PERFORMANCE("HIGH_PERFORMANCE"),
-    .INIT_FILE(`FPATH(palette.mem))
-  ) pallete_bram (
-    .addra(color_lookup),
-    .dina(),
-    .clka(clk_65mhz),
-    .wea(1'b0),
-    .ena(1'b1),
-    .rsta(1'b0),
-    .regcea(1'b1),
-    .douta(color));
+    manta manta_inst (
+        .clk(clk_65mhz),
 
-  logic [11:0] color;
+        .rx(uart_txd_in),
+        .tx(uart_rxd_out),
 
-  // the following lines are required for the Nexys4 VGA circuit - do not change
-  assign vga_r = ~blank ? color[11:8]: 0;
-  assign vga_g = ~blank ? color[7:4] : 0;
-  assign vga_b = ~blank ? color[3:0] : 0;
+        .image_mem_clk(clk_65mhz),
+        .image_mem_addr(image_addr),
+        .image_mem_din(),
+        .image_mem_dout(sprite_color),
+        .image_mem_we(1'b0));
 
-  assign vga_hs = ~hsync;
-  assign vga_vs = ~vsync;
-endmodule
+    logic [11:0] sprite_color;
+    logic [11:0] color;
+    assign color = in_sprite ? sprite_color : 12'h0;
 
-`default_nettype wire
+    // the following lines are required for the Nexys4 VGA circuit - do not change
+    assign vga_r = ~blank ? color[11:8]: 0;
+    assign vga_g = ~blank ? color[7:4] : 0;
+    assign vga_b = ~blank ? color[3:0] : 0;
+
+    assign vga_hs = ~hsync;
+    assign vga_vs = ~vsync;
+
+
+    // debug
+    assign led = manta_inst.brx_image_mem_addr;
+
+    logic [6:0] cat;
+	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
+    ssd ssd (
+        .clk_in(clk_65mhz),
+        .rst_in(btnc),
+        .val_in( {manta_inst.image_mem_btx_rdata, manta_inst.brx_image_mem_wdata} ),
+        .cat_out(cat),
+        .an_out(an));
+    endmodule
+
+    `default_nettype wire

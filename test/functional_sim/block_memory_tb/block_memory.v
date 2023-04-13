@@ -1,4 +1,4 @@
-module my_bram (
+module block_memory (
     input wire clk,
 
     // input port
@@ -27,8 +27,9 @@ module my_bram (
     parameter BRAM_DEPTH = 0;
     localparam ADDR_WIDTH = $clog2(BRAM_DEPTH);
 
-    localparam MAX_ADDR = BASE_ADDR + (BRAM_DEPTH * N_BRAMS);
+    // ugly typecasting, but just computes ceil(BRAM_WIDTH / 16)
     localparam N_BRAMS = int'($ceil(real'(BRAM_WIDTH) / 16.0));
+    localparam MAX_ADDR = BASE_ADDR + (BRAM_DEPTH * N_BRAMS);
 
     // Port A of BRAMs
     reg [N_BRAMS-1:0][ADDR_WIDTH-1:0] addra = 0;

@@ -677,15 +677,13 @@ class BlockMemoryCore:
 
     def hdl_inst(self):
         inst = VerilogManipulator("block_memory_inst_tmpl.v")
-        # inst.sub(self.name, "/* INST_NAME */")
-        # inst.sub(self.depth, "/* DEPTH */")
-        # inst.sub(self.width, "/* WIDTH */")
+        inst.sub(self.name, "/* INST_NAME */")
+        inst.sub(self.depth, "/* DEPTH */")
+        inst.sub(self.width, "/* WIDTH */")
         return inst.get_hdl()
 
     def hdl_def(self):
-        bram_core = VerilogManipulator("block_memory_tmpl.v")
-        bram_core.sub(self.name, "/* NAME */")
-        return bram_core.get_hdl()
+        return VerilogManipulator("block_memory_tmpl.v").get_hdl()
 
 
     def hdl_top_level_ports(self):
@@ -693,11 +691,11 @@ class BlockMemoryCore:
             return ""
 
         tlp = []
-        tlp.append(f"input wire {self.name}_clk,")
+        tlp.append(f"input wire {self.name}_clk")
         tlp.append(f"input wire [{self.addr_width-1}:0] {self.name}_addr")
-        tlp.append(f"input wire [{self.addr_width-1}:0] {self.name}_din")
-        tlp.append(f"input wire [{self.addr_width-1}:0] {self.name}_dout")
-        tlp.append(f"input wire [{self.addr_width-1}:0] {self.name}_we")
+        tlp.append(f"input wire [{self.width-1}:0] {self.name}_din")
+        tlp.append(f"output reg [{self.width-1}:0] {self.name}_dout")
+        tlp.append(f"input wire {self.name}_we")
         return tlp
 
     def read(self, addr):
@@ -786,11 +784,11 @@ class Manta:
             src = core_pair[0].name
             dst = core_pair[1].name
 
-            hdl = f"\treg [15:0] {src}_{dst}_addr;\n"
-            hdl += f"\treg [15:0] {src}_{dst}_wdata;\n"
-            hdl += f"\treg [15:0] {src}_{dst}_rdata;\n"
-            hdl += f"\treg {src}_{dst}_rw;\n"
-            hdl += f"\treg {src}_{dst}_valid;\n"
+            hdl = f"reg [15:0] {src}_{dst}_addr;\n"
+            hdl += f"reg [15:0] {src}_{dst}_wdata;\n"
+            hdl += f"reg [15:0] {src}_{dst}_rdata;\n"
+            hdl += f"reg {src}_{dst}_rw;\n"
+            hdl += f"reg {src}_{dst}_valid;\n"
             conns.append(hdl)
 
         return conns
@@ -821,7 +819,7 @@ class Manta:
 
             # connect output
             if (i < len(self.cores)-1):
-                dst_name = self.cores[i+1]
+                dst_name = self.cores[i+1].name
                 hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst_name}_addr)")
                 hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst_name}_wdata)")
 
@@ -920,10 +918,10 @@ class Manta:
 
         # connect interface_rx to core_chain
         interface_rx_conn= f"""
-    reg [15:0] brx_{self.cores[0].name}_addr;
-    reg [15:0] brx_{self.cores[0].name}_wdata;
-    reg brx_{self.cores[0].name}_rw;
-    reg brx_{self.cores[0].name}_valid;\n"""
+reg [15:0] brx_{self.cores[0].name}_addr;
+reg [15:0] brx_{self.cores[0].name}_wdata;
+reg brx_{self.cores[0].name}_rw;
+reg brx_{self.cores[0].name}_valid;\n"""
 
         return interface_rx_inst + interface_rx_conn
 
@@ -931,9 +929,9 @@ class Manta:
 
         # connect core_chain to interface_tx
         interface_tx_conn = f"""
-    reg [15:0] {self.cores[-1].name}_btx_rdata;
-    reg {self.cores[-1].name}_btx_rw;
-    reg {self.cores[-1].name}_btx_valid;\n"""
+reg [15:0] {self.cores[-1].name}_btx_rdata;
+reg {self.cores[-1].name}_btx_rw;
+reg {self.cores[-1].name}_btx_valid;\n"""
 
         # instantiate interface_tx, substitute in register names
         interface_tx_inst = self.interface.tx_hdl_inst()

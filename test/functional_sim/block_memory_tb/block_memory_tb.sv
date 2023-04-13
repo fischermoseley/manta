@@ -82,7 +82,7 @@ module block_memory_tb;
     logic [BRAM_WIDTH-1:0] bram_user_dout;
     logic bram_user_we = 0;
 
-    my_bram #(.BRAM_DEPTH(BRAM_DEPTH), .BRAM_WIDTH(BRAM_WIDTH)) my_bram_inst(
+    block_memory #(.BRAM_DEPTH(BRAM_DEPTH), .BRAM_WIDTH(BRAM_WIDTH)) my_bram_inst(
         .clk(clk),
 
         .addr_i(tb_bc_addr),

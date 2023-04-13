@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module /* NAME */ (
+module block_memory (
     input wire clk,
 
     // input port
@@ -21,18 +21,18 @@ module /* NAME */ (
     // BRAM itself
     input wire user_clk,
     input wire [ADDR_WIDTH-1:0] user_addr,
-    input wire [BRAM_WIDTH-1:0] user_din,
-    output reg [BRAM_WIDTH-1:0] user_dout,
+    input wire [WIDTH-1:0] user_din,
+    output reg [WIDTH-1:0] user_dout,
     input wire user_we);
 
     parameter BASE_ADDR = 0;
-    parameter BRAM_WIDTH = 0;
-    parameter BRAM_DEPTH = 0;
-    localparam ADDR_WIDTH = $clog2(BRAM_DEPTH);
+    parameter WIDTH = 0;
+    parameter DEPTH = 0;
+    localparam ADDR_WIDTH = $clog2(DEPTH);
 
-    // ugly typecasting, but just computes ceil(BRAM_WIDTH / 16)
-    localparam N_BRAMS = int'($ceil(real'(BRAM_WIDTH) / 16.0));
-    localparam MAX_ADDR = BASE_ADDR + (BRAM_DEPTH * N_BRAMS);
+    // ugly typecasting, but just computes ceil(WIDTH / 16)
+    localparam N_BRAMS = int'($ceil(real'(WIDTH) / 16.0));
+    localparam MAX_ADDR = BASE_ADDR + (DEPTH * N_BRAMS);
 
     // Port A of BRAMs
     reg [N_BRAMS-1:0][ADDR_WIDTH-1:0] addra = 0;
@@ -48,14 +48,14 @@ module /* NAME */ (
     // kind of a hack to part select from a 2d array that's been flattened to 1d
     reg [(N_BRAMS*16)-1:0] doutb_flattened;
     assign doutb_flattened = doutb;
-    assign user_dout = doutb_flattened[BRAM_WIDTH-1:0];
+    assign user_dout = doutb_flattened[WIDTH-1:0];
 
     // Pipelining
-    reg [3:0][15:0] addr_pipe = 0;
-    reg [3:0][15:0] wdata_pipe = 0;
-    reg [3:0][15:0] rdata_pipe = 0;
-    reg [3:0] valid_pipe = 0;
-    reg [3:0] rw_pipe = 0;
+    reg [2:0][15:0] addr_pipe = 0;
+    reg [2:0][15:0] wdata_pipe = 0;
+    reg [2:0][15:0] rdata_pipe = 0;
+    reg [2:0] valid_pipe = 0;
+    reg [2:0] rw_pipe = 0;
 
     always @(posedge clk) begin
         addr_pipe[0] <= addr_i;
@@ -70,7 +70,7 @@ module /* NAME */ (
         valid_o <= valid_pipe[2];
         rw_o <= rw_pipe[2];
 
-        for(int i=1; i<4; i=i+1) begin
+        for(int i=1; i<3; i=i+1) begin
             addr_pipe[i] <= addr_pipe[i-1];
             wdata_pipe[i] <= wdata_pipe[i-1];
             rdata_pipe[i] <= rdata_pipe[i-1];
@@ -98,7 +98,7 @@ module /* NAME */ (
         for(i=0; i<N_BRAMS; i=i+1) begin
             dual_port_bram #(
                 .RAM_WIDTH(16),
-                .RAM_DEPTH(BRAM_DEPTH)
+                .RAM_DEPTH(DEPTH)
                 ) bram_full_width_i (
 
                 // port A is controlled by the bus
