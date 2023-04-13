@@ -75,8 +75,8 @@ jobs:
           pwd
           dir "$env:USERPROFILE\.ssh"
           mkdir "$env:USERPROFILE\.ssh"
-          "${{ secrets.LAB_BC_PRIVATE_KEY }}" > | "$env:USERPROFILE\.ssh\id_rsa"
-          "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > | "$env:USERPROFILE\.ssh\known_hosts"
+          "${{ secrets.LAB_BC_PRIVATE_KEY }}" | "$env:USERPROFILE\.ssh\id_rsa"
+          "${{ secrets.LAB_BC_KNOWN_HOSTS }}" | "$env:USERPROFILE\.ssh\known_hosts"
 
       - name: Install Manta from Source
         run: |
