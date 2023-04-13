@@ -34,6 +34,26 @@
         .vsync_out(vsync),
         .blank_out(blank));
 
+    // VGA Pipelining
+    reg[1:0][10:0] hcount_pipe;
+    reg[1:0][10:0] vcount_pipe;
+    reg[1:0] hsync_pipe;
+    reg[1:0] vsync_pipe;
+    reg[1:0] blank_pipe;
+
+    always_ff @(posedge clk_65mhz)begin
+        hcount_pipe[0] <= hcount;
+        vcount_pipe[0] <= vcount;
+        hsync_pipe[0] <= hsync;
+        vsync_pipe[0] <= vsync;
+        for (int i=1; i<4; i = i+1)begin
+            hcount_pipe[i] <= hcount_pipe[i-1];
+            vcount_pipe[i] <= vcount_pipe[i-1];
+            hsync_pipe[i] <= hsync_pipe[i-1];
+            vsync_pipe[i] <= vsync_pipe[i-1];
+        end
+    end
+
     localparam WIDTH = 128;
     localparam HEIGHT = 128;
 
@@ -45,8 +65,8 @@
     assign image_addr = (hcount - X) + ((vcount - Y) * WIDTH);
 
     logic in_sprite;
-    assign in_sprite = ((hcount >= X && hcount < (X + WIDTH)) &&
-                        (vcount >= Y && vcount < (Y + HEIGHT)));
+    assign in_sprite = ((hcount_pipe[1] >= X && hcount_pipe[1] < (X + WIDTH)) &&
+                        (vcount_pipe[1] >= Y && vcount_pipe[1] < (Y + HEIGHT)));
 
     manta manta_inst (
         .clk(clk_65mhz),
@@ -65,13 +85,12 @@
     assign color = in_sprite ? sprite_color : 12'h0;
 
     // the following lines are required for the Nexys4 VGA circuit - do not change
-    assign vga_r = ~blank ? color[11:8]: 0;
-    assign vga_g = ~blank ? color[7:4] : 0;
-    assign vga_b = ~blank ? color[3:0] : 0;
+    assign vga_r = ~blank_pipe[1] ? color[11:8]: 0;
+    assign vga_g = ~blank_pipe[1] ? color[7:4] : 0;
+    assign vga_b = ~blank_pipe[1] ? color[3:0] : 0;
 
-    assign vga_hs = ~hsync;
-    assign vga_vs = ~vsync;
-
+    assign vga_hs = ~hsync_pipe[1];
+    assign vga_vs = ~vsync_pipe[1];
 
     // debug
     assign led = manta_inst.brx_image_mem_addr;

@@ -81,7 +81,13 @@ lut_ram_tb:
 
 examples: icestick nexys_a7
 
-nexys_a7: nexys_a7_io_core nexys_a7_logic_analyzer nexys_a7_lut_ram
+nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_logic_analyzer nexys_a7_lut_ram
+
+nexys_a7_video_sprite:
+	cd examples/nexys_a7/video_sprite;	\
+	manta gen manta.yaml src/manta.v;	\
+	mkdir -p obj/;						\
+	python3 lab-bc.py
 
 nexys_a7_io_core:
 	cd examples/nexys_a7/io_core/;   	\

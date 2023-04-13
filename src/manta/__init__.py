@@ -683,8 +683,9 @@ class BlockMemoryCore:
         return inst.get_hdl()
 
     def hdl_def(self):
-        return VerilogManipulator("block_memory_tmpl.v").get_hdl()
-
+        block_memory = VerilogManipulator("block_memory.v").get_hdl()
+        dual_port_bram = VerilogManipulator("dual_port_bram.v").get_hdl()
+        return block_memory + "\n" + dual_port_bram
 
     def hdl_top_level_ports(self):
         if not self.expose_port:
