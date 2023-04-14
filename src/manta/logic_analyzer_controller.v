@@ -23,72 +23,65 @@ module logic_analyzer_controller (
     parameter DEPTH = 0;
     localparam ADDR_WIDTH = $clog2(DEPTH);
 
-    // fsm
+    /* ----- FSM ----- */
     localparam IDLE = 0;
-    localparam START_CAPTURE = 1;
-    localparam MOVE_TO_POSITION = 2;
-    localparam IN_POSITION = 3;
-    localparam FILLING_BUFFER = 4;
-    localparam FILLED = 5;
+    localparam MOVE_TO_POSITION = 1;
+    localparam IN_POSITION = 2;
+    localparam CAPTURING = 3;
+    localparam CAPTURED = 4;
 
     initial state = IDLE;
     initial current_loc = 0;
-    initial read_pointer = 0;
-    initial write_pointer = 0;
+
+    // rising edge detection for start/stop requests
+    reg prev_request_start;
+    always @(posedge clk) prev_request_start <= request_start;
+
+    reg prev_request_stop;
+    always @(posedge clk) prev_request_stop <= request_stop;
 
     always @(posedge clk) begin
+        // don't do anything to the FIFO unless told to
+        acquire <= 0;
+        pop <= 0;
+
         if(state == IDLE) begin
-            current_loc <= (trigger_loc < 0) ? trigger_loc : 0;
-        end
+            clear <= 1;
 
-        else if(state == START_CAPTURE) begin
-            // perform whatever setup is needed before starting the next capture
-            fifo_clear <= 1;
-            state <= MOVE_TO_POSITION;
-        end
-
-        else if(state == MOVE_TO_POSITION) begin
-            fifo_clear <= 0;
-            // if trigger location is negative or zero,
-            // then we're already in position
-            if(trigger_loc <= 0) state <= IN_POSITION;
-
-            // otherwise we'll need to wait a little,
-            // but we'll need to buffer along the way
-            else begin
-                current_loc <= current_loc + 1;
-                // add code to add samples to word FIFO
-                fifo_acquire <= 1;
-                if (current_loc == trigger_loc) state <= IN_POSITION;
+            if(request_start && ~prev_request_start) begin
+                // TODO: figure out what determines whether or not we
+                // go into MOVE_TO_POSITION or IN_POSITION. that's for
+                // the morning
+                state <= MOVE_TO_POSITION;
             end
         end
 
-        else if(state == IN_POSITION) begin
-            // pop stuff out of the word FIFO in addition to pulling it in
-            fifo_acquire <= 1;
-            fifo_pop <= 1;
+        if(state == MOVE_TO_POSITION) begin
+            acquire <= 1;
+            current_loc <= current_loc + 1;
 
-            if(trig) state <= FILLING_BUFFER;
+            if(current_loc == trigger_loc) state <= IN_POSITION
         end
 
-        else if(state == FILLING_BUFFER) begin
-            fifo_acquire <= 1;
-            fifo_pop <= 0;
-            if(fifo_size == SAMPLE_DEPTH) state <= FILLED;
+        if(state == IN_POSITION) begin
+            acquire <= 1;
+            pop <= 1;
+
+            if(trig) pop <= 0;
+            if(trig) state <= CAPTURING;
         end
 
-        else if(state == FILLED) begin
-            // don't automatically go back to IDLE, the host will move
-            // the state to MOVE_TO_POSITION
-
-            current_loc <= (trigger_loc < 0) ? trigger_loc : 0;
+        if(state == CAPTURING) begin
+            if(size == DEPTH) state <= CAPTURED;
         end
 
-
-        // return to IDLE state if somehow we get to a state that doesn't exist
-        else begin
-            state <= IDLE;
+        if(state == CAPTURED) begin
+            // actually nothing to do here doooodeeedoooo
         end
+
+        if(request_stop && ~prev_request_stop) state <= IDLE;
+
+        else state <= IDLE;
     end
 
 
@@ -99,7 +92,8 @@ module logic_analyzer_controller (
     reg clear,
 
 	reg [ADDR_WIDTH:0] write_pointer = 0;
-	reg [ADDR_WIDTH:0] read_pointer = 0;
+    initial read_pointer = 0;
+    initial write_pointer = 0;
 
 	assign size = write_pointer - read_pointer;
 
