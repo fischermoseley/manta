@@ -438,6 +438,21 @@ class LogicAnalyzerCore:
         self.block_memory_base_addr = self.trigger_block_base_addr + (2*len(self.probes))
         self.max_addr = self.block_memory_base_addr + (n_brams * self.sample_depth)
 
+        # build out self register map:
+        #   these are also defined in logic_analyzer_fsm_registers.v, and should match
+        self.state_reg_addr = self.base_addr
+        self.trigger_loc_reg_addr = self.base_addr + 1
+        self.current_loc_reg_addr = self.base_addr + 2
+        self.request_start_reg_addr = self.base_addr + 3
+        self.request_stop_reg_addr = self.base_addr + 4
+        self.read_pointer_reg_addr = self.base_addr + 5
+
+        self.IDLE = 0
+        self.MOVE_TO_POSITION = 1
+        self.IN_POSITION = 2
+        self.CAPTURING = 3
+        self.CAPTURED = 4
+
     def hdl_inst(self):
         la_inst = VerilogManipulator("logic_analyzer_inst_tmpl.v")
 
@@ -566,8 +581,55 @@ class LogicAnalyzerCore:
         return ports
         #return VerilogManipulator().net_dec(self.probes, "input wire")
 
+
+
+    # functions for actually using the core:
+
     def run(self):
-        pass
+        # Check state - if it's in anything other than IDLE,
+        # request to stop the existing capture
+        print(" -> Resetting core...")
+        state = self.interface.read_register(self.state_reg_addr)
+        if state != self.IDLE:
+            self.interface.write_register(self.request_stop_reg_addr, 0)
+            self.interface.write_register(self.request_stop_reg_addr, 1)
+
+            state = self.interface.read_register(self.state_reg_addr)
+            assert state == self.IDLE, "Logic analyzer did not reset to correct state when requested to."
+
+        # Configure trigger settings and positions - highkey don't really know how we're going to do this
+        #   for now, let's just trigger on a changing value of the first probe
+        print(" -> Configuring triggers...")
+        self.interface.write_register(self.trigger_block_base_addr, 3)
+        trigger_setting = self.interface.read_register(self.trigger_block_base_addr)
+        assert trigger_setting == 3, "Trigger did not save the value written to it."
+
+        # Configure the trigger_pos, but we'll skip that for now
+        print(" -> Setting trigger location...")
+
+        # Start the capture by pulsing request_start
+        print(" -> Starting capture...")
+        self.interface.write_register(self.request_start_reg_addr, 1)
+        self.interface.write_register(self.request_start_reg_addr, 0)
+
+        # Wait for core to finish capturing data
+        print(" -> Waiting for capture to complete...")
+        state = self.interface.read_register(self.state_reg_addr)
+        while(state != self.CAPTURED):
+            state = self.interface.read_register(self.state_reg_addr)
+
+        # Read out contents from memory
+        print(" -> Reading sample memory contents...")
+        block_mem_contents = []
+        for i in range(self.block_memory_base_addr, self.max_addr):
+            block_mem_contents.append(self.interface.read_register(i))
+
+        # Revolve BRAM contents around so the data pointed to by the read_pointer
+        # is at the beginning
+        print(" -> Reading read_pointer and revolving memory...")
+        read_pointer = self.interface.read_register(self.read_pointer_reg_addr)
+        return block_mem_contents[read_pointer:] + block_mem_contents[:read_pointer]
+
 
     def part_select(self, data, width):
         top, bottom = width
