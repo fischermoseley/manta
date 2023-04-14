@@ -10,7 +10,7 @@ module logic_analyzer_controller (
     output reg signed [15:0] current_loc,
     input wire request_start,
     input wire request_stop,
-    output reg read_pointer,
+    output reg [ADDR_WIDTH-1:0] read_pointer,
 
     // from trigger block
     input wire trig,
@@ -20,8 +20,11 @@ module logic_analyzer_controller (
     output bram_we
     );
 
-    parameter DEPTH = 0;
-    localparam ADDR_WIDTH = $clog2(DEPTH);
+    assign bram_addr = write_pointer;
+    assign bram_we = acquire;
+
+    parameter SAMPLE_DEPTH= 0;
+    localparam ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
 
     /* ----- FSM ----- */
     localparam IDLE = 0;
@@ -53,17 +56,18 @@ module logic_analyzer_controller (
                 // go into MOVE_TO_POSITION or IN_POSITION. that's for
                 // the morning
                 state <= MOVE_TO_POSITION;
+                clear <= 0;
             end
         end
 
-        if(state == MOVE_TO_POSITION) begin
+        else if(state == MOVE_TO_POSITION) begin
             acquire <= 1;
             current_loc <= current_loc + 1;
 
-            if(current_loc == trigger_loc) state <= IN_POSITION
+            if(current_loc == trigger_loc) state <= IN_POSITION;
         end
 
-        if(state == IN_POSITION) begin
+        else if(state == IN_POSITION) begin
             acquire <= 1;
             pop <= 1;
 
@@ -71,25 +75,30 @@ module logic_analyzer_controller (
             if(trig) state <= CAPTURING;
         end
 
-        if(state == CAPTURING) begin
-            if(size == DEPTH) state <= CAPTURED;
+        else if(state == CAPTURING) begin
+            acquire <= 1;
+
+            if(size == SAMPLE_DEPTH) begin
+                state <= CAPTURED;
+                acquire <= 0;
+            end
         end
 
-        if(state == CAPTURED) begin
+        else if(state == CAPTURED) begin
             // actually nothing to do here doooodeeedoooo
         end
 
-        if(request_stop && ~prev_request_stop) state <= IDLE;
+        else if(request_stop && ~prev_request_stop) state <= IDLE;
 
         else state <= IDLE;
     end
 
 
-    // fifo
+    /* ----- FIFO ----- */
     reg acquire;
     reg pop;
-    reg [ADDR_WIDTH:0] size,
-    reg clear,
+    reg [ADDR_WIDTH:0] size;
+    reg clear;
 
 	reg [ADDR_WIDTH:0] write_pointer = 0;
     initial read_pointer = 0;
@@ -99,7 +108,7 @@ module logic_analyzer_controller (
 
 	always @(posedge clk) begin
         if (clear) read_pointer <= write_pointer;
-		if (acquire && size < DEPTH) write_pointer <= write_pointer + 1'd1;
+		if (acquire && size < SAMPLE_DEPTH) write_pointer <= write_pointer + 1'd1;
 	 	if (pop && size > 0) read_pointer <= read_pointer + 1'd1;
 	end
 endmodule
