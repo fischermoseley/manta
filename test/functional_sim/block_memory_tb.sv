@@ -3,10 +3,13 @@
 `define CP 10
 `define HCP 5
 
-task read_reg (
+`define BRAM_DEPTH 256
+`define BRAM_WIDTH 33
+`define ADDR_WIDTH $clog2(`BRAM_DEPTH)
+
+task read_reg_bus_side (
     input [15:0] addr,
-    output [15:0] data,
-    input string desc
+    output [15:0] data
     );
 
     block_memory_tb.tb_bc_addr = addr;
@@ -18,13 +21,12 @@ task read_reg (
     while (!block_memory_tb.bc_tb_valid) #`CP;
     data = block_memory_tb.bc_tb_rdata;
 
-    $display(" -> read  0x%h from addr 0x%h (%s)", data, addr, desc);
+    $display(" -> bus  read  0x%h from addr 0x%h", data, addr);
 endtask
 
-task write_reg(
+task write_reg_bus_side(
     input [15:0] addr,
-    input [15:0] data,
-    input string desc
+    input [15:0] data
     );
 
     block_memory_tb.tb_bc_addr = addr;
@@ -36,21 +38,43 @@ task write_reg(
     block_memory_tb.tb_bc_valid = 0;
     while (!block_memory_tb.bc_tb_valid) #`CP;
 
-    $display(" -> wrote 0x%h to   addr 0x%h (%s)", data, addr, desc);
+    $display(" -> bus  wrote 0x%h to   addr 0x%h", data, addr);
 endtask
 
-task write_and_verify(
+task write_and_verify_bus_side(
     input [15:0] addr,
-    input [15:0] write_data,
-    input string desc
+    input [15:0] write_data
     );
 
     reg [15:0] read_data;
 
-    write_reg(addr, write_data, desc);
-    read_reg(addr, read_data, desc);
+    write_reg_bus_side(addr, write_data);
+    read_reg_bus_side(addr, read_data);
     assert(read_data == write_data) else $error("data read does not match data written!");
 endtask
+
+task read_user_side(
+    input [`ADDR_WIDTH-1:0] addr
+    );
+
+    block_memory_tb.bram_user_we = 0;
+    block_memory_tb.bram_user_addr = addr;
+    #(2*`CP);
+    $display("user read  0x%h from addr 0x%h", block_memory_tb.bram_user_dout, addr);
+endtask
+
+task write_user_side(
+    input [`ADDR_WIDTH-1:0] addr,
+    input [`BRAM_WIDTH-1:0] data
+    );
+
+    block_memory_tb.bram_user_we = 1;
+    block_memory_tb.bram_user_addr = addr;
+    block_memory_tb.bram_user_din = data;
+    #(2*`CP);
+    $display("user wrote 0x%h to   addr 0x%h", data, addr);
+endtask
+
 
 module block_memory_tb;
 
@@ -74,15 +98,15 @@ module block_memory_tb;
     logic bc_tb_valid;
 
     // bram itself
-    localparam BRAM_DEPTH = 256;
-    localparam BRAM_WIDTH = 33;
-    localparam ADDR_WIDTH = $clog2(BRAM_WIDTH);
+    localparam BRAM_DEPTH = `BRAM_DEPTH;
+    localparam BRAM_WIDTH = `BRAM_WIDTH;
+    localparam ADDR_WIDTH = $clog2(BRAM_DEPTH);
     logic [ADDR_WIDTH-1:0] bram_user_addr = 0;
     logic [BRAM_WIDTH-1:0] bram_user_din = 0;
     logic [BRAM_WIDTH-1:0] bram_user_dout;
     logic bram_user_we = 0;
 
-    block_memory #(.BRAM_DEPTH(BRAM_DEPTH), .BRAM_WIDTH(BRAM_WIDTH)) my_bram_inst(
+    block_memory #(.DEPTH(BRAM_DEPTH), .WIDTH(BRAM_WIDTH)) block_mem (
         .clk(clk),
 
         .addr_i(tb_bc_addr),
@@ -112,8 +136,6 @@ module block_memory_tb;
         $dumpfile("block_memory_tb.vcd");
         $dumpvars(0, block_memory_tb);
 
-        $display("i am going to vomit %d", my_bram_inst.N_BRAMS);
-
         // setup and reset
         clk = 0;
         test_num = 0;
@@ -137,14 +159,22 @@ module block_memory_tb;
         /* ==== Test 1 Begin ==== */
         $display("\n=== test 1: read/write from BRAM, verify ===");
         test_num = 1;
-        write_and_verify(3, 'h1234, "");
-        write_and_verify(4, 'h5678, "");
-        write_and_verify(5, 'h0001, "");
+        write_and_verify_bus_side(0, 'h6789);
+        write_and_verify_bus_side(1, 'h2345);
+        write_and_verify_bus_side(2, 'h0001);
 
         // now query what's on the the user side at address 0
-        bram_user_addr = 1;
-        #(3*`CP);
-        $display("Found 0x%h on the other side", bram_user_dout);
+        read_user_side(0);
+
+        write_and_verify_bus_side(3, 'h1111);
+        write_and_verify_bus_side(4, 'h1111);
+        write_and_verify_bus_side(5, 'h0001);
+
+        // now query what's on the the user side at address 0
+        read_user_side(1);
+
+        write_user_side(1, 0);
+        read_user_side(1);
 
         #(10*`CP);
 

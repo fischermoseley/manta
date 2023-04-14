@@ -22,18 +22,48 @@ module logic_analyzer (
     output reg valid_o
     );
 
-    // fsm
-    la_fsm #(
-        .BASE_ADDR(/* FSM_BASE_ADDR */),
-        .SAMPLE_DEPTH(/* SAMPLE_DEPTH */)
-        ) fsm (
+    parameter SAMPLE_DEPTH = 0;
+    localparam ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
+
+    reg [3:0] state;
+    reg signed [15:0] trigger_loc;
+    reg signed [15:0] current_loc;
+    reg request_start;
+    reg request_stop;
+    reg [ADDR_WIDTH-1:0] read_pointer;
+
+    reg trig;
+
+    reg [ADDR_WIDTH-1:0] bram_addr;
+    reg bram_we;
+
+    localparam TOTAL_PROBE_WIDTH = 0;
+    reg [TOTAL_PROBE_WIDTH-1:0] probes_concat;
+    assign probes_concat = /* PROBES_CONCAT */;
+
+    logic_analyzer_controller la_controller (
         .clk(clk),
 
+        // from register file
+        .state(state),
+        .trigger_loc(trigger_loc),
+        .current_loc(current_loc),
+        .request_start(request_start),
+        .request_stop(request_stop),
+        .read_pointer(read_pointer),
+
+        // from trigger block
         .trig(trig),
-        .fifo_size(fifo_size),
-        .fifo_acquire(fifo_acquire),
-        .fifo_pop(fifo_pop),
-        .fifo_clear(fifo_clear),
+
+        // from block memory user port
+        .bram_addr(bram_addr),
+        .bram_we(bram_we)
+    );
+
+    logic_analyzer_fsm_registers #(
+        .BASE_ADDR(/* FSM_BASE_ADDR */)
+        ) fsm_registers (
+        .clk(clk),
 
         .addr_i(addr_i),
         .wdata_i(wdata_i),
@@ -41,24 +71,26 @@ module logic_analyzer (
         .rw_i(rw_i),
         .valid_i(valid_i),
 
-        .addr_o(fsm_trig_blk_addr),
-        .wdata_o(fsm_trig_blk_wdata),
-        .rdata_o(fsm_trig_blk_rdata),
-        .rw_o(fsm_trig_blk_rw),
-        .valid_o(fsm_trig_blk_valid));
+        .addr_o(fsm_reg_trig_blk_addr),
+        .wdata_o(fsm_reg_trig_blk_wdata),
+        .rdata_o(fsm_reg_trig_blk_rdata),
+        .rw_o(fsm_reg_trig_blk_rw),
+        .valid_o(fsm_reg_trig_blk_valid),
 
-    reg [15:0] fsm_trig_blk_addr;
-    reg [15:0] fsm_trig_blk_wdata;
-    reg [15:0] fsm_trig_blk_rdata;
-    reg fsm_trig_blk_rw;
-    reg fsm_trig_blk_valid;
+        .state(state),
+        .trigger_loc(trigger_loc),
+        .current_loc(current_loc),
+        .request_start(request_start),
+        .request_stop(request_stop),
+        .read_pointer(read_pointer));
+
+    reg [15:0] fsm_reg_trig_blk_addr;
+    reg [15:0] fsm_reg_trig_blk_wdata;
+    reg [15:0] fsm_reg_trig_blk_rdata;
+    reg fsm_reg_trig_blk_rw;
+    reg fsm_reg_trig_blk_valid;
 
     reg trig;
-    reg [$clog2(/* SAMPLE_DEPTH */):0] fifo_size;
-    reg fifo_acquire;
-    reg fifo_pop;
-    reg fifo_clear;
-
 
     // trigger block
     trigger_block #(.BASE_ADDR(/* TRIGGER_BLOCK_BASE_ADDR */)) trig_blk (
@@ -68,53 +100,52 @@ module logic_analyzer (
 
         .trig(trig),
 
-        .addr_i(fsm_trig_blk_addr),
-        .wdata_i(fsm_trig_blk_wdata),
-        .rdata_i(fsm_trig_blk_rdata),
-        .rw_i(fsm_trig_blk_rw),
-        .valid_i(fsm_trig_blk_valid),
+        .addr_i(fsm_reg_trig_blk_addr),
+        .wdata_i(fsm_reg_trig_blk_wdata),
+        .rdata_i(fsm_reg_trig_blk_rdata),
+        .rw_i(fsm_reg_trig_blk_rw),
+        .valid_i(fsm_reg_trig_blk_valid),
 
-        .addr_o(trig_blk_sample_mem_addr),
-        .wdata_o(trig_blk_sample_mem_wdata),
-        .rdata_o(trig_blk_sample_mem_rdata),
-        .rw_o(trig_blk_sample_mem_rw),
-        .valid_o(trig_blk_sample_mem_valid));
+        .addr_o(trig_blk_block_mem_addr),
+        .wdata_o(trig_blk_block_mem_wdata),
+        .rdata_o(trig_blk_block_mem_rdata),
+        .rw_o(trig_blk_block_mem_rw),
+        .valid_o(trig_blk_block_mem_valid));
 
-    reg [15:0] trig_blk_sample_mem_addr;
-    reg [15:0] trig_blk_sample_mem_wdata;
-    reg [15:0] trig_blk_sample_mem_rdata;
-    reg trig_blk_sample_mem_rw;
-    reg trig_blk_sample_mem_valid;
+    reg [15:0] trig_blk_block_mem_addr;
+    reg [15:0] trig_blk_block_mem_wdata;
+    reg [15:0] trig_blk_block_mem_rdata;
+    reg trig_blk_block_mem_rw;
+    reg trig_blk_block_mem_valid;
 
     // sample memory
-    sample_mem #(
+    block_memory #(
         .BASE_ADDR(/* SAMPLE_MEM_BASE_ADDR */),
-        .SAMPLE_DEPTH(/* SAMPLE_DEPTH */)
-        ) sample_mem (
+        .WIDTH(),
+        .DEPTH(/* SAMPLE_DEPTH */)
+        ) block_mem (
         .clk(clk),
 
-        // fifo
-        .acquire(fifo_acquire),
-        .pop(fifo_pop),
-        .size(fifo_size),
-        .clear(fifo_clear),
-
-        // probes
-        /* SAMPLE_MEM_PROBE_PORTS */
-
         // input port
-        .addr_i(trig_blk_sample_mem_addr),
-        .wdata_i(trig_blk_sample_mem_wdata),
-        .rdata_i(trig_blk_sample_mem_rdata),
-        .rw_i(trig_blk_sample_mem_rw),
-        .valid_i(trig_blk_sample_mem_valid),
+        .addr_i(trig_blk_block_mem_addr),
+        .wdata_i(trig_blk_block_mem_wdata),
+        .rdata_i(trig_blk_block_mem_rdata),
+        .rw_i(trig_blk_block_mem_rw),
+        .valid_i(trig_blk_block_mem_valid),
 
         // output port
         .addr_o(addr_o),
         .wdata_o(wdata_o),
         .rdata_o(rdata_o),
         .rw_o(rw_o),
-        .valid_o(valid_o));
+        .valid_o(valid_o),
+
+        // BRAM itself
+        .user_clk(clk),
+        .user_addr(bram_addr),
+        .user_din(probes_concat),
+        .user_dout(),
+        .user_we(bram_we));
 endmodule
 
 `default_nettype wire

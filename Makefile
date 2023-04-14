@@ -32,10 +32,7 @@ auto_gen:
 functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb lut_ram_tb
 
 block_memory_tb:
-	cd test/functional_sim/block_memory_tb/ && python3 foo.py
-	iverilog -g2012 -o sim.out -y src/manta					\
-	test/functional_sim/block_memory_tb/block_memory_tb.sv	\
-	test/functional_sim/block_memory_tb/block_memory.v
+	iverilog -g2012 -o sim.out -y src/manta	test/functional_sim/block_memory_tb.sv
 	vvp sim.out
 	rm sim.out
 
