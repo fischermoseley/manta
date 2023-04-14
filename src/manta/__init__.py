@@ -546,6 +546,7 @@ class LogicAnalyzerCore:
         # load source files
         hdl = self.gen_logic_analyzer_def() + "\n"
         hdl += VerilogManipulator("logic_analyzer_controller.v").get_hdl() + "\n"
+        hdl += VerilogManipulator("logic_analyzer_fsm_registers.v").get_hdl() + "\n"
         hdl += VerilogManipulator("block_memory.v").get_hdl() + "\n"
         hdl += VerilogManipulator("dual_port_bram.v").get_hdl() + "\n"
         hdl += self.gen_trigger_block_def() + "\n"

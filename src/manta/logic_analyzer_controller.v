@@ -84,13 +84,7 @@ module logic_analyzer_controller (
             end
         end
 
-        else if(state == CAPTURED) begin
-            // actually nothing to do here doooodeeedoooo
-        end
-
         else if(request_stop && ~prev_request_stop) state <= IDLE;
-
-        else state <= IDLE;
     end
 
 
