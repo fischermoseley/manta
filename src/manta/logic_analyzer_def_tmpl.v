@@ -21,8 +21,7 @@ module logic_analyzer (
     output reg rw_o,
     output reg valid_o
     );
-
-    parameter SAMPLE_DEPTH = 0;
+    localparam SAMPLE_DEPTH = /* SAMPLE_DEPTH */;
     localparam ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
 
     reg [3:0] state;
@@ -37,11 +36,11 @@ module logic_analyzer (
     reg [ADDR_WIDTH-1:0] bram_addr;
     reg bram_we;
 
-    localparam TOTAL_PROBE_WIDTH = 0;
+    localparam TOTAL_PROBE_WIDTH = /* TOTAL_PROBE_WIDTH */;
     reg [TOTAL_PROBE_WIDTH-1:0] probes_concat;
     assign probes_concat = /* PROBES_CONCAT */;
 
-    logic_analyzer_controller la_controller (
+    logic_analyzer_controller #(.SAMPLE_DEPTH(SAMPLE_DEPTH)) la_controller (
         .clk(clk),
 
         // from register file
@@ -61,7 +60,8 @@ module logic_analyzer (
     );
 
     logic_analyzer_fsm_registers #(
-        .BASE_ADDR(/* FSM_BASE_ADDR */)
+        .BASE_ADDR(/* FSM_BASE_ADDR */),
+        .SAMPLE_DEPTH(SAMPLE_DEPTH)
         ) fsm_registers (
         .clk(clk),
 
@@ -89,8 +89,6 @@ module logic_analyzer (
     reg [15:0] fsm_reg_trig_blk_rdata;
     reg fsm_reg_trig_blk_rw;
     reg fsm_reg_trig_blk_valid;
-
-    reg trig;
 
     // trigger block
     trigger_block #(.BASE_ADDR(/* TRIGGER_BLOCK_BASE_ADDR */)) trig_blk (
@@ -120,9 +118,9 @@ module logic_analyzer (
 
     // sample memory
     block_memory #(
-        .BASE_ADDR(/* SAMPLE_MEM_BASE_ADDR */),
-        .WIDTH(),
-        .DEPTH(/* SAMPLE_DEPTH */)
+        .BASE_ADDR(/* BLOCK_MEMORY_BASE_ADDR */),
+        .WIDTH(TOTAL_PROBE_WIDTH),
+        .DEPTH(SAMPLE_DEPTH)
         ) block_mem (
         .clk(clk),
 

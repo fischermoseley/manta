@@ -24,11 +24,17 @@ module logic_analyzer_fsm_registers(
     input wire signed [15:0] current_loc,
     output reg request_start,
     output reg request_stop,
-    input wire [15:0] read_pointer
+    input wire [ADDR_WIDTH-1:0] read_pointer
     );
+
+    initial trigger_loc = 0;
+    initial request_start = 0;
+    initial request_stop = 0;
 
     parameter BASE_ADDR = 0;
     localparam MAX_ADDR = BASE_ADDR + 5;
+    parameter SAMPLE_DEPTH = 0;
+    parameter ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
 
     always @(posedge clk) begin
         addr_o <= addr_i;

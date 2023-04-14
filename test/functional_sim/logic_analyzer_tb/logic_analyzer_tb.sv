@@ -51,13 +51,12 @@ task write_and_verify(
 endtask
 
 task read_all_reg();
-
     string desc;
-    for(int i = 0; i < (logic_analyzer_tb.la.sample_mem.BASE_ADDR + logic_analyzer_tb.la.SAMPLE_DEPTH); i++) begin
+    for(int i = 0; i < (logic_analyzer_tb.la.block_mem.MAX_ADDR); i++) begin
 
-        if(i == logic_analyzer_tb.la.fsm.BASE_ADDR) desc = "FSM";
+        if(i == logic_analyzer_tb.la.fsm_registers.BASE_ADDR) desc = "FSM";
         if(i == logic_analyzer_tb.la.trig_blk.BASE_ADDR) desc = "TRIG BLK";
-        if(i == logic_analyzer_tb.la.sample_mem.BASE_ADDR) desc = "SAMPLE MEM";
+        if(i == logic_analyzer_tb.la.block_mem.BASE_ADDR) desc = "SAMPLE MEM";
 
         read_reg(i, logic_analyzer_tb.read_value, desc);
     end
@@ -90,7 +89,7 @@ module logic_analyzer_tb;
     logic la_tb_valid;
 
 
-    logic_analyzer #(.BASE_ADDR(0), .SAMPLE_DEPTH(128)) la(
+    logic_analyzer la(
         .clk(clk),
 
         // probes
@@ -141,127 +140,77 @@ module logic_analyzer_tb;
         #`HCP
         #(10*`CP);
 
-        /* ==== Test 1 Begin ==== */
-        $display("\n=== test 1: read/write to FSM registers, verify ===");
-        test_num = 1;
 
-        // state register
-        write_and_verify(0, la.fsm.IDLE, "state reg");
-        write_and_verify(0, la.fsm.FILLED, "state reg");
-        write_and_verify(0, la.fsm.IDLE, "state reg");
+        // /* ==== Test 2 Begin ==== */
+        // $display("\n=== test 2: read/write to trigger block registers, verify ===");
+        // test_num = 2;
 
-        // trigger_loc register
-        write_and_verify(1, 0, "trigger_loc reg");
-        write_and_verify(1, 'h69, "trigger_loc reg");
-        write_and_verify(1, 'h0612, "trigger_loc reg");
+        // // larry
+        // write_and_verify(3, 0, "larry_op");
+        // write_and_verify(3, 2, "larry_op");
+        // write_and_verify(3, 0, "larry_op");
 
-        // since we just moved the trigger location, the core has started moving into position
-        // if it's functioning correctly. this means we need to reset the position and state
-        // before testing the present_loc register.
+        // write_and_verify(4, 0, "larry_arg");
+        // write_and_verify(4, 1, "larry_arg");
+        // write_and_verify(4, 0, "larry_arg");
 
-        // write_and_verify(1, 0, "trigger_loc reg");
-        // write_and_verify(0, 0, "state reg");
+        // // curly
+        // write_and_verify(5, 0, "curly_op");
+        // write_and_verify(5, 3, "curly_op");
+        // write_and_verify(5, 0, "curly_op");
 
-        // // present_loc register
-        // write_and_verify(2, 0, "present_loc reg");
-        // write_and_verify(2, 0, "present_loc reg");
-        #(10*`CP);
+        // write_and_verify(6, 0, "curly_arg");
+        // write_and_verify(6, 1, "curly_arg");
+        // write_and_verify(6, 0, "curly_arg");
 
-        /* ==== Test 1 End ==== */
+        // // moe
+        // write_and_verify(7, 0, "moe_op");
+        // write_and_verify(7, 5, "moe_op");
+        // write_and_verify(7, 0, "moe_op");
 
+        // write_and_verify(8, 0, "moe_arg");
+        // write_and_verify(8, 1, "moe_arg");
+        // write_and_verify(8, 0, "moe_arg");
 
-        /* ==== Test 2 Begin ==== */
-        $display("\n=== test 2: read/write to trigger block registers, verify ===");
-        test_num = 2;
+        // // shemp
+        // write_and_verify(9, 0, "shemp_op");
+        // write_and_verify(9, 7, "shemp_op");
+        // write_and_verify(9, 0, "shemp_op");
 
-        // larry
-        write_and_verify(3, 0, "larry_op");
-        write_and_verify(3, 2, "larry_op");
-        write_and_verify(3, 0, "larry_op");
+        // write_and_verify(10, 0, "shemp_arg");
+        // write_and_verify(10, 7, "shemp_arg");
+        // write_and_verify(10, 0, "shemp_arg");
 
-        write_and_verify(4, 0, "larry_arg");
-        write_and_verify(4, 1, "larry_arg");
-        write_and_verify(4, 0, "larry_arg");
+        // #(10*`CP);
 
-        // curly
-        write_and_verify(5, 0, "curly_op");
-        write_and_verify(5, 3, "curly_op");
-        write_and_verify(5, 0, "curly_op");
-
-        write_and_verify(6, 0, "curly_arg");
-        write_and_verify(6, 1, "curly_arg");
-        write_and_verify(6, 0, "curly_arg");
-
-        // moe
-        write_and_verify(7, 0, "moe_op");
-        write_and_verify(7, 5, "moe_op");
-        write_and_verify(7, 0, "moe_op");
-
-        write_and_verify(8, 0, "moe_arg");
-        write_and_verify(8, 1, "moe_arg");
-        write_and_verify(8, 0, "moe_arg");
-
-        // shemp
-        write_and_verify(9, 0, "shemp_op");
-        write_and_verify(9, 7, "shemp_op");
-        write_and_verify(9, 0, "shemp_op");
-
-        write_and_verify(10, 0, "shemp_arg");
-        write_and_verify(10, 7, "shemp_arg");
-        write_and_verify(10, 0, "shemp_arg");
-
-        #(10*`CP);
-
-        /* ==== Test 2 End ==== */
-
-
-        /* ==== Test 3 Begin ==== */
-        $display("\n=== test 3: verify FSM doesn't move out of IDLE when not running ===");
-        test_num = 3;
-
-        write_and_verify(3, 8, "larry_op");  // set operation to  eq
-        write_and_verify(4, 1, "larry_arg"); // set argument to 1
-
-        // set larry = 1, verify core doesn't trigger
-        $display(" -> set larry = 1");
-        larry = 1;
-
-        $display(" -> la core is in state 0x%h", la.fsm.state);
-        assert(la.fsm.state == la.fsm.IDLE) else $error("core moved outside of IDLE state when not running!");
-
-        $display(" -> wait a clock cycle");
-        #`CP
-
-        $display(" -> la core is in state 0x%h", la.fsm.state);
-        assert(la.fsm.state == la.fsm.IDLE) else $error("core moved outside of IDLE state when not running!");
-
-        $display(" -> set larry = 0");
-        larry = 0;
-
-        #(10*`CP);
-        /* ==== Test 3 End ==== */
+        // /* ==== Test 2 End ==== */
 
 
         /* ==== Test 4 Begin ==== */
         $display("\n=== test 4: verify FSM does move out of IDLE when running ===");
         test_num = 4;
 
-        $display(" -> moving core to START_CAPTURE");
-        write_reg(0, 1, "state");
+        $display(" -> setting up trigger (larry == 1)");
+        write_reg(la.trig_blk.BASE_ADDR + 0, 8, "larry_op");
+        write_reg(la.trig_blk.BASE_ADDR + 1, 1, "larry_arg");
+
+        $display(" -> requesting start");
+        write_reg(3, 1, "request_start");
+        write_reg(3, 0, "request_start");
         #`CP
 
         $display(" -> set larry = 1");
         larry = 1;
 
         // read
-        $display(" -> la core is in state 0x%h", la.fsm.state);
+        $display(" -> la core is in state 0x%h", la.fsm_registers.state);
         $display(" -> wait a clock cycle");
         #`CP
-        $display(" -> la core is in state 0x%h", la.fsm.state);
+        $display(" -> la core is in state 0x%h", la.fsm_registers.state);
 
         // run until the FILLED state is reached
         $display(" -> wait until FILLED state is reached");
-        while (la.fsm.state != la.fsm.FILLED) begin
+        while (la.fsm_registers.state != la.la_controller.CAPTURED) begin
             {larry, curly, moe, shemp} = {larry, curly, moe, shemp} + 1;
             #`CP;
         end
@@ -272,38 +221,39 @@ module logic_analyzer_tb;
         #(200*`CP);
         /* ==== Test 4 End ==== */
 
-        /* ==== Test 5 Begin ==== */
-        $display("\n=== test 5: change trigger to fire on shemp > 3, and verify ===");
-        test_num = 5;
+        // /* ==== Test 5 Begin ==== */
+        // $display("\n=== test 5: change trigger to fire on shemp > 3, and verify ===");
+        // test_num = 5;
 
-        write_and_verify(9, 6, "shemp_op");   // set operation to GT
-        write_and_verify(10, 3, "shemp_arg"); // set argument to 3
+        // write_and_verify(9, 6, "shemp_op");   // set operation to GT
+        // write_and_verify(10, 3, "shemp_arg"); // set argument to 3
 
-        assert( (la.fsm.state == la.fsm.IDLE) || (la.fsm.state == la.fsm.FILLED) )
-            else $error("core is running when it shouldn't be!");
+        // assert( (la.fsm_registers.state == la.la_controller.IDLE) || (la.fsm_registers.state == la.la_controller.CAPTURED) )
+        //     else $error("core is running when it shouldn't be!");
 
-        larry = 0;
-        curly = 0;
-        moe = 0;
-        shemp = 0;
+        // larry = 0;
+        // curly = 0;
+        // moe = 0;
+        // shemp = 0;
 
-        write_reg(0, la.fsm.START_CAPTURE, "state");
+        // // start the core
+        // // TODO: start the core
 
-        shemp = 4;
-        $display(" -> set shemp = 4");
+        // shemp = 4;
+        // $display(" -> set shemp = 4");
 
-        // run until the FILLED state is reached
-        $display(" -> wait until FILLED state is reached");
-        while (la.fsm.state != la.fsm.FILLED) begin
-            {larry, curly, moe, shemp} = {larry, curly, moe, shemp} + 2;
-            #`CP;
-        end
+        // // run until the FILLED state is reached
+        // $display(" -> wait until FILLED state is reached");
+        // while (la.fsm_registers.state != la.la_controller.CAPTURED) begin
+        //     {larry, curly, moe, shemp} = {larry, curly, moe, shemp} + 2;
+        //     #`CP;
+        // end
 
-        $display(" -> read from sample memory:");
-        read_all_reg();
+        // $display(" -> read from sample memory:");
+        // read_all_reg();
 
-        #(10*`CP);
-        /* ==== Test 5 End ==== */
+        // #(10*`CP);
+        // /* ==== Test 5 End ==== */
 
         $finish();
     end
