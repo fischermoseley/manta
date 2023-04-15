@@ -14,7 +14,7 @@ module top_level (
     logic [3:0] shemp = 0;
 
     always_ff @(posedge clk) begin
-        {larry, curly, moe, shemp} <= {larry, curly, moe, shemp} + 1;
+        {shemp, moe, curly, larry} <= {shemp, moe, curly, larry} + 1;
     end
 
     manta manta_inst (
