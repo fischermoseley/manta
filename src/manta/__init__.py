@@ -551,7 +551,15 @@ class LogicAnalyzerCore:
 
         la.sub(self.total_probe_width, "/* TOTAL_PROBE_WIDTH */")
 
-        probes_concat = '{' + ', '.join(self.probes.keys()) + '}'
+        # concatenate the probes together to make one big register,
+        #   but do so such that the first probe in the config file
+        #   is at the least-significant position in that big register.
+        #
+        #   this makes part-selecting out from the memory easier to
+        #   implement in python, and because verilog and python conventions
+        #   are different, we would have had to reverse it somwehere anyway
+        probes_concat = list(self.probes.keys())[::-1]
+        probes_concat = '{' + ', '.join(probes_concat) + '}'
         la.sub(probes_concat, "/* PROBES_CONCAT */")
 
         return la.get_hdl()
@@ -584,8 +592,10 @@ class LogicAnalyzerCore:
 
 
     # functions for actually using the core:
-
     def run(self):
+        pass
+
+    def capture(self):
         # Check state - if it's in anything other than IDLE,
         # request to stop the existing capture
         print(" -> Resetting core...")
@@ -631,70 +641,84 @@ class LogicAnalyzerCore:
         return block_mem_contents[read_pointer:] + block_mem_contents[:read_pointer]
 
 
-    def part_select(self, data, width):
-        top, bottom = width
-
-        assert top >= bottom
-
-        mask = 2 ** (top - bottom + 1) - 1
-        return (data >> bottom) & mask
-
-    def make_widths(self, config):
-        # {probe0, probe1, probe2}
-        # [12, 1, 3] should produce
-        # [ (15, 4) (3, 3) (2,0) ]
-
-        widths = list(config["downlink"]["probes"].values())
-
-        # easiest to make by summing them and incrementally subtracting
-        s = sum(widths)
-        slices = []
-        for width in widths:
-            slices.append((s - 1, s - width))
-            s = s - width
-
-        assert s == 0, "Probe sizes are weird, cannot slice bits properly"
-        return slices
-
-    def export_waveform(self, config, data, path):
-        extension = path.split(".")[-1]
-
-        assert extension == "vcd", "Unrecognized waveform export format."
+    def export_vcd(self, capture_data, path):
         from vcd import VCDWriter
-
         vcd_file = open(path, "w")
 
-        # Use the datetime format that iVerilog uses
+        # Use the same datetime format that iVerilog uses
         timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
 
-        with VCDWriter(
-            vcd_file, timescale="10 ns", date=timestamp, version="manta"
-        ) as writer:
-            # add probes to vcd file
-            vcd_probes = []
-            for name, width in config["downlink"]["probes"].items():
-                probe = writer.register_var("manta", name, "wire", size=width)
-                vcd_probes.append(probe)
+        with VCDWriter(vcd_file, '10 ns', timestamp, "manta") as writer:
 
-            # add clock to vcd file
+            # each probe has a name, width, and writer associated with it
+            signals = []
+            for name, width in self.probes.items():
+                signal = {
+                    "name" : name,
+                    "width" : width,
+                    "data" : self.part_select_capture_data(capture_data, name),
+                    "var": writer.register_var("manta", name, "wire", size=width)
+                }
+                signals.append(signal)
+
             clock = writer.register_var("manta", "clk", "wire", size=1)
 
-            # calculate bit widths for part selecting
-            widths = self.make_widths(config)
+            # add the data to each probe in the vcd file
+            for timestamp in range(0, 2*len(capture_data)):
 
-            # slice data, and dump to vcd file
-            for timestamp in range(2 * len(data)):
-                value = data[timestamp // 2]
-
-                # dump clock values to vcd file
-                # note: this assumes logic is triggered
-                # on the rising edge of the clock, @TODO fix this
+                # run the clock
                 writer.change(clock, timestamp, timestamp % 2 == 0)
 
-                for probe_num, probe in enumerate(vcd_probes):
-                    val = self.part_select(value, widths[probe_num])
-                    writer.change(probe, timestamp, val)
+                # add other signals
+                for signal in signals:
+                    var = signal["var"]
+                    sample = signal["data"][timestamp // 2]
+
+                    writer.change(var, timestamp, sample)
+
         vcd_file.close()
+
+    def export_mem(self, capture_data, path):
+        with open(path, "w") as f:
+            # a wee bit of cursed string formatting, but just
+            # outputs each sample as binary, padded to a fixed length
+            w = self.total_probe_width
+            f.writelines([f'{s:0{w}b}\n' for s in capture_data])
+
+    def export_mem_loader(self):
+        pass
+
+
+    def part_select_capture_data(self, capture_data, probe_name):
+        """Given the name of the probe, part-select the appropriate bits of capture data,
+        and return as an integer. Accepts capture_data as an integer or a list of integers."""
+
+        # sum up the widths of the probes below this one
+        lower = 0
+        for name, width in self.probes.items():
+            if name == probe_name:
+                break
+
+            lower += width
+
+        upper = lower + (self.probes[probe_name] - 1)
+
+        # define the part select
+        mask = 2 ** (upper - lower + 1) - 1
+        part_select = lambda x: (x >> lower) & mask
+
+        # apply the part_select function depending on type
+        if isinstance(capture_data, int):
+            return part_select(capture_data)
+
+        elif isinstance(capture_data, list):
+            for i in capture_data:
+                assert isinstance(i, int), "Can only part select on integers and list of integers."
+
+            return [part_select(sample) for sample in capture_data]
+
+        else:
+            raise ValueError("Can only part select on integers and lists of integers.")
 
 class BlockMemoryCore:
     def __init__(self, config, name, base_addr, interface):
