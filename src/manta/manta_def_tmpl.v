@@ -1,13 +1,12 @@
 /*
-This manta definition was generated on /* TIMESTAMP */ by /* USER */
+This playback module was generated with Manta /* VERSION */ on /* TIMESTAMP */ by /* USER */
 
-If this breaks or if you've got dank formal verification memes,
-please contact fischerm [at] mit.edu
+If this breaks or if you've got dank formal verification memes, contact fischerm [at] mit.edu
 
 Provided under a GNU GPLv3 license. Go wild.
 
-Here's an example instantiation of the Manta module you configured,
-feel free to copy-paste this into your source!
+Here's an example instantiation of the Manta module you configured, feel free to copy-paste
+this into your source!
 
 manta manta_inst (
     .clk(clk),

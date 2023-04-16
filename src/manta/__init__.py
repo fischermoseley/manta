@@ -4,7 +4,7 @@ from sys import argv
 import os
 from datetime import datetime
 
-version = "0.0.0"
+version = "v0.0.0"
 
 class VerilogManipulator:
     def __init__(self, filepath=None):
@@ -685,8 +685,38 @@ class LogicAnalyzerCore:
             w = self.total_probe_width
             f.writelines([f'{s:0{w}b}\n' for s in capture_data])
 
-    def export_mem_loader(self):
-        pass
+    def export_playback_module(self, path):
+        playback = VerilogManipulator("logic_analyzer_playback_tmpl.v")
+
+        module_name = f"{self.name}_playback"
+        playback.sub(module_name, "/* MODULE_NAME */")
+
+        playback.sub(version, "/* VERSION */")
+
+        timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
+        playback.sub(timestamp, "/* TIMESTAMP */")
+
+        user = os.environ.get("USER", os.environ.get("USERNAME"))
+        playback.sub(user, "/* USER */")
+
+        ports = [f".{name}({name})" for name in self.probes.keys()]
+        ports = ",\n".join(ports)
+        playback.sub(ports, "/* PORTS */")
+
+        playback.sub(self.sample_depth, "/* SAMPLE_DEPTH */")
+        playback.sub(self.total_probe_width, "/* TOTAL_PROBE_WIDTH */")
+
+        # see the note in generate_logic_analyzer_def about why we do this
+        probes_concat = list(self.probes.keys())[::-1]
+        probes_concat = '{' + ', '.join(probes_concat) + '}'
+        playback.sub(probes_concat, "/* PROBES_CONCAT */")
+
+
+        probe_dec = playback.net_dec(self.probes, "output reg")
+        playback.sub(probe_dec, "/* PROBE_DEC */")
+
+        with open(path, "w") as f:
+            f.write(playback.get_hdl())
 
 
     def part_select_capture_data(self, capture_data, probe_name):
@@ -1029,6 +1059,8 @@ reg {self.cores[-1].name}_btx_valid;\n"""
 
     def generate_hdl(self, output_filepath):
         manta = VerilogManipulator("manta_def_tmpl.v")
+
+        manta.sub(version, "/* VERSION */")
 
         timestamp = datetime.now().strftime("%d %b %Y at %H:%M:%S")
         manta.sub(timestamp, "/* TIMESTAMP */")
