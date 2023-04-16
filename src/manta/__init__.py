@@ -249,8 +249,10 @@ class UARTInterface:
 
         for i in range(0, len(addrs), self.chunk_size):
             addr_chunk = addrs[i:i+self.chunk_size]
+            data_chunk = datas[i:i+self.chunk_size]
 
-            outbound_bytes = [f"M{addrs[i]:04X}{datas[i]:04X}\r\n" for i in range(len(addr_chunk))]
+
+            outbound_bytes = [f"M{a:04X}{d:04X}\r\n" for a, d in zip(addr_chunk, data_chunk)]
             outbound_bytes = [ob.encode('ascii') for ob in outbound_bytes]
             outbound_bytes = b"".join(outbound_bytes)
 
@@ -1152,7 +1154,7 @@ def main():
 
 Supported commands:
     gen [config file] [path]                            generate a verilog module with the given configuration, and save to the provided path
-    capture  [config file] [LA core] [path] [path]      start a capture on the specified core, and save the results to a .mem or .vcd file at the provided path
+    capture  [config file] [LA core] [path] [path]      start a capture on the specified core, and save the results to a .mem or .vcd file at the provided path(s)
     playback [config file] [LA core] [path]             generate a verilog module that plays back a capture from a given logic analyzer core, and save to the provided path
     ports                                               list all available serial ports
     help, ray                                           display this splash screen (hehe...splash screen)
