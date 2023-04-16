@@ -50,10 +50,8 @@ task write_and_verify(
     assert(read_data == write_data) else $error("data read does not match data written!");
 endtask
 
-task read_all_reg(
-    string desc
-    );
-
+task read_all_reg();
+    string desc;
     for(int i = 0; i < (logic_analyzer_tb.la.block_mem.MAX_ADDR); i++) begin
 
         if(i == logic_analyzer_tb.la.fsm_registers.BASE_ADDR) desc = "FSM";
