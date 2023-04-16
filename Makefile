@@ -93,7 +93,7 @@ nexys_a7_io_core:
 nexys_a7_logic_analyzer:
 	cd examples/nexys_a7/logic_analyzer/;  						\
 	manta gen manta.yaml src/manta.v;							\
-	manta playback manta.yaml my_logic_analyzer sim/playback.v 	\
+	manta playback manta.yaml my_logic_analyzer sim/playback.v; \
 	mkdir -p obj/; 												\
 	python3 lab-bc.py
 
