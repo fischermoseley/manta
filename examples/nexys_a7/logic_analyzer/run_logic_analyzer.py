@@ -12,3 +12,4 @@ with open("capture.pkl", "rb") as f:
 
 m.my_logic_analyzer.export_vcd(capture, "capture.vcd")
 m.my_logic_analyzer.export_mem(capture, "capture.mem")
+m.my_logic_analyzer.export_playback_module("sim/playback.v")
