@@ -1,6 +1,6 @@
 ---
 cores:
-  my_logic_analyzer:
+  logic_analyzer:
     type: logic_analyzer
     sample_depth: 128
 

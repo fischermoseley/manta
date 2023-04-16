@@ -44,11 +44,10 @@ io_core_tb:
 	rm sim.out
 
 logic_analyzer_tb:
-	cd test/functional_sim/logic_analyzer_tb && python3 gen_logic_analyzer.py
-	iverilog -g2012 -o sim.out -y src/manta 					\
-	test/functional_sim/logic_analyzer_tb/logic_analyzer_tb.sv	\
-	test/functional_sim/logic_analyzer_tb/logic_analyzer.v
-	vvp sim.out
+	cd test/functional_sim/logic_analyzer_tb;					\
+	manta gen manta.yaml manta.v;								\
+	iverilog -g2012 -o sim.out logic_analyzer_tb.sv manta.v;	\
+	vvp sim.out; 												\
 	rm sim.out
 
 bit_fifo_tb:
