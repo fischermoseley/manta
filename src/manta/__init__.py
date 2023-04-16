@@ -592,9 +592,6 @@ class LogicAnalyzerCore:
 
 
     # functions for actually using the core:
-    def run(self):
-        pass
-
     def capture(self):
         # Check state - if it's in anything other than IDLE,
         # request to stop the existing capture
@@ -1107,10 +1104,11 @@ def main():
 \033[96m           '-....-'  \033[00m
 
 Supported commands:
-    gen [config file]       generate the core specified in the config file
-    run [config file]       run the core specified in the config file
-    ports                   list all available serial ports
-    help, ray               display this splash screen (hehe...splash screen)
+    gen [config file] [path]                            generate a verilog module with the given configuration, and save to the provided path
+    capture  [config file] [LA core] [path] [path]      start a capture on the specified core, and save the results to a .mem or .vcd file at the provided path
+    playback [config file] [LA core] [path]             generate a verilog module that plays back a capture from a given logic analyzer core, and save to the provided path
+    ports                                               list all available serial ports
+    help, ray                                           display this splash screen (hehe...splash screen)
 """
         )
 
@@ -1130,27 +1128,40 @@ Supported commands:
 
     # generate the specified configuration
     elif argv[1] == "gen":
-        assert (
-            len(argv) == 4
-        ), "Wrong number of arguments, only a config file and output file must both be specified."
+        assert len(argv) == 4, "Wrong number of arguments, run 'manta help' for proper usage."
 
-        manta = Manta(argv[2])
-        hdl = manta.generate_hdl(argv[3])
+        m = Manta(argv[2])
+        hdl = m.generate_hdl(argv[3])
         with open(argv[3], "w") as f:
             f.write(hdl)
 
     # run the specified core
-    elif argv[1] == "run":
-        assert (
-            len(argv) == 4
-        ), "Wrong number of arguments, only a config file and output file must both be specified."
+    elif argv[1] == "capture":
+        assert len(argv) >= 5, "Wrong number of arguments, run 'manta help' for proper usage."
 
-        manta = Manta(argv[2])
-        manta.la_0.arm()
-        manta.la_0.export_waveform(argv[3])
+        m = Manta(argv[2])
+        la = getattr(m, argv[3])
+        data = la.capture()
+
+        for path in argv[4:]:
+            if ".vcd" in path:
+                la.export_vcd(data, path)
+
+            elif ".mem" in path:
+                la.export_mem(data, path)
+
+            else:
+                print(f"Warning: Unknown output file format for {path}, skipping...")
+
+    elif argv[1] == "playback":
+        assert len(argv) == 5, "Wrong number of arguments, run 'manta help' for proper usage."
+
+        m = Manta(argv[2])
+        la = getattr(m, argv[3])
+        la.export_playback_module(argv[4])
 
     else:
-        print("Option not recognized! Run 'manta help' for supported commands.")
+        print("Option not recognized, run 'manta help' for proper usage.")
 
 
 if __name__ == "__main__":
