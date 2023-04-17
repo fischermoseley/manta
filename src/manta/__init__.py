@@ -232,7 +232,7 @@ class UARTInterface:
         data = []
         for i in range(0, len(inbound_bytes), 7):
             response = inbound_bytes[i:i+7]
-            data = self.decode_response(response)
+            data.append(self.decode_response(response))
 
         return data
 
@@ -462,22 +462,30 @@ class LogicAnalyzerCore:
         assert (
             "sample_depth" in config
         ), "Sample depth not found for logic analyzer core."
+        assert isinstance(config["sample_depth"], int), "Sample depth must be an integer."
         self.sample_depth = config["sample_depth"]
 
+        # Add probes
         assert "probes" in config, "No probe definitions found."
         assert len(config["probes"]) > 0, "Must specify at least one probe."
 
         for probe_name, probe_width in config["probes"].items():
-            assert (
-                probe_width > 0
-            ), f"Probe {probe_name} is of invalid width - it must be of at least width one."
+            assert probe_width > 0, f"Probe {probe_name} is of invalid width - it must be of at least width one."
 
         self.probes = config["probes"]
 
+        # Add triggers
         assert "triggers" in config, "No triggers found."
         assert len(config["triggers"]) > 0, "Must specify at least one trigger."
         self.triggers = config["triggers"]
 
+        # Add trigger location
+        self.trigger_loc = self.sample_depth // 2
+        if "trigger_loc" in config:
+            assert isinstance(config["trigger_loc"], int), "Trigger location must be an integer."
+            assert config["trigger_loc"] >= 0, "Trigger location cannot be negative."
+            assert config["trigger_loc"] <= self.sample_depth, "Trigger location cannot exceed sample depth."
+            self.trigger_loc = config["trigger_loc"]
 
         # compute base addresses
         self.fsm_base_addr = self.base_addr
@@ -639,6 +647,52 @@ class LogicAnalyzerCore:
         return ports
         #return VerilogManipulator().net_dec(self.probes, "input wire")
 
+    def configure_trigger_conditions(self):
+
+        operations = {
+            "DISABLE" : 0,
+            "RISING" : 1,
+            "FALLING" : 2,
+            "CHANGING" : 3,
+            "GT" : 4,
+            "LT" : 5,
+            "GEQ" : 6,
+            "LEQ" : 7,
+            "EQ" : 8,
+            "NEQ" : 9
+        }
+
+        ops_with_no_args = ["DISABLE", "RISING" , "FALLING", "CHANGING"]
+
+        # reset all the other triggers
+        for addr in range(self.trigger_block_base_addr, self.block_memory_base_addr):
+            self.interface.write_register(addr, 0)
+
+        for trigger in self.triggers:
+            # determine if the trigger is good
+
+            # most triggers will have 3 parts - the trigger, the operation, and the argument
+            # this is true unless the argument is RISING, FALLING, or CHANGING
+
+            statement = trigger.split(' ')
+            if len(statement) == 2:
+                assert statement[1] in ops_with_no_args, "Invalid operation in trigger statement."
+                probe_name, op = statement
+
+                op_register = 2*(list(self.probes.keys()).index(probe_name)) + self.trigger_block_base_addr
+
+                self.interface.write_register(op_register, operations[op])
+
+            else:
+                assert len(statement) == 3, "Missing information in trigger statement."
+                probe_name, op, arg = statement
+
+                op_register = 2*(list(self.probes.keys()).index(probe_name)) + self.trigger_block_base_addr
+                arg_register = op_register + 1
+
+                self.interface.write_register(op_register, operations[op])
+                self.interface.write_register(arg_register, int(arg))
+
 
 
     # functions for actually using the core:
@@ -654,15 +708,13 @@ class LogicAnalyzerCore:
             state = self.interface.read_register(self.state_reg_addr)
             assert state == self.IDLE, "Logic analyzer did not reset to correct state when requested to."
 
-        # Configure trigger settings and positions - highkey don't really know how we're going to do this
-        #   for now, let's just trigger on a changing value of the first probe
-        print(" -> Configuring triggers...")
-        self.interface.write_register(self.trigger_block_base_addr, 3)
-        trigger_setting = self.interface.read_register(self.trigger_block_base_addr)
-        assert trigger_setting == 3, "Trigger did not save the value written to it."
+        # Configure trigger conditions
+        print(" -> Configuring trigger conditions...")
+        self.configure_trigger_conditions()
 
-        # Configure the trigger_pos, but we'll skip that for now
+        # Configure the trigger_loc, but we'll skip that for now
         print(" -> Setting trigger location...")
+        self.interface.write_register(self.trigger_loc_reg_addr, self.trigger_loc)
 
         # Start the capture by pulsing request_start
         print(" -> Starting capture...")

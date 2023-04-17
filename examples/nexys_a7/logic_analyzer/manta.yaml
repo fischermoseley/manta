@@ -11,7 +11,8 @@ cores:
       shemp: 4
 
     triggers:
-    - larry && curly && ~moe
+      - moe RISING
+      - curly FALLING
 
 uart:
   port: "auto"
