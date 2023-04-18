@@ -195,8 +195,8 @@ module logic_analyzer_tb;
         write_reg(la.trig_blk.BASE_ADDR + 1, 1, "larry_arg");
 
         $display(" -> requesting start");
-        write_reg(3, 1, "request_start");
-        write_reg(3, 0, "request_start");
+        write_reg(2, 1, "request_start");
+        write_reg(2, 0, "request_start");
         #`CP
 
         $display(" -> set larry = 1");

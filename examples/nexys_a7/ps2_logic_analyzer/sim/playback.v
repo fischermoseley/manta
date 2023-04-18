@@ -1,5 +1,5 @@
 /*
-This playback module was generated with Manta /* VERSION */ on /* TIMESTAMP */ by /* USER */
+This playback module was generated with Manta v0.0.0 on 18 Apr 2023 at 00:54:57 by fischerm
 
 If this breaks or if you've got dank formal verification memes, contact fischerm [at] mit.edu
 
@@ -8,26 +8,28 @@ Provided under a GNU GPLv3 license. Go wild.
 Here's an example instantiation of the Manta module you configured, feel free to copy-paste
 this into your source!
 
-/* MODULE_NAME */ #(.MEM_FILE("capture.mem")) /* MODULE_NAME */_inst (
+my_logic_analyzer_playback #(.MEM_FILE("capture.mem")) my_logic_analyzer_playback_inst (
     .clk(clk),
     .enable(1'b1),
 
-    /* PORTS */);
+    .ps2_clk(ps2_clk),
+    .ps2_data(ps2_data));
 
 */
 
 
-module /* MODULE_NAME */ (
+module my_logic_analyzer_playback (
     input wire clk,
 
     input wire enable,
     output reg done,
 
-    /* PROBE_DEC */);
+    output reg ps2_clk,
+    output reg ps2_data);
 
     parameter MEM_FILE = "";
-    localparam SAMPLE_DEPTH = /* SAMPLE_DEPTH */;
-    localparam TOTAL_PROBE_WIDTH = /* TOTAL_PROBE_WIDTH */;
+    localparam SAMPLE_DEPTH = 64000;
+    localparam TOTAL_PROBE_WIDTH = 2;
 
     reg [TOTAL_PROBE_WIDTH-1:0] capture [SAMPLE_DEPTH-1:0];
     reg [$clog2(SAMPLE_DEPTH)-1:0] addr;
@@ -44,7 +46,7 @@ module /* MODULE_NAME */ (
         if (enable && !done) begin
             addr = addr + 1;
             sample = capture[addr];
-            /* PROBES_CONCAT */ = sample;
+            {ps2_data, ps2_clk} = sample;
         end
     end
 endmodule

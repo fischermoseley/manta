@@ -29,8 +29,8 @@ __release to PyPI lists - manta v0.0.1 out__
 
 ## Logic Analyzer Core
 - clock domain crossing
-- implement trigger_loc
 - trigger modes
+- external trigger
 
 
 ## Meta

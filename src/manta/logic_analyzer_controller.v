@@ -6,25 +6,28 @@ module logic_analyzer_controller (
 
     // from register file
     output reg [3:0] state,
-    input wire signed [15:0] trigger_loc,
-    output reg signed [15:0] current_loc,
+    input wire [15:0] trigger_loc,
     input wire request_start,
     input wire request_stop,
     output reg [ADDR_WIDTH-1:0] read_pointer,
+    output reg [ADDR_WIDTH-1:0] write_pointer,
 
     // from trigger block
     input wire trig,
 
     // block memory user port
-    output [ADDR_WIDTH-1:0] bram_addr,
-    output bram_we
+    output reg [ADDR_WIDTH-1:0] bram_addr,
+    output reg bram_we
     );
 
     assign bram_addr = write_pointer;
-    assign bram_we = acquire;
 
     parameter SAMPLE_DEPTH= 0;
     localparam ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
+
+    /* ----- FIFO ----- */
+    initial read_pointer = 0;
+    initial write_pointer = 0;
 
     /* ----- FSM ----- */
     localparam IDLE = 0;
@@ -34,7 +37,6 @@ module logic_analyzer_controller (
     localparam CAPTURED = 4;
 
     initial state = IDLE;
-    initial current_loc = 0;
 
     // rising edge detection for start/stop requests
     reg prev_request_start;
@@ -45,66 +47,45 @@ module logic_analyzer_controller (
 
     always @(posedge clk) begin
         // don't do anything to the FIFO unless told to
-        acquire <= 0;
-        pop <= 0;
 
         if(state == IDLE) begin
-            clear <= 1;
+            write_pointer <= 0;
+            read_pointer <= 0;
+            bram_we <= 0;
 
             if(request_start && ~prev_request_start) begin
                 // TODO: figure out what determines whether or not we
                 // go into MOVE_TO_POSITION or IN_POSITION. that's for
                 // the morning
                 state <= MOVE_TO_POSITION;
-                clear <= 0;
             end
         end
 
         else if(state == MOVE_TO_POSITION) begin
-            acquire <= 1;
-            current_loc <= current_loc + 1;
+            write_pointer <= write_pointer + 1;
+            bram_we <= 1;
 
-            if(current_loc == trigger_loc) state <= IN_POSITION;
+            if(write_pointer == trigger_loc) state <= IN_POSITION;
         end
 
         else if(state == IN_POSITION) begin
-            acquire <= 1;
-            pop <= 1;
-
-            if(trig) pop <= 0;
+            write_pointer <= (write_pointer + 1) % SAMPLE_DEPTH;
+            read_pointer <= (read_pointer + 1) % SAMPLE_DEPTH;
+            bram_we <= 1;
             if(trig) state <= CAPTURING;
         end
 
         else if(state == CAPTURING) begin
-            acquire <= 1;
-
-            if(size == SAMPLE_DEPTH) begin
+            if(write_pointer == read_pointer) begin
+                bram_we <= 0;
                 state <= CAPTURED;
-                acquire <= 0;
             end
+
+            else write_pointer <= (write_pointer + 1) % SAMPLE_DEPTH;
         end
 
-        else if(request_stop && ~prev_request_stop) state <= IDLE;
+        if(request_stop && ~prev_request_stop) state <= IDLE;
     end
-
-
-    /* ----- FIFO ----- */
-    reg acquire;
-    reg pop;
-    reg [ADDR_WIDTH:0] size;
-    reg clear;
-
-	reg [ADDR_WIDTH:0] write_pointer = 0;
-    initial read_pointer = 0;
-    initial write_pointer = 0;
-
-	assign size = write_pointer - read_pointer;
-
-	always @(posedge clk) begin
-        if (clear) read_pointer <= write_pointer;
-		if (acquire && size < SAMPLE_DEPTH) write_pointer <= write_pointer + 1'd1;
-	 	if (pop && size > 0) read_pointer <= read_pointer + 1'd1;
-	end
 endmodule
 
 `default_nettype wire

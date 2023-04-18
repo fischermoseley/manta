@@ -87,6 +87,6 @@ If the file `manta.yaml` contained the configuration above, then running:
 manta playback manta.yaml my_logic_analyzer sim/playback.v
 ```
 
-Generates a Verilog wrapper at `sim/playback.v`, which can then be instantiated in the testbench in which it is needed. An example instantiation is provided at the top of the output verilog, so a simple copy-paste into the testbench is all that's necessary to use the module.
+Generates a Verilog wrapper at `sim/playback.v`, which can then be instantiated in the testbench in which it is needed. An example instantiation is provided at the top of the output verilog, so a simple copy-paste into the testbench is all that's necessary to use the module. This module is also fully synthesizable, so you can use it in designs that live on the FPGA too, if so you so wish.
 
 ## Examples

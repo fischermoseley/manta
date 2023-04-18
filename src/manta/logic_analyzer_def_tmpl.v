@@ -25,11 +25,11 @@ module logic_analyzer (
     localparam ADDR_WIDTH = $clog2(SAMPLE_DEPTH);
 
     reg [3:0] state;
-    reg signed [15:0] trigger_loc;
-    reg signed [15:0] current_loc;
+    reg [15:0] trigger_loc;
     reg request_start;
     reg request_stop;
     reg [ADDR_WIDTH-1:0] read_pointer;
+    reg [ADDR_WIDTH-1:0] write_pointer;
 
     reg trig;
 
@@ -46,10 +46,10 @@ module logic_analyzer (
         // from register file
         .state(state),
         .trigger_loc(trigger_loc),
-        .current_loc(current_loc),
         .request_start(request_start),
         .request_stop(request_stop),
         .read_pointer(read_pointer),
+        .write_pointer(write_pointer),
 
         // from trigger block
         .trig(trig),
@@ -79,10 +79,10 @@ module logic_analyzer (
 
         .state(state),
         .trigger_loc(trigger_loc),
-        .current_loc(current_loc),
         .request_start(request_start),
         .request_stop(request_stop),
-        .read_pointer(read_pointer));
+        .read_pointer(read_pointer),
+        .write_pointer(write_pointer));
 
     reg [15:0] fsm_reg_trig_blk_addr;
     reg [15:0] fsm_reg_trig_blk_wdata;

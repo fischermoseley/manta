@@ -1,0 +1,18 @@
+---
+cores:
+  my_logic_analyzer:
+    type: logic_analyzer
+    sample_depth: 64000
+    trigger_loc: 15000
+
+    probes:
+      ps2_clk: 1
+      ps2_data: 1
+
+    triggers:
+      - ps2_data FALLING
+
+uart:
+  port: "auto"
+  baudrate: 115200
+  clock_freq: 50000000

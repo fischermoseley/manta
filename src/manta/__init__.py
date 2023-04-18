@@ -500,10 +500,10 @@ class LogicAnalyzerCore:
         #   these are also defined in logic_analyzer_fsm_registers.v, and should match
         self.state_reg_addr = self.base_addr
         self.trigger_loc_reg_addr = self.base_addr + 1
-        self.current_loc_reg_addr = self.base_addr + 2
-        self.request_start_reg_addr = self.base_addr + 3
-        self.request_stop_reg_addr = self.base_addr + 4
-        self.read_pointer_reg_addr = self.base_addr + 5
+        self.request_start_reg_addr = self.base_addr + 2
+        self.request_stop_reg_addr = self.base_addr + 3
+        self.read_pointer_reg_addr = self.base_addr + 4
+        self.write_pointer_reg_addr = self.base_addr + 5
 
         self.IDLE = 0
         self.MOVE_TO_POSITION = 1
@@ -584,7 +584,7 @@ class LogicAnalyzerCore:
 
         trigger_block.sub(rcsb, "/* READ_CASE_STATEMENT_BODY */")
         trigger_block.sub(wcsb, "/* WRITE_CASE_STATEMENT_BODY */")
-        trigger_block.sub(addr, "/* MAX_ADDR */")
+        trigger_block.sub(self.trigger_block_base_addr + addr + 1, "/* MAX_ADDR */")
 
         return trigger_block.get_hdl()
 
@@ -699,6 +699,7 @@ class LogicAnalyzerCore:
     def capture(self):
         # Check state - if it's in anything other than IDLE,
         # request to stop the existing capture
+
         print(" -> Resetting core...")
         state = self.interface.read_register(self.state_reg_addr)
         if state != self.IDLE:
@@ -1183,6 +1184,11 @@ reg {self.cores[-1].name}_btx_valid;\n"""
 
         module_defs = self.gen_module_defs()
         manta.sub(module_defs, "/* MODULE_DEFS */")
+
+        manta.hdl = "`timescale 1ns/1ps\n" + manta.hdl
+        manta.hdl = "`default_nettype none\n"+ manta.hdl
+        manta.hdl = manta.hdl + "\n`default_nettype wire"
+
         return manta.get_hdl()
 
 def main():
