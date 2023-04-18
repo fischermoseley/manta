@@ -12,6 +12,7 @@ cores:
   my_logic_analyzer:
     type: logic_analyzer
     sample_depth: 4096
+    trigger_loc: 1000
 
     probes:
       larry: 1
@@ -41,6 +42,8 @@ Triggers are things that will cause the logic analyzer core to capture data from
 ### Trigger Position
 
 The logic analyzer has a programmable _trigger position_, which sets when probe data is captured relative to the trigger condition being met. This is best explained with a picture:
+
+_TODO: put a picture here @fischerm_
 
 For instance, setting the trigger position to `100` will cause the logic analyzer to save 100 samples of the probes prior to the trigger condition occuring. Manta uses a default trigger position of `SAMPLE_DEPTH/2`, which positions the data capture window such that the trigger condition is in the middle of it.
 
