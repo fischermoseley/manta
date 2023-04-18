@@ -761,12 +761,17 @@ class LogicAnalyzerCore:
                 signals.append(signal)
 
             clock = writer.register_var("manta", "clk", "wire", size=1)
+            trigger = writer.register_var("manta", "trigger", "wire", size=1)
 
             # add the data to each probe in the vcd file
             for timestamp in range(0, 2*len(capture_data)):
 
                 # run the clock
                 writer.change(clock, timestamp, timestamp % 2 == 0)
+
+                # set the trigger
+                triggered = (timestamp // 2) >= self.trigger_loc
+                writer.change(trigger, timestamp, triggered)
 
                 # add other signals
                 for signal in signals:
