@@ -21,6 +21,7 @@ module logic_analyzer_fsm_registers(
     // registers
     input wire [3:0] state,
     output reg [15:0] trigger_loc,
+    output reg [1:0] trigger_mode,
     output reg request_start,
     output reg request_stop,
     input wire [ADDR_WIDTH-1:0] read_pointer,
@@ -28,6 +29,7 @@ module logic_analyzer_fsm_registers(
     );
 
     initial trigger_loc = 0;
+    initial trigger_mode = 0;
     initial request_start = 0;
     initial request_stop = 0;
 
@@ -50,20 +52,22 @@ module logic_analyzer_fsm_registers(
             if(!rw_i) begin
                 case (addr_i)
                     BASE_ADDR + 0: rdata_o <= state;
-                    BASE_ADDR + 1: rdata_o <= trigger_loc;
-                    BASE_ADDR + 2: rdata_o <= request_start;
-                    BASE_ADDR + 3: rdata_o <= request_stop;
-                    BASE_ADDR + 4: rdata_o <= read_pointer;
-                    BASE_ADDR + 5: rdata_o <= write_pointer;
+                    BASE_ADDR + 1: rdata_o <= trigger_mode;
+                    BASE_ADDR + 2: rdata_o <= trigger_loc;
+                    BASE_ADDR + 3: rdata_o <= request_start;
+                    BASE_ADDR + 4: rdata_o <= request_stop;
+                    BASE_ADDR + 5: rdata_o <= read_pointer;
+                    BASE_ADDR + 6: rdata_o <= write_pointer;
                 endcase
             end
 
             // writes
             else begin
                 case (addr_i)
-                    BASE_ADDR + 1: trigger_loc <= wdata_i;
-                    BASE_ADDR + 2: request_start <= wdata_i;
-                    BASE_ADDR + 3: request_stop <= wdata_i;
+                    BASE_ADDR + 1: trigger_mode <= wdata_i;
+                    BASE_ADDR + 2: trigger_loc <= wdata_i;
+                    BASE_ADDR + 3: request_start <= wdata_i;
+                    BASE_ADDR + 4: request_stop <= wdata_i;
                 endcase
             end
         end

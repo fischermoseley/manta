@@ -487,6 +487,25 @@ class LogicAnalyzerCore:
             assert config["trigger_loc"] <= self.sample_depth, "Trigger location cannot exceed sample depth."
             self.trigger_loc = config["trigger_loc"]
 
+        # Add trigger mode
+        self.SINGLE_SHOT = 0
+        self.INCREMENTAL = 1
+        self.IMMEDIATE = 2
+
+        self.trigger_mode = self.SINGLE_SHOT
+        if "trigger_mode" in config:
+            assert config["trigger_mode"] in ["single_shot", "incremental", "immediate"], \
+                "Unrecognized trigger mode provided."
+
+            if config["trigger_mode"] == "single_shot":
+                self.trigger_mode = self.SINGLE_SHOT
+
+            elif config["trigger_mode"] == "incremental":
+                self.trigger_mode = self.INCREMENTAL
+
+            elif config["trigger_mode"] == "immediate":
+                self.trigger_mode = self.IMMEDIATE
+
         # compute base addresses
         self.fsm_base_addr = self.base_addr
         self.trigger_block_base_addr = self.fsm_base_addr + 6
@@ -499,11 +518,12 @@ class LogicAnalyzerCore:
         # build out self register map:
         #   these are also defined in logic_analyzer_fsm_registers.v, and should match
         self.state_reg_addr = self.base_addr
-        self.trigger_loc_reg_addr = self.base_addr + 1
-        self.request_start_reg_addr = self.base_addr + 2
-        self.request_stop_reg_addr = self.base_addr + 3
-        self.read_pointer_reg_addr = self.base_addr + 4
-        self.write_pointer_reg_addr = self.base_addr + 5
+        self.trigger_mode_reg_addr = self.base_addr + 1
+        self.trigger_loc_reg_addr = self.base_addr + 2
+        self.request_start_reg_addr = self.base_addr + 3
+        self.request_stop_reg_addr = self.base_addr + 4
+        self.read_pointer_reg_addr = self.base_addr + 5
+        self.write_pointer_reg_addr = self.base_addr + 6
 
         self.IDLE = 0
         self.MOVE_TO_POSITION = 1
@@ -647,7 +667,7 @@ class LogicAnalyzerCore:
         return ports
         #return VerilogManipulator().net_dec(self.probes, "input wire")
 
-    def configure_trigger_conditions(self):
+    def set_trigger_conditions(self):
 
         operations = {
             "DISABLE" : 0,
@@ -710,10 +730,14 @@ class LogicAnalyzerCore:
             assert state == self.IDLE, "Logic analyzer did not reset to correct state when requested to."
 
         # Configure trigger conditions
-        print(" -> Configuring trigger conditions...")
-        self.configure_trigger_conditions()
+        print(" -> Set trigger conditions...")
+        self.set_trigger_conditions()
 
-        # Configure the trigger_loc, but we'll skip that for now
+        # Configure the trigger_mode
+        print(" -> Setting trigger mode")
+        self.interface.write_register(self.trigger_mode_reg_addr, self.trigger_mode)
+
+        # Configure the trigger_loc
         print(" -> Setting trigger location...")
         self.interface.write_register(self.trigger_loc_reg_addr, self.trigger_loc)
 

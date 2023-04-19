@@ -26,6 +26,7 @@ module logic_analyzer (
 
     reg [3:0] state;
     reg [15:0] trigger_loc;
+    reg [1:0] trigger_mode;
     reg request_start;
     reg request_stop;
     reg [ADDR_WIDTH-1:0] read_pointer;
@@ -46,6 +47,7 @@ module logic_analyzer (
         // from register file
         .state(state),
         .trigger_loc(trigger_loc),
+        .trigger_mode(trigger_mode),
         .request_start(request_start),
         .request_stop(request_stop),
         .read_pointer(read_pointer),
@@ -79,6 +81,7 @@ module logic_analyzer (
 
         .state(state),
         .trigger_loc(trigger_loc),
+        .trigger_mode(trigger_mode),
         .request_start(request_start),
         .request_stop(request_stop),
         .read_pointer(read_pointer),

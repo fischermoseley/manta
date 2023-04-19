@@ -7,6 +7,7 @@ module logic_analyzer_controller (
     // from register file
     output reg [3:0] state,
     input wire [15:0] trigger_loc,
+    input wire [1:0] trigger_mode,
     input wire request_start,
     input wire request_stop,
     output reg [ADDR_WIDTH-1:0] read_pointer,
@@ -54,9 +55,6 @@ module logic_analyzer_controller (
             bram_we <= 0;
 
             if(request_start && ~prev_request_start) begin
-                // TODO: figure out what determines whether or not we
-                // go into MOVE_TO_POSITION or IN_POSITION. that's for
-                // the morning
                 state <= MOVE_TO_POSITION;
             end
         end
