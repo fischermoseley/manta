@@ -109,6 +109,11 @@ class VerilogManipulator:
 
 class UARTInterface:
     def __init__(self, config):
+        # Warn if unrecognized options have been given
+        for option in config:
+            if option not in ["port", "clock_freq", "baudrate", "chunk_size", "verbose"]:
+                print(f"Warning: Ignoring unrecognized option '{option}' in UART interface.")
+
         # Obtain port. Try to automatically detect port if "auto" is specified
         assert "port" in config, "No serial port provided to UART core."
         self.port = config["port"]
@@ -131,15 +136,14 @@ class UARTInterface:
         # Confirm we can match baudrate suffeciently well
         actual_baudrate = self.clock_freq / clocks_per_baud
         baudrate_error = 100 * abs(actual_baudrate - self.baudrate) / self.baudrate
-        assert (
-            baudrate_error <= 5
-        ), "Unable to match target baudrate - they differ by {baudrate_error}%"
+        assert baudrate_error <= 5, \
+            "Unable to match target baudrate - they differ by {baudrate_error}%"
 
         # Set chunk_size, which is the max amount of bytes that get dumped
         # to the OS driver at a time
         self.chunk_size = 256
-        if "chunk size" in config:
-            self.chunk_size = config["chunk size"]
+        if "chunk_size" in config:
+            self.chunk_size = config["chunk_size"]
 
         # Set verbosity
         self.verbose = False
@@ -315,6 +319,11 @@ class IOCore:
         self.base_addr = base_addr
         self.interface = interface
 
+        # Warn if unrecognized options have been given
+        for option in config:
+            if option not in ["type", "inputs", "outputs"]:
+                print(f"Warning: Ignoring unrecognized option '{option}' in IO core '{self.name}'")
+
         # make sure we have ports defined
         assert ('inputs' in config) or ('outputs' in config), "No input or output ports specified."
 
@@ -426,6 +435,11 @@ class LUTRAMCore:
         self.base_addr = base_addr
         self.interface = interface
 
+        # Warn if unrecognized options have been given
+        for option in config:
+            if option not in ["type", "size"]:
+                print(f"Warning: Ignoring unrecognized option '{option}' in LUT Memory '{self.name}'")
+
         assert "size" in config, "Size not specified for LUT RAM core."
         assert config["size"] > 0, "LUT RAM must have positive size."
         assert isinstance(config["size"], int), "LUT RAM must have integer size."
@@ -458,11 +472,19 @@ class LogicAnalyzerCore:
         self.base_addr = base_addr
         self.interface = interface
 
-        # load config
-        assert (
-            "sample_depth" in config
-        ), "Sample depth not found for logic analyzer core."
-        assert isinstance(config["sample_depth"], int), "Sample depth must be an integer."
+        # Warn if unrecognized options have been given
+        valid_options = ["type", "sample_depth", "probes", "triggers", "trigger_location", "trigger_mode"]
+        for option in config:
+            if option not in valid_options:
+                print(f"Warning: Ignoring unrecognized option '{option}' in Logic Analyzer core '{self.name}'")
+
+        # Load sample depth
+        assert "sample_depth" in config, \
+            "Sample depth not found for Logic Analyzer core {self.name}."
+
+        assert isinstance(config["sample_depth"], int), \
+            "Sample depth must be an integer."
+
         self.sample_depth = config["sample_depth"]
 
         # Add probes
@@ -481,11 +503,17 @@ class LogicAnalyzerCore:
 
         # Add trigger location
         self.trigger_loc = self.sample_depth // 2
-        if "trigger_loc" in config:
-            assert isinstance(config["trigger_loc"], int), "Trigger location must be an integer."
-            assert config["trigger_loc"] >= 0, "Trigger location cannot be negative."
-            assert config["trigger_loc"] <= self.sample_depth, "Trigger location cannot exceed sample depth."
-            self.trigger_loc = config["trigger_loc"]
+        if "trigger_location" in config:
+            assert isinstance(config["trigger_location"], int), \
+                "Trigger location must be an integer."
+
+            assert config["trigger_location"] >= 0, \
+                "Trigger location cannot be negative."
+
+            assert config["trigger_location"] <= self.sample_depth, \
+                "Trigger location cannot exceed sample depth."
+
+            self.trigger_loc = config["trigger_location"]
 
         # Add trigger mode
         self.SINGLE_SHOT = 0
@@ -884,6 +912,11 @@ class BlockMemoryCore:
         self.base_addr = base_addr
         self.interface = interface
 
+        # Warn if unrecognized options have been given
+        for option in config:
+            if option not in ["type", "depth", "width", "expose_port"]:
+                print(f"Warning: Ignoring unrecognized option '{option}' in Block Memory core '{self.name}'")
+
         # Determine if we expose the BRAM's second port to the top of the module
         if "expose_port" in config:
             assert isinstance(config["expose_port"], bool), "Configuring BRAM exposure must be done with a boolean."
@@ -937,7 +970,6 @@ class BlockMemoryCore:
 
     def write(self, addr, data):
         return self.interface.write_register(addr + self.base_addr, data)
-
 
 
 class Manta:
