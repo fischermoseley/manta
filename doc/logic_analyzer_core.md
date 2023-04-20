@@ -16,9 +16,8 @@ cores:
 
     probes:
       larry: 1
-      curly: 1
-      moe: 1
-      shemp: 4
+      curly: 3
+      moe: 9
 
     triggers:
       - moe RISING
@@ -37,7 +36,17 @@ Probes are the signals you're trying to observe with the Logic Analyzer core. Wh
 
 ### Triggers
 
-Triggers are things that will cause the logic analyzer core to capture data from the probes. Any one of them being satisfied is enough to start the capture.
+Attached to each probe is a little piece of logic that allows you to check if some condition on the probe is true, and triggers the capture if so. These conditions look something like:
+- `curly GEQ 2`
+- `larry EQ 1`
+- `moe NEQ 32`
+- `larry RISING`
+- `moe CHANGING`
+- and so on!
+
+Each of these contains a trigger, an operation, and an argument.
+
+Triggers are things that will cause the logic analyzer core to capture data from the probes. Any one of them being satisfied is enough to start the capture. Each trigger can
 
 ### Trigger Position
 
