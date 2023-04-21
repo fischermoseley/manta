@@ -28,7 +28,7 @@ module mac_tx(
 
     localparam PREAMBLE = {7{8'b01010101}};
     localparam SFD = 8'b11010101;
-    parameter  SRC_MAC = 48'h00_00_00_00_00_00;
+    parameter  SRC_MAC = 48'h69_69_69_69_69_69;
     parameter  DST_MAC = 48'hFF_FF_FF_FF_FF_FF;
     parameter  LENGTH = 16'h1234;
     localparam FCS_DATA = 32'b01001110_00010000_01011001_10011010;
@@ -39,7 +39,8 @@ module mac_tx(
     localparam PREPAYLOAD_LEN = (7 + 1 + 6 + 6 + 2) * 4; // in dibits
     // localparam PAYLOAD_LEN = LENGTH * 4;
     localparam PAYLOAD_LEN = 2 * 4;
-    localparam ZERO_PAD_LEN = (46 * 4) - PAYLOAD_LEN ; // minimum payload size is 46 bytes
+    // localparam ZERO_PAD_LEN = (46 * 4) - PAYLOAD_LEN ; // minimum payload size is 46 bytes
+    localparam ZERO_PAD_LEN = (46 * 4) - PAYLOAD_LEN + 6; // minimum payload size is 46 bytes
     localparam FCS_LEN = 4*4;
     localparam IPG_LEN = 96/2;
 
@@ -62,18 +63,23 @@ module mac_tx(
 
     reg bitorder_axiiv;
     reg [1:0] bitorder_axiid;
+    reg bitorder_axiov;
+    reg [1:0] bitorder_axiod;
 
     bitorder b(
         .clk(clk),
         .rst(rst),
         .axiiv(bitorder_axiiv),
         .axiid(bitorder_axiid),
-        .axiov(txen),
-        .axiod(txd));
+        .axiov(bitorder_axiov),
+        .axiod(bitorder_axiod));
 
     reg crc_axiiv = 0;
     reg crc_axiov;
     reg [31:0] crc_axiod;
+
+    reg [31:0] fcs = 0;
+
     crc32 crc(
         .clk(clk),
         .rst(rst),
@@ -83,6 +89,31 @@ module mac_tx(
 
         .axiov(crc_axiov),
         .axiod(crc_axiod));
+
+
+    always @(*) begin
+        if (state == FCS && counter == 0) begin
+            txen <= 1;
+            txd <= {crc_axiod[30], crc_axiod[31]};
+        end
+
+        else if (state == FCS && counter != 0) begin
+            txen <= 1;
+            txd <= {fcs[2*(FCS_LEN-counter)-2], fcs[2*(FCS_LEN-counter)-1]};
+        end
+
+        else if (state == IPG) begin
+            txen <= 0;
+            txd <= 0;
+        end
+
+        else begin
+            txen = bitorder_axiov;
+            txd = bitorder_axiod;
+        end
+
+
+    end
 
     always @(posedge clk) begin
 
@@ -126,7 +157,7 @@ module mac_tx(
             bitorder_axiid <= 2'b00;
 
             counter <= counter + 1;
-            if(counter == ZERO_PAD_LEN - 1) begin
+            if(counter == ZERO_PAD_LEN - 2) begin
                 counter <= 0;
                 state <= FCS;
             end
@@ -135,8 +166,8 @@ module mac_tx(
 
         // readout fcs from the checksum module
         else if (state == FCS) begin
-            bitorder_axiiv <= 1;
-            bitorder_axiid <= FCS_DATA[2*(FCS_LEN-counter)-1-:2];
+
+            if(counter == 0) fcs <= crc_axiod;
 
             counter <= counter + 1;
             if(counter == FCS_LEN - 1) begin

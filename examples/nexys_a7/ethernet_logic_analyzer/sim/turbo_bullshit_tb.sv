@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module comparison_tb();
+module turbo_bullshit_tb();
     logic ethclk;
     logic rst;
 
@@ -54,11 +54,14 @@ module comparison_tb();
     // assign eth_crsdv_debug = eth_crsdv_playback;
     // assign eth_rxd_debug = eth_rxd_playback;
 
-    // assign eth_crsdv_debug = eth_crsdv_pb9k;
-    // assign eth_rxd_debug = eth_rxd_pb9k;
+    assign eth_crsdv_debug = eth_crsdv_pb9k;
+    assign eth_rxd_debug = eth_rxd_pb9k;
 
-    assign eth_crsdv_debug = eth_crsdv_mtx;
-    assign eth_rxd_debug = eth_rxd_mtx;
+    // assign eth_crsdv_debug = eth_crsdv_mtx;
+    // assign eth_rxd_debug = eth_rxd_mtx;
+
+    reg serenity_now;
+    assign serenity_now = (eth_rxd_mtx != eth_rxd_pb9k);
 
     ether_la_playback #(.MEM_FILE("capture.mem")) ether_la_playback_inst (
         .clk(ethclk),
@@ -141,8 +144,8 @@ module comparison_tb();
 
     initial begin
         ethclk = 0;
-        $dumpfile("comparison_tb.vcd");
-        $dumpvars(0, comparison_tb);
+        $dumpfile("turbo_bullshit_tb.vcd");
+        $dumpvars(0, turbo_bullshit_tb);
         rst = 0;
         pb9k_start = 0;
         mtx_start = 0;
