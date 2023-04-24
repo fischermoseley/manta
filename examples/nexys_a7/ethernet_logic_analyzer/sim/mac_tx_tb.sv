@@ -14,9 +14,6 @@ module mac_tx_tb();
 	logic eth_crsdv;
 	logic[1:0] eth_rxd;
 
-	logic eth_refclk;
-	logic eth_rstn;
-
 	/* ether -> { cksum, bitorder } */
 	logic[1:0] ether_axiod;
 	logic ether_axiov;
@@ -38,35 +35,25 @@ module mac_tx_tb();
 
 	/* and here's the pipeline... */
 
-    logic enable;
-    logic eth_crsdv_ref;
-    logic [1:0] eth_rxd_ref;
-    ether_la_playback #(.MEM_FILE("capture.mem")) ether_la_playback_inst (
-        .clk(ethclk),
-        .enable(enable),
-        .done(),
+    logic eth_crsdv_mtx;
+    logic [1:0] eth_rxd_mtx;
 
-        .eth_crsdv(eth_crsdv_ref),
-        .eth_rxd(eth_rxd_ref),
-        .eth_txen(),
-        .eth_txd());
-
-    logic start;
+    logic mtx_start;
     mac_tx mtx (
         .clk(ethclk),
 
-        .data(16'h5678),
+        .data(16'h5679),
 
-        .start(start),
+        .start(mtx_start),
 
-        .txen(eth_crsdv),
-        .txd(eth_rxd));
+        .txen(eth_crsdv_mtx),
+        .txd(eth_rxd_mtx));
 
 	ether e(
         .clk(ethclk),
 		.rst(rst),
-		.rxd(eth_rxd),
-		.crsdv(eth_crsdv_ref),
+		.rxd(eth_rxd_mtx),
+		.crsdv(eth_crsdv_mtx),
 		.axiov(ether_axiov),
 		.axiod(ether_axiod));
 
@@ -107,19 +94,15 @@ module mac_tx_tb();
         $dumpfile("mac_tx_tb.vcd");
         $dumpvars(0, mac_tx_tb);
         rst = 0;
-        start = 0;
+        mtx_start = 0;
         #10;
         rst = 1;
         #10;
         rst = 0;
         #10;
-        enable = 1;
-        #500;
-        start = 1;
-        #10;
-        start = 0;
+        mtx_start = 1;
 
-        #5000;
+        #10000;
 
         $finish();
     end
