@@ -33,7 +33,7 @@ module ethernet_rx (
         assign addr_o = data[31:16];
         assign wdata_o = data[15:0];
         assign rw_o = (ethertype == 4);
-        assign valid_o = valid;
+        assign valid_o = valid && ((ethertype == 4) || (ethertype == 2));
 
 endmodule
 

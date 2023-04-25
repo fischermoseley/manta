@@ -12,10 +12,13 @@ module ethernet_tx(
     input wire valid_i
     );
 
+    reg [15:0] data_buf = 0;
+    always @(posedge clk) if(~rw_i && valid_i) data_buf <= rdata_i;
+
     mac_tx mtx (
         .clk(clk),
 
-        .data(rdata_i),
+        .data(data_buf),
         .ethertype(16'h2),
         .start(~rw_i && valid_i),
 
