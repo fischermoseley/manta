@@ -6,6 +6,7 @@ module mac_tx (
 
     // TODO: make this variable width
     input wire [15:0] data,
+    input wire [15:0] ethertype,
     input wire start,
 
     output reg txen,
@@ -16,7 +17,6 @@ module mac_tx (
     localparam SFD = 8'b11010101;
     parameter  SRC_MAC = 48'h69_69_69_69_69_69;
     parameter  DST_MAC = 48'hFF_FF_FF_FF_FF_FF;
-    parameter  ETHERTYPE = 16'h1234;
 
     // all lengths are in units of dibits, hence all the mulitplies by four
     localparam PREAMBLE_LEN = 7 * 4;
@@ -202,7 +202,7 @@ module mac_tx (
 
             ETHERTYPE_STATE: begin
                 bitorder_axiiv = 1;
-                bitorder_axiid = ETHERTYPE[2*(ETHERTYPE_LEN-counter)-1-:2];
+                bitorder_axiid = ethertype[2*(ETHERTYPE_LEN-counter)-1-:2];
                 txen = bitorder_axiov;
                 txd = bitorder_axiod;
             end

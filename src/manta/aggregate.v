@@ -13,7 +13,7 @@
  * of your module!
  */
 
-`define AGR_MAX		32
+`define AGR_MAX		48
 `define AGR_SHOW	64
 
 module aggregate(clk, rst, axiid, axiiv, axiod, axiov);
@@ -36,9 +36,9 @@ module aggregate(clk, rst, axiid, axiiv, axiod, axiov);
 	 * just the first 32 bits of the incoming transmission,
 	 * asserted for a single cycle
 	 */
- 	output logic[31:0] axiod;
+ 	output logic[47:0] axiod;
 	output logic axiov;
-	
+
 	/* A quick and dirty counter. As long as this is below
 	 * 32, we'll dump packets into the AXI output data buffer.
 	 * Once the counter gets to AGR_MAX, we'll assert AXI valid.
@@ -56,7 +56,7 @@ module aggregate(clk, rst, axiid, axiiv, axiod, axiov);
 	always_ff @(posedge clk) begin: AXIOD
 		if (rst || !axiiv) axiod <= 32'b0;
 		else if (counter < `AGR_MAX && axiiv)
-			axiod[`AGR_MAX - counter - 2 +: 2] = axiid;
+			axiod[`AGR_MAX - counter - 2 +: 2] <= axiid;
 	end
 
 endmodule

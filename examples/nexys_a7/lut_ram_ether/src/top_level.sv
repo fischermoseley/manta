@@ -30,39 +30,11 @@ module top_level (
     manta manta_inst (
         .clk(clk_50mhz),
 
-        .rx(uart_txd_in),
-        .tx(uart_rxd_out),
-
-        .eth_crsdv(eth_crsdv),
-        .eth_rxd(eth_rxd),
-        .eth_txen(eth_txen),
-        .eth_txd(eth_txd));
-
-    // packet_blaster_9k pb9k (
-    //     .clk(clk_50mhz),
-    //     .rst(btnc),
-
-    //     //.src_mac(48'h69_2C_08_30_75_FD),
-    //     .src_mac(48'b00_00_00_00_00_00),
-    //     .dst_mac(48'hFF_FF_FF_FF_FF_FF),
-
-    //     .data(16'h5678),
-
-    //     .start(btnd),
-
-    //     .txen(eth_txen),
-    //     .txd(eth_txd));
-
-
-    mac_tx mtx (
-        .clk(clk_50mhz),
-
-        .data(sw),
-
-        .start(btnd),
-
+        .crsdv(eth_crsdv),
+        .rxd(eth_rxd),
         .txen(eth_txen),
         .txd(eth_txd));
+
 
 endmodule
 
