@@ -15,8 +15,8 @@ module mac_tx (
     // packet magic numbers
     localparam PREAMBLE = {7{8'b01010101}};
     localparam SFD = 8'b11010101;
-    parameter  SRC_MAC = 48'h69_69_69_69_69_69;
-    parameter  DST_MAC = 48'hFF_FF_FF_FF_FF_FF;
+    parameter  SRC_MAC = 48'h69_69_5A_06_54_91;
+    parameter  DST_MAC = 48'h00_E0_4C_68_1E_0C;
 
     // all lengths are in units of dibits, hence all the mulitplies by four
     localparam PREAMBLE_LEN = 7 * 4;
