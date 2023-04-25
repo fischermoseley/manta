@@ -1,15 +1,3 @@
-/* The catsoop checker does not like to see `timescale declarations
- * in your code. However, we obviously need them when we synthesize
- * for iverilog - they tell iverilog that #5 means 5ns, for example.
- * Without these iverilog has no basis for how long *stuff* should
- * wait for when you use #, so it blows up!
- *
- * When you use the catsoop checker, it `defines the CATSOOP macro.
- * So we can check whether CATSOOP is defined or not - if it isn't,
- * then we'll put the timescale thing in so code works right on your
- * system.
- */
-
 `default_nettype none
 `timescale 1ns / 1ps
 
@@ -37,7 +25,7 @@
 `define EF_IDLE		3'b000
 `define EF_PREAM	3'b001
 `define EF_DATA		3'b011
-`define EF_BAD		3'b101	
+`define EF_BAD		3'b101
 
 `define PREAM_BITS	64
 `define PREAM_SIZE	(`PREAM_BITS / 2)
@@ -68,7 +56,7 @@ module ether(clk, rst, rxd, crsdv, axiov, axiod);
 	 * So just use this input to determine whether valid
 	 * data is on the line coming in.
 	 */
-	input logic crsdv;	
+	input logic crsdv;
 
 	/* Receive Data (RXD): If crsdv is high, receives
 	 * two bits off the wire. Otherwise, undefined
@@ -108,7 +96,7 @@ module ether(clk, rst, rxd, crsdv, axiov, axiod);
 
 		preamok = crsdv && rxd == preamex;
 	end
-	
+
 	always @(*) start = crsdv && rxd != `PREAM_FIRST;
 
 	always @(posedge clk) begin: COUNT

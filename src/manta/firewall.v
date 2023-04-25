@@ -32,7 +32,7 @@
 `define FW_DESTSTART	0
 `define FW_DESTEND	(`FW_DESTSTART + 48)
 
-`define FW_DATASTART	(48 + 48 + 16)
+`define FW_DATASTART	(48 + 48)
 
 module firewall(clk, rst, axiiv, axiid, axiov, axiod);
 
