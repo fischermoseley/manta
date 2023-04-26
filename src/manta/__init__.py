@@ -296,13 +296,15 @@ reg {self.cores[-1].name}_btx_valid;\n"""
 
 def main():
     # print help menu if no args passed or help menu requested
+
     if len(argv) == 1 or argv[1] == "help" or argv[1] == "ray" or argv[1] == "bae":
+        version = "v" + get_distribution('mantaray').version
         print(
             f"""
 \033[96m               (\.-./)
 \033[96m               /     \\
 \033[96m             .'   :   '.
-\033[96m        _.-'`     '     `'-._       \033[34;49;1m | \033[34;49;1m Manta v{version} \033[00m
+\033[96m        _.-'`     '     `'-._       \033[34;49;1m | \033[34;49;1m Manta {version} \033[00m
 \033[96m     .-'          :          '-.    \033[34;49;1m | \033[34;49;3m An In-Situ Debugging Tool for Programmable Hardware \033[00m
 \033[96m   ,'_.._         .         _.._',  \033[34;49;1m | \033[34;49m https://github.com/fischermoseley/manta \033[00m
 \033[96m   '`    `'-.     '     .-'`
