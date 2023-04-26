@@ -95,14 +95,11 @@
     // debug
     assign led = manta_inst.brx_image_mem_addr;
 
-    logic [6:0] cat;
-	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
     ssd ssd (
-        .clk_in(clk_65mhz),
-        .rst_in(btnc),
-        .val_in( {manta_inst.image_mem_btx_rdata, manta_inst.brx_image_mem_wdata} ),
-        .cat_out(cat),
-        .an_out(an));
+        .clk(clk_65mhz),
+        .val( {manta_inst.image_mem_btx_rdata, manta_inst.brx_image_mem_wdata} ),
+        .cat({cg,cf,ce,cd,cc,cb,ca}),
+        .an(an));
     endmodule
 
     `default_nettype wire

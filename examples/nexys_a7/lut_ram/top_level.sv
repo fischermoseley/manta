@@ -21,14 +21,11 @@ module top_level (
 
     assign led = manta_inst.brx_my_lut_ram_addr;
 
-    logic [6:0] cat;
-	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
     ssd ssd (
-        .clk_in(clk),
-        .rst_in(btnc),
-        .val_in( {manta_inst.my_lut_ram_btx_rdata, manta_inst.brx_my_lut_ram_wdata} ),
-        .cat_out(cat),
-        .an_out(an));
+        .clk(clk),
+        .val( {manta_inst.my_lut_ram_btx_rdata, manta_inst.brx_my_lut_ram_wdata} ),
+        .cat({cg,cf,ce,cd,cc,cb,ca}),
+        .an(an));
 
 endmodule
 

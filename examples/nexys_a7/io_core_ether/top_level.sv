@@ -133,17 +133,13 @@ module top_level (
         .led17_g(led17_g),
         .led17_r(led17_r));
 
-    logic [6:0] cat;
-	assign {cg,cf,ce,cd,cc,cb,ca} = cat;
-
     logic [31:0] aggregate_axiod_persistent;
     always_ff @(posedge ethclk) if (aggregate_axiov) aggregate_axiod_persistent <= aggregate_axiod;
     ssd ssd (
-        .clk_in(ethclk),
-        .rst_in(!cpu_resetn),
-        .val_in(aggregate_axiod_persistent),
-        .cat_out(cat),
-        .an_out(an));
+        .clk(ethclk),
+        .val(aggregate_axiod_persistent),
+        .cat({cg,cf,ce,cd,cc,cb,ca}),
+        .an(an));
 
 endmodule
 
