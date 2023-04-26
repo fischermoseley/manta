@@ -21,7 +21,7 @@ def read_register(addr):
     sniffer.start()
     from time import sleep
     time.sleep(0.1)
-    sendp(pkt, iface=ifc)
+    sendp(pkt, iface=ifc, verbose = 0)
     results = sniffer.stop()
 
     assert len(results) == 1, "Received more packets than expected!"
@@ -44,7 +44,7 @@ def write_register(addr, data):
 
     pkt = pkt / msg
     pkt.load = msg
-    sendp(pkt, iface=ifc)
+    sendp(pkt, iface=ifc, verbose = 0)
 
 def read_batch(addrs):
     pkts = []
@@ -67,7 +67,7 @@ def read_batch(addrs):
     from time import sleep
     time.sleep(0.1)
 
-    sendp(pkts, iface=ifc)
+    sendp(pkts, iface=ifc, verbose = 0)
     sniffer.join()
     results = sniffer.results
 
@@ -100,26 +100,25 @@ def write_batch(addrs, data):
         pkt = pkt / msg
         pkt.load = msg
 
-    sendp(pkts, iface=ifc)
+    sendp(pkts, iface=ifc, verbose = 0)
 
 
 from time import sleep
 if __name__ == "__main__":
-    # for addr in range(64):
-    #     data = addr
-    #     write_register(addr, data)
+    for addr in range(64):
+        data = addr
+        write_register(addr, data)
+        retval = read_register(addr)
+        if retval != addr:
+            print(f"ERROR: sent {data} got {retval}")
 
-    #     retval = read_register(addr)
-    #     if retval != addr:
-    #         print("oops")
+        else:
+            print(f"SUCCESS: sent {data} got {retval}")
 
-    #     else:
-    #         print(f"yay addr: {addr} worked!")
-
-    addrs = [i for i in range(64)]
-    datas = addrs
-    write_batch(addrs, datas)
-    print("done")
-    retvals = read_batch(addrs)
-    print(retvals)
+    # addrs = [i for i in range(64)]
+    # datas = addrs
+    # write_batch(addrs, datas)
+    # print("done")
+    # retvals = read_batch(addrs)
+    # print(retvals)
 

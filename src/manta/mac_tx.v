@@ -4,9 +4,7 @@
 module mac_tx (
     input wire clk,
 
-    // TODO: make this variable width
-    input wire [15:0] data,
-    input wire [15:0] ethertype,
+    input wire [(8 * PAYLOAD_LENGTH_BYTES)-1:0] payload,
     input wire start,
 
     output reg txen,
@@ -15,8 +13,10 @@ module mac_tx (
     // packet magic numbers
     localparam PREAMBLE = {7{8'b01010101}};
     localparam SFD = 8'b11010101;
-    parameter  SRC_MAC = 48'h69_69_69_69_69_69;
-    parameter  DST_MAC = 48'hFF_FF_FF_FF_FF_FF;
+    parameter [47:0] SRC_MAC = 0;
+    parameter [47:0] DST_MAC = 0;
+    parameter [15:0] ETHERTYPE = 0;
+    parameter PAYLOAD_LENGTH_BYTES = 0;
 
     // all lengths are in units of dibits, hence all the mulitplies by four
     localparam PREAMBLE_LEN = 7 * 4;
@@ -24,15 +24,10 @@ module mac_tx (
     localparam SRC_MAC_LEN = 6 * 4;
     localparam DST_MAC_LEN = 6 * 4;
     localparam ETHERTYPE_LEN = 2 * 4;
-    localparam PAYLOAD_LEN = 2 * 4;
-    // localparam ZERO_PAD_LEN = (46 * 4) - PAYLOAD_LEN ; // minimum payload size is 46 bytes
+    localparam PAYLOAD_LEN = PAYLOAD_LENGTH_BYTES * 4;
     localparam ZERO_PAD_LEN = (46 * 4) - PAYLOAD_LEN + 4; // minimum payload size is 46 bytes
     localparam FCS_LEN = 4 * 4;
     localparam IPG_LEN = 96 / 2;
-
-    // TODO: make crc and bitorder modules not need reset
-    reg rst = 1;
-    always @(posedge clk) rst <= 0;
 
     reg [1:0] bitorder_axiid;
     reg [1:0] bitorder_axiod;
@@ -41,7 +36,6 @@ module mac_tx (
 
     bitorder bitorder (
         .clk(clk),
-        .rst(rst),
 
         .axiiv(bitorder_axiiv),
         .axiid(bitorder_axiid),
@@ -202,14 +196,14 @@ module mac_tx (
 
             ETHERTYPE_STATE: begin
                 bitorder_axiiv = 1;
-                bitorder_axiid = ethertype[2*(ETHERTYPE_LEN-counter)-1-:2];
+                bitorder_axiid = ETHERTYPE[2*(ETHERTYPE_LEN-counter)-1-:2];
                 txen = bitorder_axiov;
                 txd = bitorder_axiod;
             end
 
             PAYLOAD_STATE: begin
                 bitorder_axiiv = 1;
-                bitorder_axiid = data[2*(PAYLOAD_LEN-counter)-1-:2];
+                bitorder_axiid = payload[2*(PAYLOAD_LEN-counter)-1-:2];
                 txen = bitorder_axiov;
                 txd = bitorder_axiod;
             end

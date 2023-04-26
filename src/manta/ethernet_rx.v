@@ -13,27 +13,29 @@ module ethernet_rx (
     output reg valid_o
     );
 
-    // we know if the packet is a read or write
-    // based on the ethertype.
+    parameter FPGA_MAC = 0;
+    parameter ETHERTYPE = 0;
 
-    reg [15:0] ethertype;
     reg [31:0] data;
     reg valid;
 
-    mac_rx mrx (
+    mac_rx #(
+        .DST_MAC(48'h69_69_5A_06_54_91),
+        .ETHERTYPE(16'h88_B5)
+    ) mrx (
         .clk(clk),
 
         .crsdv(crsdv),
         .rxd(rxd),
 
-        .ethertype(ethertype),
-        .data(data),
+        .payload(payload),
+        .length(length)
         .valid(valid));
 
-        assign addr_o = data[31:16];
-        assign wdata_o = data[15:0];
-        assign rw_o = (ethertype == 4);
-        assign valid_o = valid && ((ethertype == 4) || (ethertype == 2));
+        assign addr_o = payload[31:16];
+        assign wdata_o = payload[15:0];
+        assign rw_o = (length == 4);
+        assign valid_o = valid && ((length == 4) || (length == 2));
 
 endmodule
 

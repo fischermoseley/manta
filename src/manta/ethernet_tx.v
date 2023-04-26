@@ -1,25 +1,35 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module ethernet_tx(
+module ethernet_tx (
     input wire clk,
-
-    output reg txen,
-    output reg [1:0] txd,
 
     input wire [15:0] rdata_i,
     input wire rw_i,
-    input wire valid_i
+    input wire valid_i,
+
+    output reg txen,
+    output reg [1:0] txd
     );
 
-    reg [15:0] data_buf = 0;
-    always @(posedge clk) if(~rw_i && valid_i) data_buf <= rdata_i;
+    parameter FPGA_MAC = 0;
+    parameter HOST_MAC = 0;
+    parameter ETHERTYPE = 0;
 
-    mac_tx mtx (
+    reg [15:0] rdata_buf = 0;
+
+    always @(posedge clk)
+        if(~rw_i && valid_i) rdata_buf <= rdata_i;
+
+    mac_tx #(
+        .SRC_MAC(FPGA_MAC),
+        .DST_MAC(HOST_MAC),
+        .ETHERTYPE(ETHERTYPE),
+        .PAYLOAD_LENGTH_BYTES(2)
+    ) mtx (
         .clk(clk),
 
-        .data(data_buf),
-        .ethertype(16'h2),
+        .payload(rdata_buf),
         .start(~rw_i && valid_i),
 
         .txen(txen),
