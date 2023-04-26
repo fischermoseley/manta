@@ -19,52 +19,37 @@
 `define CK_FRESH	2'b00
 `define CK_COMPUTING	2'b01
 `define CK_DONE		2'b10
- 
+
 `define MAGIC_CHECK	32'h38_fb_22_84
 
-module cksum(clk, rst, axiid, axiiv, done, kill);
+module cksum (
+	input wire clk,
+	input wire [1:0] axiid,
+	input wire axiiv,
 
-	/* batteries */
-	input logic clk, rst;
+	output reg done,
+	output reg kill);
 
-	/* AXI input valid, and AXI input data from the
-	 * physical layer. Comprises unmodified data directly
-	 * from the wire, in Ethernet bit order, to be fed
-	 * directly into the CRC32 module you wrote for the
-	 * pset
-	 */
-	input logic[1:0] axiid;
-	input logic axiiv;
-
-	/* Done and kill, as described in the module synopsis */
-	output logic done, kill;
-
-	/* CRC32 AXI output data bus, which is the 32-bit
-	 * checksum calculated so far via the checksum module
-	 * you implemented in one of the last psets (CRC32-BZIP2)
-	 */
-	logic[31:0] crcd;
-	logic crcv;
+	reg [31:0] crcd;
+	reg crcv;
 
 	/* Decoupled logic to reset the CRC module independently
 	 * Used to compute multiple CRCs back to back
 	 */
-	logic crcrst;
+	reg crcrst;
 
-	/* Our finite state machine - bonus points if you can identify
-	 * whether this is a Moore or Mealy FSM!
-	 */
-	logic[1:0] state;
+	reg [1:0] state = `CK_FRESH;
 
-	crc32 cksum(.clk(clk),
-		    .rst(crcrst | rst),
-		    .axiiv(axiiv),
-		    .axiid(axiid),
-		    .axiov(crcv),
-		    .axiod(crcd));
+	crc32 cksum(
+		.clk(clk),
+		.rst(crcrst),
+		.axiiv(axiiv),
+		.axiid(axiid),
+		.axiov(crcv),
+		.axiod(crcd));
 
-	always_ff @(posedge clk) begin: OUTPUTS
-		if (rst || axiiv) begin
+	always @(posedge clk) begin: OUTPUTS
+		if (axiiv) begin
 			done <= 1'b0;
 			kill <= 1'b0;
 			crcrst <= 1'b0;
@@ -72,22 +57,19 @@ module cksum(clk, rst, axiid, axiiv, done, kill);
 			if (state == `CK_COMPUTING && !axiiv) begin
 				done <= 1'b1;
 				crcrst <= 1'b1;
+                kill <= (crcd != `MAGIC_CHECK);
+			end
 
-				if (crcd == `MAGIC_CHECK) kill <= 1'b0;
-				else kill <= 1'b1;
-			end else crcrst <= 1'b0;
+            else crcrst <= 1'b0;
 		end
 	end
 
-	always_ff @(posedge clk) begin: FSM
-		if (rst) state <= `CK_FRESH;
-		else begin
-			case (state)
+	always @(posedge clk) begin: FSM
+		case (state)
 			`CK_FRESH: if (axiiv) state <= `CK_COMPUTING;
 			`CK_COMPUTING: if (!axiiv) state <= `CK_DONE;
 			`CK_DONE: if (axiiv) state <= `CK_COMPUTING;
-			endcase
-		end
+		endcase
 	end
 
 endmodule

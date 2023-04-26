@@ -27,7 +27,10 @@ module manta(
     output reg txen,
     output reg [1:0] txd);
 
-    ethernet_rx erx (
+    ethernet_rx # (
+        .FPGA_MAC(48'h69_69_5A_06_54_91),
+        .ETHERTYPE(16'h88_B5)
+    ) erx (
         .clk(clk),
 
         .crsdv(crsdv),
@@ -64,7 +67,11 @@ module manta(
     reg my_lut_ram_btx_rw;
     reg my_lut_ram_btx_valid;
 
-    ethernet_tx etx (
+    ethernet_tx #(
+        .FPGA_MAC(48'h69_69_5A_06_54_91),
+        .HOST_MAC(48'h00_E0_4C_68_1E_0C),
+        .ETHERTYPE(16'h88_B5)
+    ) etx (
         .clk(clk),
 
         .txen(txen),
