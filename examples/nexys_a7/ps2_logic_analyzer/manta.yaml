@@ -3,7 +3,7 @@ cores:
   my_logic_analyzer:
     type: logic_analyzer
     sample_depth: 64000
-    trigger_loc: 15000
+    trigger_location: 15000
 
     probes:
       ps2_clk: 1
