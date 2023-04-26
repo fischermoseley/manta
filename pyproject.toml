@@ -24,7 +24,7 @@ manta = "manta:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-manta = ["*.sv", "*.v"]
+manta = ["**/*.v"]
 
 [build-system]
 requires = ["setuptools"]
