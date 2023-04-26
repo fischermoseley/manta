@@ -81,32 +81,28 @@ lut_ram_tb:
 
 examples: icestick nexys_a7
 
-nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_logic_analyzer nexys_a7_lut_ram
+nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_ram
 
 nexys_a7_video_sprite:
 	cd examples/nexys_a7/video_sprite;	\
 	manta gen manta.yaml src/manta.v;	\
-	mkdir -p obj/;						\
-	python3 lab-bc.py
+	build
 
 nexys_a7_io_core:
 	cd examples/nexys_a7/io_core/;   	\
-	manta gen manta.yaml src/manta.v;	\
-	mkdir -p obj/; 						\
-	python3 lab-bc.py
+	manta gen manta.yaml manta.v;		\
+	build
 
-nexys_a7_logic_analyzer:
-	cd examples/nexys_a7/logic_analyzer/;  						\
+nexys_a7_ps2_logic_analyzer:
+	cd examples/nexys_a7/ps2_logic_analyzer/;  					\
 	manta gen manta.yaml src/manta.v;							\
-	manta playback manta.yaml my_logic_analyzer sim/playback.v; \
-	mkdir -p obj/; 												\
-	python3 lab-bc.py
+	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
+	build
 
 nexys_a7_lut_ram:
 	cd examples/nexys_a7/lut_ram/;   	\
-	manta gen manta.yaml src/manta.v;	\
-	mkdir -p obj/;						\
-	python3 lab-bc.py
+	manta gen manta.yaml manta.v;	\
+	build
 
 icestick: icestick_io_core icestick_lut_ram
 
