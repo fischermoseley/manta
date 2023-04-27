@@ -15,7 +15,7 @@ manta manta_inst (
 
 */
 
-module manta(
+module manta (
     input wire clk,
 
     /* TOP_LEVEL_PORTS */);
