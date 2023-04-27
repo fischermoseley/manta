@@ -38,6 +38,8 @@ module bitorder (
 	 * we've just come out of reset?
 	 */
 	reg [1:0] state = `BO_EMPTYB;
+	initial axiov = 0;
+	initial axiod = 0;
 
 	always @(*) begin: AXIOV
 		if (state == `BO_SENDA || state == `BO_SENDB) axiov = 1'b1;

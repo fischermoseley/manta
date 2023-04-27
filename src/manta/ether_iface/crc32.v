@@ -19,21 +19,17 @@
  * this is the ethernet checksum!!
  */
 
-module crc32(clk, rst, axiiv, axiid, axiov, axiod);
+module crc32(
+	input wire clk,
+	input wire rst,
+	input wire axiiv,
+	input wire [1:0] axiid,
 
-	/* old style i/o declaration, for clarity.
-	 * easier on 80-char line limits...
-	 * use this if you want, we don't care
-	 */
-	input logic clk, rst;
-
-	input logic axiiv;
-	input logic[1:0] axiid;
-
-	output logic axiov;
-	output logic[31:0] axiod;
+	output reg axiov,
+	output reg [31:0] axiod);
 
 	logic[31:0] caxiod, saxiod;
+	initial caxiod = 32'hFFFF_FFFF;
 	integer i;
 
 	assign axiov = 1;

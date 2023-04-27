@@ -39,6 +39,9 @@ module cksum (
 	reg crcrst;
 
 	reg [1:0] state = `CK_FRESH;
+	initial done = 0;
+	initial kill = 0;
+	initial crcrst = 0;
 
 	crc32 cksum(
 		.clk(clk),
