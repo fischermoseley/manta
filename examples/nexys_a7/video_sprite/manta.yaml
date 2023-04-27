@@ -1,7 +1,7 @@
 ---
 cores:
   image_mem:
-    type: block_memory
+    type: block_mem
     width: 12
     depth: 16384
 

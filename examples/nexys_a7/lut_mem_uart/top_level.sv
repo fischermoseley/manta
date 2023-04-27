@@ -19,11 +19,11 @@ module top_level (
         .rx(uart_txd_in),
         .tx(uart_rxd_out));
 
-    assign led = manta_inst.brx_my_lut_ram_addr;
+    assign led = manta_inst.brx_my_lut_mem_addr;
 
     ssd ssd (
         .clk(clk),
-        .val( {manta_inst.my_lut_ram_btx_rdata, manta_inst.brx_my_lut_ram_wdata} ),
+        .val( {manta_inst.my_lut_mem_btx_rdata, manta_inst.brx_my_lut_mem_wdata} ),
         .cat({cg,cf,ce,cd,cc,cb,ca}),
         .an(an));
 

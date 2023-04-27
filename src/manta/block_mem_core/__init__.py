@@ -1,6 +1,6 @@
-from .verilog_manipulator import *
+from ..hdl_utils import *
 
-import math
+from math import ceil, log2
 
 class BlockMemoryCore:
     def __init__(self, config, name, base_addr, interface):
@@ -33,20 +33,20 @@ class BlockMemoryCore:
         assert isinstance(config["width"], int), "Block Memory core must have integer width."
         self.width = config["width"]
 
-        self.addr_width = math.ceil(math.log2(self.depth))
-        self.n_brams = math.ceil(self.width / 16)
+        self.addr_width = ceil(log2(self.depth))
+        self.n_brams = ceil(self.width / 16)
         self.max_addr = self.base_addr + (self.depth * self.n_brams)
 
     def hdl_inst(self):
-        inst = VerilogManipulator("block_memory/block_memory_inst_tmpl.v")
+        inst = VerilogManipulator("block_mem_core/block_memory_inst_tmpl.v")
         inst.sub(self.name, "/* INST_NAME */")
         inst.sub(self.depth, "/* DEPTH */")
         inst.sub(self.width, "/* WIDTH */")
         return inst.get_hdl()
 
     def hdl_def(self):
-        block_memory = VerilogManipulator("block_memory/block_memory.v").get_hdl()
-        dual_port_bram = VerilogManipulator("block_memory/dual_port_bram.v").get_hdl()
+        block_memory = VerilogManipulator("block_mem_core/block_memory.v").get_hdl()
+        dual_port_bram = VerilogManipulator("block_mem_core/dual_port_bram.v").get_hdl()
         return block_memory + "\n" + dual_port_bram
 
     def hdl_top_level_ports(self):

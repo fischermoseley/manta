@@ -29,7 +29,7 @@ auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Functional Simulation
-functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb lut_ram_tb
+functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb lut_mem_tb
 
 mac_tb:
 	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/mac_tb.sv
@@ -72,8 +72,8 @@ bridge_tx_tb:
 	vvp sim.out
 	rm sim.out
 
-lut_ram_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/lut_ram_tb.sv
+lut_mem_tb:
+	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/lut_mem_tb.sv
 	vvp sim.out
 	rm sim.out
 
@@ -81,7 +81,7 @@ lut_ram_tb:
 
 examples: icestick nexys_a7
 
-nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_ram
+nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_mem
 
 nexys_a7_video_sprite:
 	cd examples/nexys_a7/video_sprite;	\
@@ -99,20 +99,20 @@ nexys_a7_ps2_logic_analyzer:
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
 	build
 
-nexys_a7_lut_ram:
-	cd examples/nexys_a7/lut_ram/;   	\
+nexys_a7_lut_mem:
+	cd examples/nexys_a7/lut_mem/;   	\
 	manta gen manta.yaml manta.v;	\
 	build
 
-icestick: icestick_io_core icestick_lut_ram
+icestick: icestick_io_core icestick_lut_mem
 
 icestick_io_core:
 	cd examples/icestick/io_core/;	\
 	manta gen manta.yaml manta.v;  	\
 	./build.sh
 
-icestick_lut_ram:
-	cd examples/icestick/lut_ram/; 	\
+icestick_lut_mem:
+	cd examples/icestick/lut_mem/; 	\
 	manta gen manta.yaml manta.v;  	\
 	./build.sh
 
@@ -123,11 +123,11 @@ clean_examples:
 	rm -f examples/nexys_a7/logic_analyzer/obj/*
 	rm -f examples/nexys_a7/logic_analyzer/src/manta.v
 
-	rm -f examples/nexys_a7/lut_ram/obj/*
-	rm -f examples/nexys_a7/lut_ram/src/manta.v
+	rm -f examples/nexys_a7/lut_mem/obj/*
+	rm -f examples/nexys_a7/lut_mem/src/manta.v
 
 	rm -f examples/icestick/io_core/*.bin
 	rm -f examples/icestick/io_core/manta.v
 
-	rm -f examples/icestick/lut_ram/*.bin
-	rm -f examples/icestick/lut_ram/manta.v
+	rm -f examples/icestick/lut_mem/*.bin
+	rm -f examples/icestick/lut_mem/manta.v

@@ -56,7 +56,7 @@ module bus_fix_tb;
     logic brx_mem_rw;
     logic brx_mem_valid;
 
-    lut_ram #(
+    lut_mem #(
         .DEPTH(32),
         .BASE_ADDR(0)
     ) ram (

@@ -1,16 +1,18 @@
-from .verilog_manipulator import *
-
-from scapy.interfaces import get_if_list
-from scapy.arch import get_if_hwaddr
-from scapy.layers.l2 import Ether
-from scapy.sendrecv import AsyncSniffer, sendp, sendpfast
-from time import sleep
+from ..hdl_utils import *
 
 class EthernetInterface:
     def __init__(self, config):
+
+        # Lazy and selective imports for quick builds!
+        from scapy.interfaces import get_if_list
+        from scapy.arch import get_if_hwaddr
+        from scapy.layers.l2 import Ether
+        from scapy.sendrecv import AsyncSniffer, sendp, sendpfast
+        from time import sleep
+
         # Warn if unrecognized options have been given
         for option in config:
-            if option not in ["interface", "host mac", "fpga mac", "ethertype", "tcpreplay", "verbose"]:
+            if option not in ["interface", "host_mac", "fpga_mac", "ethertype", "tcpreplay", "verbose"]:
                 print(f"Warning: Ignoring unrecognized option '{option}' in Ethernet interface.")
 
         # Obtain interface.
@@ -23,17 +25,17 @@ class EthernetInterface:
         if self.iface in get_if_list():
             self.host_mac = get_if_hwaddr(self.iface)
         else:
-            assert "host mac" in config, \
-                "Can't automatically detect host mac address from interface, host mac must be manually provided"
-            self.host_mac = config["host mac"]
+            assert "host_mac" in config, \
+                "Can't automatically detect host mac address from interface, host_mac must be manually provided"
+            self.host_mac = config["host_mac"]
 
         # Obtain FPGA MAC address
         #  - the default address is a locally administered unicast address,
         #     which is an important distinction. please refer to:
         #    https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
         self.fpga_mac = "12:34:56:78:9A:BC"
-        if "fpga mac" in config:
-            self.fpga_mac = config["fpga mac"]
+        if "fpga_mac" in config:
+            self.fpga_mac = config["fpga_mac"]
 
         # Obtain Ethertype
         #  - the default ethertype being used is reserved for local
@@ -160,25 +162,25 @@ class EthernetInterface:
                 "output reg [1:0] txd"]
 
     def rx_hdl_def(self):
-        tx =  VerilogManipulator("ethernet/ethernet_rx.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/mac_rx.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/ether.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/bitorder.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/firewall.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/aggregate.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/crc32.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/cksum.v").get_hdl() + "\n"
+        tx =  VerilogManipulator("ether_iface/ethernet_rx.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/mac_rx.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/ether.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/bitorder.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/firewall.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/aggregate.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/crc32.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/cksum.v").get_hdl() + "\n"
         return tx
 
     def tx_hdl_def(self):
-        tx =  VerilogManipulator("ethernet/ethernet_tx.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/mac_tx.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/bitorder.v").get_hdl() + "\n"
-        tx += VerilogManipulator("ethernet/crc32.v").get_hdl() + "\n"
+        tx =  VerilogManipulator("ether_iface/ethernet_tx.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/mac_tx.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/bitorder.v").get_hdl() + "\n"
+        tx += VerilogManipulator("ether_iface/crc32.v").get_hdl() + "\n"
         return tx
 
     def rx_hdl_inst(self):
-        rx = VerilogManipulator("ethernet/ethernet_rx_inst_tmpl.v")
+        rx = VerilogManipulator("ether_iface/ethernet_rx_inst_tmpl.v")
 
         fpga_mac_verilog_literal = "48'h" + self.fpga_mac.replace(":", "_").upper()
         rx.sub(fpga_mac_verilog_literal, "/* FPGA_MAC */")
@@ -189,7 +191,7 @@ class EthernetInterface:
         return rx.get_hdl()
 
     def tx_hdl_inst(self):
-        tx = VerilogManipulator("ethernet/ethernet_tx_inst_tmpl.v")
+        tx = VerilogManipulator("ether_iface/ethernet_tx_inst_tmpl.v")
 
         fpga_mac_verilog_literal = "48'h" + self.fpga_mac.replace(":", "_").upper()
         tx.sub(fpga_mac_verilog_literal, "/* FPGA_MAC */")

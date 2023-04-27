@@ -10,8 +10,8 @@ Just like every core, a given LUT Memory core is described in Manta's configurat
 
 ```yaml
 cores:
-  my_lut_ram:
-    type: lut_ram
+  my_lut_mem:
+    type: lut_mem
     size: 64
 ```
 
@@ -21,9 +21,9 @@ Each register is 16-bits wide, so the only configuration option is just the size
 The core can be written to and read from in Python with the following:
 
 ```python
-m.my_lut_ram.write(addr, data)
-foo = m.my_lut_ram.read(addr)
+m.my_lut_mem.write(addr, data)
+foo = m.my_lut_mem.read(addr)
 ```
 
 ## Examples
-A LUT Memory core is used in the lut_ram examples, for both the [nexys_a7](https://github.com/fischermoseley/manta/tree/main/examples/nexys_a7/lut_ram) and the [icestick](https://github.com/fischermoseley/manta/tree/main/examples/icestick/lut_ram).
+A LUT Memory core is used in the lut_mem examples, for both the [nexys_a7](https://github.com/fischermoseley/manta/tree/main/examples/nexys_a7/lut_mem_uart) and the [icestick](https://github.com/fischermoseley/manta/tree/main/examples/icestick/lut_mem).
