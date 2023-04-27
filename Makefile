@@ -31,6 +31,11 @@ auto_gen:
 # Functional Simulation
 functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb lut_mem_tb
 
+ethernet_rx_tb:
+	iverilog -g2012 -o sim.out -y src/manta/ether_iface test/functional_sim/ethernet_rx_tb.sv
+	vvp sim.out
+	rm sim.out
+
 mac_tb:
 	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/mac_tb.sv
 	vvp sim.out

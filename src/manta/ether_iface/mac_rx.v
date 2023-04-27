@@ -7,7 +7,7 @@ module mac_rx (
     input wire crsdv,
     input wire [1:0] rxd,
 
-    output reg [39:0] payload,
+    output reg [55:0] payload,
     output reg valid);
 
     parameter FPGA_MAC = 0;
@@ -46,7 +46,7 @@ module mac_rx (
         .axiov(firewall_axiov),
         .axiod(firewall_axiod));
 
-	reg [47:0] aggregate_axiod;
+	reg [55:0] aggregate_axiod;
 	reg aggregate_axiov;
 
 	aggregate a (
@@ -86,7 +86,7 @@ module mac_rx (
         else if(state == WAIT_FOR_DATA) begin
             if(aggregate_axiov) begin
                 state <= WAIT_FOR_FCS;
-                payload <= aggregate_axiod[31:0];
+                payload <= aggregate_axiod;
             end
 
             // if aggregate never gives us data,

@@ -9,7 +9,7 @@
  * nothing happens
  */
 
-`define AGR_MAX		48
+`define AGR_MAX		56
 `define AGR_SHOW	64
 
 module aggregate (
@@ -17,7 +17,7 @@ module aggregate (
 	input wire [1:0] axiid,
 	input wire axiiv,
 
-	output reg [47:0] axiod,
+	output reg [55:0] axiod,
 	output reg axiov);
 
 	/* A quick and dirty counter. As long as this is below

@@ -16,7 +16,7 @@ module ethernet_rx (
     parameter FPGA_MAC = 0;
     parameter ETHERTYPE = 0;
 
-    reg [39:0] payload;
+    reg [55:0] payload;
     reg valid;
 
     mac_rx #(
