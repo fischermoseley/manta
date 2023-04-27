@@ -1,8 +1,0 @@
----
-cores:
-  my_lut_ram:
-    type: lut_ram
-    size: 64
-
-ethernet:
-  interface: "en8"

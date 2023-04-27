@@ -26,13 +26,13 @@ module top_level (
     assign eth_refclk = clk_50mhz;
     divider d (.clk(clk), .ethclk(clk_50mhz));
 
-    assign led = manta_inst.brx_my_lut_ram_addr;
-    assign led16_r = manta_inst.brx_my_lut_ram_rw;
-    assign led17_r = manta_inst.brx_my_lut_ram_valid;
+    assign led = manta_inst.brx_my_lut_mem_addr;
+    assign led16_r = manta_inst.brx_my_lut_mem_rw;
+    assign led17_r = manta_inst.brx_my_lut_mem_valid;
 
     ssd ssd (
         .clk(clk_50mhz),
-        .val( {manta_inst.my_lut_ram_btx_rdata, manta_inst.brx_my_lut_ram_wdata} ),
+        .val( {manta_inst.my_lut_mem_btx_rdata, manta_inst.brx_my_lut_mem_wdata} ),
         .cat({cg,cf,ce,cd,cc,cb,ca}),
         .an(an));
 

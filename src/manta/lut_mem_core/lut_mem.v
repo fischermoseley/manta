@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-module lut_ram (
+module lut_mem (
     input wire clk,
 
     // input port

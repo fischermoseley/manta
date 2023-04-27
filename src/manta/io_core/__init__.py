@@ -1,4 +1,4 @@
-from .verilog_manipulator import *
+from ..hdl_utils import *
 
 class IOCoreProbe:
     def __init__(self, name, width, direction, base_addr, interface):
@@ -76,7 +76,7 @@ class IOCore:
 
 
     def hdl_inst(self):
-        inst = VerilogManipulator("io/io_core_inst_tmpl.v")
+        inst = VerilogManipulator("io_core/io_core_inst_tmpl.v")
         inst.sub(self.name, "/* MODULE_NAME */")
         inst.sub(self.name + "_inst", "/* INST_NAME */")
 
@@ -89,7 +89,7 @@ class IOCore:
 
 
     def hdl_def(self):
-        io_core = VerilogManipulator("io/io_core_def_tmpl.v")
+        io_core = VerilogManipulator("io_core/io_core_def_tmpl.v")
         io_core.sub(self.name, "/* MODULE_NAME */")
         io_core.sub(self.max_addr, "/* MAX_ADDR */")
 

@@ -1,0 +1,8 @@
+---
+cores:
+  my_lut_mem:
+    type: lut_mem
+    size: 64
+
+ethernet:
+  interface: "en3"

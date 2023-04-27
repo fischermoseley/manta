@@ -32,8 +32,8 @@ jobs:
       - name: Build logic_analyzer
         run: make nexys_a7_logic_analyzer
 
-      - name: Build lut_ram
-        run: make nexys_a7_lut_ram
+      - name: Build lut_mem
+        run: make nexys_a7_lut_mem
 
   icestick_examples:
     runs-on: ubuntu-latest
@@ -62,5 +62,5 @@ jobs:
     - name: Build io_core
       run: make icestick_io_core
 
-    - name: Build lut_ram
-      run: make icestick_lut_ram
+    - name: Build lut_mem
+      run: make icestick_lut_mem

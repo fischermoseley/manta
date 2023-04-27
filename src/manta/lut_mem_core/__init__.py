@@ -1,6 +1,6 @@
-from .verilog_manipulator import *
+from ..hdl_utils import *
 
-class LUTRAMCore:
+class LUTMemoryCore:
     def __init__(self, config, name, base_addr, interface):
         self.name = name
         self.base_addr = base_addr
@@ -19,13 +19,13 @@ class LUTRAMCore:
         self.max_addr = self.base_addr + self.size - 1
 
     def hdl_inst(self):
-        inst = VerilogManipulator("lut_ram/lut_ram_inst_tmpl.v")
+        inst = VerilogManipulator("lut_mem_core/lut_mem_inst_tmpl.v")
         inst.sub(self.size, "/* DEPTH */")
         inst.sub(self.name, "/* INST_NAME */")
         return inst.get_hdl()
 
     def hdl_def(self):
-        return VerilogManipulator("lut_ram/lut_ram.v").get_hdl()
+        return VerilogManipulator("lut_mem_core/lut_mem.v").get_hdl()
 
     def hdl_top_level_ports(self):
         # no top_level connections since this core just lives on the bus

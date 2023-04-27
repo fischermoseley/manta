@@ -42,7 +42,7 @@ For example, `M1234\r\n` specifies a read operation at address `0x1234` in the m
 
 ## Python API
 
-The Python API has two main purposes: to generate the Verilog required to instantiate debug cores on the FPGA, and to let the user easily interact with said cores. The exact Verilog and memory operations are dependent on the cores being configured and the interface between the host machine and the FPGA. This information is stored in a YAML (or JSON) configuration file, which is used to configure an instance of the `Manta` class. This maintains instances of `IOCore`, `LogicAnalyzerCore`, `LUTRAMCore`, and `BRAMCore` according to the given configuration.
+The Python API has two main purposes: to generate the Verilog required to instantiate debug cores on the FPGA, and to let the user easily interact with said cores. The exact Verilog and memory operations are dependent on the cores being configured and the interface between the host machine and the FPGA. This information is stored in a YAML (or JSON) configuration file, which is used to configure an instance of the `Manta` class. This maintains instances of `IOCore`, `LogicAnalyzerCore`, `LUTMemoryCore`, and `BRAMCore` according to the given configuration.
 
 ### Loading configuration
 
@@ -78,8 +78,8 @@ cores:
     triggers:
     - larry && curly && ~moe
 
-  my_lut_ram:
-    type: lut_ram
+  my_lut_mem:
+    type: lut_mem
     size: 64
 
 uart:
@@ -88,7 +88,7 @@ uart:
   clock_freq: 100000000
 ```
 
-For each core in the config file, an instance of the corresponding Python object is added to the `Manta` object. For instance, the `Manta` instance created by the configuration above will include an `IOCore`, a `LogicAnalyzerCore`, and a `LUTRAMCore`. Each Core object is instantiated by providing the appropriate section of the config file - for instance, the logic analyzer in the config above will be created by calling `LogicAnalyzerCore(foo)`, where `foo` is:
+For each core in the config file, an instance of the corresponding Python object is added to the `Manta` object. For instance, the `Manta` instance created by the configuration above will include an `IOCore`, a `LogicAnalyzerCore`, and a `LUTMemoryCore`. Each Core object is instantiated by providing the appropriate section of the config file - for instance, the logic analyzer in the config above will be created by calling `LogicAnalyzerCore(foo)`, where `foo` is:
 
 ```yaml
 my_logic_analyzer:

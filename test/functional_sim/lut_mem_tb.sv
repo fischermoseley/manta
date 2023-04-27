@@ -3,7 +3,7 @@
 `define CP 10
 `define HCP 5
 
-module lut_ram_tb;
+module lut_mem_tb;
     // https://www.youtube.com/watch?v=WCOAr-96bGc
 
     //boilerplate
@@ -17,7 +17,7 @@ module lut_ram_tb;
     logic tb_mem_1_rw;
     logic tb_mem_1_valid;
 
-    lut_ram #(
+    lut_mem #(
         .DEPTH(8),
         .BASE_ADDR(0)
     ) mem_1 (
@@ -42,7 +42,7 @@ module lut_ram_tb;
     logic mem_1_mem_2_rw;
     logic mem_1_mem_2_valid;
 
-    lut_ram #(
+    lut_mem #(
         .DEPTH(8),
         .BASE_ADDR(8)
     ) mem_2 (
@@ -67,7 +67,7 @@ module lut_ram_tb;
     logic mem_2_mem_3_rw;
     logic mem_2_mem_3_valid;
 
-    lut_ram #(
+    lut_mem #(
         .DEPTH(8),
         .BASE_ADDR(16)
     ) mem_3 (
@@ -98,8 +98,8 @@ module lut_ram_tb;
     end
 
     initial begin
-        $dumpfile("lut_ram.vcd");
-        $dumpvars(0, lut_ram_tb);
+        $dumpfile("lut_mem.vcd");
+        $dumpvars(0, lut_mem_tb);
 
         // setup and reset
         clk = 0;

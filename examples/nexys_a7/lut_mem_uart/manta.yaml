@@ -1,8 +1,8 @@
 ---
 cores:
-  my_lut_ram:
-    type: lut_ram 
-    size: 64 
+  my_lut_mem:
+    type: lut_mem
+    size: 64
 
 uart:
   port: "auto"

@@ -1,4 +1,4 @@
-lut_ram #(.DEPTH(/* DEPTH */)) /* INST_NAME */ (
+lut_mem #(.DEPTH(/* DEPTH */)) /* INST_NAME */ (
     .clk(clk),
 
     .addr_i(),
