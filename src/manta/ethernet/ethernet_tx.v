@@ -25,7 +25,7 @@ module ethernet_tx (
         .SRC_MAC(FPGA_MAC),
         .DST_MAC(HOST_MAC),
         .ETHERTYPE(ETHERTYPE),
-        .PAYLOAD_LENGTH_BYTES(2)
+        .PAYLOAD_LENGTH_BYTES(5)
     ) mtx (
         .clk(clk),
 

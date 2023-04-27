@@ -4,8 +4,8 @@ rx_uart #(.CLOCKS_PER_BAUD(/* CLOCKS_PER_BAUD */)) urx (
     .o_wr(urx_brx_axiv),
     .o_data(urx_brx_axid));
 
-logic [7:0] urx_brx_axid;
-logic urx_brx_axiv;
+reg [7:0] urx_brx_axid;
+reg urx_brx_axiv;
 
 bridge_rx brx (
     .clk(clk),

@@ -16,12 +16,12 @@ module ethernet_rx (
     parameter FPGA_MAC = 0;
     parameter ETHERTYPE = 0;
 
-    reg [31:0] data;
+    reg [39:0] payload;
     reg valid;
 
     mac_rx #(
-        .DST_MAC(48'h69_69_5A_06_54_91),
-        .ETHERTYPE(16'h88_B5)
+        .FPGA_MAC(FPGA_MAC),
+        .ETHERTYPE(ETHERTYPE)
     ) mrx (
         .clk(clk),
 
@@ -29,13 +29,12 @@ module ethernet_rx (
         .rxd(rxd),
 
         .payload(payload),
-        .length(length)
         .valid(valid));
 
+        assign rw_o = (payload[39:32] == 8'd1);
         assign addr_o = payload[31:16];
         assign wdata_o = payload[15:0];
-        assign rw_o = (length == 4);
-        assign valid_o = valid && ((length == 4) || (length == 2));
+        assign valid_o = valid && ( payload[39:32] == 8'd0 || payload[39:32] == 8'd1);
 
 endmodule
 

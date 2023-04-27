@@ -20,6 +20,10 @@ class Manta:
         # set interface
         if "uart" in config:
             self.interface = UARTInterface(config["uart"])
+
+        elif "ethernet" in config:
+            self.interface = EthernetInterface(config["ethernet"])
+
         else:
             raise ValueError("Unrecognized interface specified.")
 

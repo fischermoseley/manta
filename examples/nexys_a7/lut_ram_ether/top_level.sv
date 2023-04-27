@@ -3,10 +3,6 @@
 
 module top_level (
 	input wire clk,
-    input wire btnc,
-    input wire btnd,
-
-    input wire [15:0] sw,
 
     output logic [15:0] led,
     output logic ca, cb, cc, cd, ce, cf, cg,
@@ -22,13 +18,9 @@ module top_level (
     input wire [1:0] eth_rxd,
 
     output reg eth_txen,
-    output reg [1:0] eth_txd,
+    output reg [1:0] eth_txd);
 
-	input wire uart_txd_in,
-	output logic uart_rxd_out
-	);
-
-    assign eth_rstn = ~btnc;
+    assign eth_rstn = 1;
 
     logic clk_50mhz;
     assign eth_refclk = clk_50mhz;
