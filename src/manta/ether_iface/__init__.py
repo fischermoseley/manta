@@ -1,15 +1,16 @@
 from ..hdl_utils import *
 
+# Lazy and selective imports for quick builds!
+from scapy.interfaces import get_if_list
+from scapy.arch import get_if_hwaddr
+from scapy.layers.l2 import Ether
+from scapy.sendrecv import AsyncSniffer, sendp, sendpfast
+from time import sleep
+
+from scapy.all import *
+
 class EthernetInterface:
     def __init__(self, config):
-
-        # Lazy and selective imports for quick builds!
-        from scapy.interfaces import get_if_list
-        from scapy.arch import get_if_hwaddr
-        from scapy.layers.l2 import Ether
-        from scapy.sendrecv import AsyncSniffer, sendp, sendpfast
-        from time import sleep
-
         # Warn if unrecognized options have been given
         for option in config:
             if option not in ["interface", "host_mac", "fpga_mac", "ethertype", "tcpreplay", "verbose"]:
@@ -81,7 +82,7 @@ class EthernetInterface:
 
         assert len(results) == 1, "Received more packets than expected!"
 
-        raw_response_bytes = bytes(results[0].payload)[0:2]
+        raw_response_bytes = bytes(results[0].payload)[3:5]
         return int.from_bytes(raw_response_bytes, 'big')
 
     def write_register(self, addr, data):
@@ -99,61 +100,69 @@ class EthernetInterface:
         pkt.load = msg
         self.send_packet(pkt, iface=self.iface, verbose = self.verbose)
 
-    # def read_batch(addrs):
-    #     pkts = []
-    #     for addr in addrs:
-    #         pkt = Ether()
-    #         pkt.src = src_mac
-    #         pkt.dst = dst_mac
-    #         pkt.type = 0x0002
+    def read_batch(self, addrs):
+        # Prepare packets to read from addresses
+        pkts = []
+        for addr in addrs:
+            pkt = Ether()
+            pkt.src = self.host_mac
+            pkt.dst = self.fpga_mac
+            pkt.type = self.ethertype
 
-    #         # two bytes of address, and 44 of padding
-    #         # makes the 46 byte minimum length
-    #         msg = addr.to_bytes(2, 'big') + 44*b'\x00'
+            # one byte of rw, two bytes of address, and 44 of padding
+            # makes the 46 byte minimum length
+            msg = b'\x00' + addr.to_bytes(2, 'big') + 43*b'\x00'
 
-    #         pkt = pkt / msg
-    #         pkt.load = msg
-    #         pkts.append(pkt)
+            pkt = pkt / msg
+            pkt.load = msg
+            pkts.append(pkt)
 
-    #     sniffer = AsyncSniffer(iface = iface, count = len(addrs), filter="ether src 69:69:5a:06:54:91")
-    #     sniffer.start()
-    #     from time import sleep
-    #     time.sleep(0.1)
+        # Start sniffer in another thread, send packets, grab responses
+        sniffer = AsyncSniffer(iface = self.iface, count = len(addrs), filter=f"ether src {self.fpga_mac}")
+        sniffer.start()
+        sleep(0.1)
+        sendp(pkts, iface=self.iface, verbose = 0, inter = 0.05)
+        sniffer.join()
+        results = sniffer.results
 
-    #     sendp(pkts, iface=iface, verbose = 0)
-    #     sniffer.join()
-    #     results = sniffer.results
+        assert len(results) == len(addrs), "Received more packets than expected!"
 
-    #     assert len(results) == len(addrs), "Received more packets than expected!"
+        # #print(raw(results[1]))
+        # for packet in results:
+        #     hexdump(packet)
+        #     print( [i for i in bytes(packet.payload)] )
+        #     print( [i for i in raw(packet)] )
+        #     print("\n")
 
-    #     datas = []
-    #     for packet in results:
-    #         raw_response_bytes = bytes(packet.payload)[0:2]
-    #         data = int.from_bytes(raw_response_bytes, 'big')
-    #         datas.append(data)
+        # Parse packets
+        datas = []
+        for packet in results:
+            raw_response_bytes = bytes(packet.payload)[3:5]
+            data = int.from_bytes(raw_response_bytes, 'big')
+            datas.append(data)
 
-    #     return datas
+        return datas
 
-    # def write_batch(addrs, data):
-    #     pkts = []
-    #     for i in range(len(addrs)):
-    #         pkt = Ether()
-    #         pkt.src = src_mac
-    #         pkt.dst = dst_mac
-    #         pkt.type = 0x0002
+    def write_batch(self, addrs, datas):
+        assert len(addrs) == len(datas), \
+            "Number of addresses provided is unequal to number of data provided!"
 
-    #         addr = addrs[i]
-    #         data = datas[i]
+        pkts = []
+        for addr, data in zip(addrs, datas):
+            pkt = Ether()
+            pkt.src = self.host_mac
+            pkt.dst = self.fpga_mac
+            pkt.type = self.ethertype
 
-    #         # two bytes of address, two bytes of
-    #         # data, and 42 of padding makes the 46 byte
-    #         # minimum length
-    #         msg = addr.to_bytes(2, 'big') + data.to_bytes(2, 'big') + 42*b'\x00'
+            # one byte of rw, two bytes of address, two bytes of data, and 41
+            # bytes of paddding make the 46 byte limit.
+            msg = b'\x01' + addr.to_bytes(2, 'big') + data.to_bytes(2, 'big') + 41*b'\x00'
 
-    #         pkt = pkt / msg
-    #         pkt.load = msg
+            pkt = pkt / msg
+            pkt.load = msg
+            pkts.append(pkt)
 
-    # sendp(pkts, iface=iface, verbose = 0)
+        self.send_packet(pkts, iface=self.iface, verbose = 0)
 
     def hdl_top_level_ports(self):
         return ["input wire crsdv", \

@@ -5,4 +5,4 @@ cores:
     size: 64
 
 ethernet:
-  interface: "en3"
+  interface: "en8"

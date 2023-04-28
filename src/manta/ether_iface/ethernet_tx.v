@@ -29,7 +29,7 @@ module ethernet_tx (
     ) mtx (
         .clk(clk),
 
-        .payload(rdata_buf),
+        .payload({24'd0, rdata_buf}),
         .start(~rw_i && valid_i),
 
         .txen(txen),
