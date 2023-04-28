@@ -34,7 +34,7 @@ module ethernet_rx (
         assign rw_o = (payload[39:32] == 8'd1);
         assign addr_o = payload[31:16];
         assign wdata_o = payload[15:0];
-        assign valid_o = valid && ( payload[39:32] == 8'd0 || payload[39:32] == 8'd1);
+        assign valid_o = valid && ( payload[39:32] == 8'd0 || payload[39:32] == 8'd1) && (payload[55:40] == 16'h88B5);
 
 endmodule
 

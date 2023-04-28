@@ -26,15 +26,7 @@ module top_level (
     assign eth_refclk = clk_50mhz;
     divider d (.clk(clk), .ethclk(clk_50mhz));
 
-    assign led = manta_inst.brx_my_lut_mem_addr;
-    assign led16_r = manta_inst.brx_my_lut_mem_rw;
-    assign led17_r = manta_inst.brx_my_lut_mem_valid;
 
-    ssd ssd (
-        .clk(clk_50mhz),
-        .val( {manta_inst.my_lut_mem_btx_rdata, manta_inst.brx_my_lut_mem_wdata} ),
-        .cat({cg,cf,ce,cd,cc,cb,ca}),
-        .an(an));
 
     manta manta_inst (
         .clk(clk_50mhz),
@@ -43,6 +35,25 @@ module top_level (
         .rxd(eth_rxd),
         .txen(eth_txen),
         .txd(eth_txd));
+
+    // debugging!
+    initial led17_r = 0;
+    reg [31:0] val = 0;
+
+    always @(posedge clk_50mhz) begin
+        if(manta_inst.my_lut_mem.valid_o) begin
+            led <= manta_inst.my_lut_mem.addr_o;
+            led16_r <= manta_inst.my_lut_mem.rw_o;
+            led17_r <= !led17_r;
+            val <= {manta_inst.my_lut_mem.rdata_o, manta_inst.my_lut_mem.wdata_o};
+        end
+    end
+
+    ssd ssd (
+        .clk(clk_50mhz),
+        .val(val),
+        .cat({cg,cf,ce,cd,cc,cb,ca}),
+        .an(an));
 
 
 endmodule
