@@ -253,7 +253,7 @@ class LogicAnalyzerCore:
 
         # reset all the other triggers
         for addr in range(self.trigger_block_base_addr, self.block_memory_base_addr):
-            self.interface.write_register(addr, 0)
+            self.interface.write(addr, 0)
 
         for trigger in self.triggers:
             # determine if the trigger is good
@@ -268,7 +268,7 @@ class LogicAnalyzerCore:
 
                 op_register = 2*(list(self.probes.keys()).index(probe_name)) + self.trigger_block_base_addr
 
-                self.interface.write_register(op_register, operations[op])
+                self.interface.write(op_register, operations[op])
 
             else:
                 assert len(statement) == 3, "Missing information in trigger statement."
@@ -277,8 +277,8 @@ class LogicAnalyzerCore:
                 op_register = 2*(list(self.probes.keys()).index(probe_name)) + self.trigger_block_base_addr
                 arg_register = op_register + 1
 
-                self.interface.write_register(op_register, operations[op])
-                self.interface.write_register(arg_register, int(arg))
+                self.interface.write(op_register, operations[op])
+                self.interface.write(arg_register, int(arg))
 
 
 
@@ -288,12 +288,12 @@ class LogicAnalyzerCore:
         # request to stop the existing capture
 
         print(" -> Resetting core...")
-        state = self.interface.read_register(self.state_reg_addr)
+        state = self.interface.read(self.state_reg_addr)
         if state != self.IDLE:
-            self.interface.write_register(self.request_stop_reg_addr, 0)
-            self.interface.write_register(self.request_stop_reg_addr, 1)
+            self.interface.write(self.request_stop_reg_addr, 0)
+            self.interface.write(self.request_stop_reg_addr, 1)
 
-            state = self.interface.read_register(self.state_reg_addr)
+            state = self.interface.read(self.state_reg_addr)
             assert state == self.IDLE, "Logic analyzer did not reset to correct state when requested to."
 
         # Configure trigger conditions
@@ -302,32 +302,32 @@ class LogicAnalyzerCore:
 
         # Configure the trigger_mode
         print(" -> Setting trigger mode")
-        self.interface.write_register(self.trigger_mode_reg_addr, self.trigger_mode)
+        self.interface.write(self.trigger_mode_reg_addr, self.trigger_mode)
 
         # Configure the trigger_loc
         print(" -> Setting trigger location...")
-        self.interface.write_register(self.trigger_loc_reg_addr, self.trigger_loc)
+        self.interface.write(self.trigger_loc_reg_addr, self.trigger_loc)
 
         # Start the capture by pulsing request_start
         print(" -> Starting capture...")
-        self.interface.write_register(self.request_start_reg_addr, 1)
-        self.interface.write_register(self.request_start_reg_addr, 0)
+        self.interface.write(self.request_start_reg_addr, 1)
+        self.interface.write(self.request_start_reg_addr, 0)
 
         # Wait for core to finish capturing data
         print(" -> Waiting for capture to complete...")
-        state = self.interface.read_register(self.state_reg_addr)
+        state = self.interface.read(self.state_reg_addr)
         while(state != self.CAPTURED):
-            state = self.interface.read_register(self.state_reg_addr)
+            state = self.interface.read(self.state_reg_addr)
 
         # Read out contents from memory
         print(" -> Reading sample memory contents...")
         addrs = list(range(self.block_memory_base_addr, self.max_addr))
-        block_mem_contents = self.interface.read_registers(addrs)
+        block_mem_contents = self.interface.reads(addrs)
 
         # Revolve BRAM contents around so the data pointed to by the read_pointer
         # is at the beginning
         print(" -> Reading read_pointer and revolving memory...")
-        read_pointer = self.interface.read_register(self.read_pointer_reg_addr)
+        read_pointer = self.interface.read(self.read_pointer_reg_addr)
         return block_mem_contents[read_pointer:] + block_mem_contents[:read_pointer]
 
 
