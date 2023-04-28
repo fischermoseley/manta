@@ -47,11 +47,19 @@ class EthernetInterface:
             self.ethertype = int(config["ethertype"], 16)
 
         # Set whether we use tcpreplay for faster packet blasting
-        self.send_packet = sendp
         if "tcpreplay" in config:
             assert isinstance(config["tcpreplay"], bool), \
                 "tcpreplay configuration option must be boolean!"
-            self.send_packet = sendpfast if config["tcpreplay"] else sendp
+
+            if config["tcpreplay"]:
+                self.send_packets = lambda p: sendpfast(p, iface=self.iface)
+
+            else:
+                self.send_packets = lambda p: sendp(p, iface=self.iface, verbose=0)
+
+        else:
+            self.send_packets = lambda p: sendp(p, iface=self.iface, verbose=0)
+
 
         self.verbose = False
         if "verbose" in config:
@@ -59,51 +67,22 @@ class EthernetInterface:
                 "verbose configuration option must be boolean!"
             self.verbose = config["verbose"]
 
-    def read_register(self, addr):
-        pkt = Ether()
-        pkt.src = self.host_mac
-        pkt.dst = self.fpga_mac
-        pkt.type = self.ethertype
+    def read(self, addr):
+        # Perform type checks, output list of addresses
+        if isinstance(addr, int):
+            addrs = [addr]
 
-        # one byte of rw, two bytes of address, and 44 of padding
-        # makes the 46 byte minimum length
-        msg = b'\x00' + addr.to_bytes(2, 'big') + 43*b'\x00'
+        elif isinstance(addr, list):
+            assert all(isinstance(a, int) for a in addr), \
+                "Read addresses must be integer or list of integers."
+            addrs = addr
 
-        pkt = pkt / msg
-        pkt.load = msg
+        else:
+            raise ValueError("Read addresses must be integer or list of integers.")
 
-        sniffer = AsyncSniffer(iface = self.iface, filter=f"ether src {self.fpga_mac}")
-        sniffer.start()
-        sleep(0.1)
-
-        self.send_packet(pkt, iface=self.iface, verbose = 0)
-
-        results = sniffer.stop()
-
-        assert len(results) == 1, "Received more packets than expected!"
-
-        raw_response_bytes = bytes(results[0].payload)[3:5]
-        return int.from_bytes(raw_response_bytes, 'big')
-
-    def write_register(self, addr, data):
-        pkt = Ether()
-        pkt.src = self.host_mac
-        pkt.dst = self.fpga_mac
-        pkt.type = self.ethertype
-
-        # one byte of rw, two bytes of address, two bytes of
-        # data, and 42 of padding makes the 46 byte
-        # minimum length
-        msg = b'\x01' + addr.to_bytes(2, 'big') + data.to_bytes(2, 'big') + 41*b'\x00'
-
-        pkt = pkt / msg
-        pkt.load = msg
-        self.send_packet(pkt, iface=self.iface, verbose = self.verbose)
-
-    def read_batch(self, addrs):
-        # Prepare packets to read from addresses
-        pkts = []
-        for addr in addrs:
+        # Prepare packets with read requests
+        request_pkts = []
+        for a in addrs:
             pkt = Ether()
             pkt.src = self.host_mac
             pkt.dst = self.fpga_mac
@@ -111,58 +90,73 @@ class EthernetInterface:
 
             # one byte of rw, two bytes of address, and 44 of padding
             # makes the 46 byte minimum length
-            msg = b'\x00' + addr.to_bytes(2, 'big') + 43*b'\x00'
+            msg = b'\x00' + a.to_bytes(2, 'big') + 43*b'\x00'
 
             pkt = pkt / msg
             pkt.load = msg
-            pkts.append(pkt)
+            request_pkts.append(pkt)
 
         # Start sniffer in another thread, send packets, grab responses
         sniffer = AsyncSniffer(iface = self.iface, count = len(addrs), filter=f"ether src {self.fpga_mac}")
         sniffer.start()
-        sleep(0.1)
-        sendp(pkts, iface=self.iface, verbose = 0, inter = 0.05)
+        sleep(0.5)
+        self.send_packets(request_pkts)
         sniffer.join()
-        results = sniffer.results
+        response_pkts = sniffer.results
+        assert len(response_pkts) == len(request_pkts), "Received wrong number of packets!"
 
-        assert len(results) == len(addrs), "Received more packets than expected!"
+        # Get read data by pulling bytes 3 and 4 from the returned packets
+        # payload, and interpreting it as big endian
+        get_read_data = lambda x: int.from_bytes(bytes(x.payload)[3:5], 'big')
+        read_data = [get_read_data(pkt) for pkt in response_pkts]
 
-        # #print(raw(results[1]))
-        # for packet in results:
-        #     hexdump(packet)
-        #     print( [i for i in bytes(packet.payload)] )
-        #     print( [i for i in raw(packet)] )
-        #     print("\n")
+        if len(read_data) == 1:
+            return read_data[0]
 
-        # Parse packets
-        datas = []
-        for packet in results:
-            raw_response_bytes = bytes(packet.payload)[3:5]
-            data = int.from_bytes(raw_response_bytes, 'big')
-            datas.append(data)
+        else:
+            return read_data
 
-        return datas
+    def write(self, addr, data):
+        # Perform type checks, output list of addresses
+        if isinstance(addr, int):
+            assert isinstance(data, int), \
+                "Data must also be integer if address is integer."
+            addrs = [addr]
+            datas = [data]
 
-    def write_batch(self, addrs, datas):
-        assert len(addrs) == len(datas), \
-            "Number of addresses provided is unequal to number of data provided!"
+        elif isinstance(addr, list):
+            assert all(isinstance(a, int) for a in addr), \
+                "Write addresses must be integer or list of integers."
 
-        pkts = []
-        for addr, data in zip(addrs, datas):
+            assert all(isinstance(d, int) for d in data), \
+                "Write data must be integer or list of integers."
+
+            assert len(addr) == len(data), \
+                "There must be equal number of write addresses and data."
+
+            addrs = addr
+            datas = data
+
+        else:
+            raise ValueError("Write addresses and data must be integer or list of integers.")
+
+        # Prepare packets with write requests
+        request_pkts = []
+        for a, d in zip(addrs, datas):
             pkt = Ether()
             pkt.src = self.host_mac
             pkt.dst = self.fpga_mac
             pkt.type = self.ethertype
 
-            # one byte of rw, two bytes of address, two bytes of data, and 41
-            # bytes of paddding make the 46 byte limit.
-            msg = b'\x01' + addr.to_bytes(2, 'big') + data.to_bytes(2, 'big') + 41*b'\x00'
+            # one byte of rw, two bytes of address, two bytes of data, and 42 of padding
+            # makes the 46 byte minimum length
+            msg = b'\x01' + a.to_bytes(2, 'big') + d.to_bytes(2, 'big') + 41*b'\x00'
 
             pkt = pkt / msg
             pkt.load = msg
-            pkts.append(pkt)
+            request_pkts.append(pkt)
 
-        self.send_packet(pkts, iface=self.iface, verbose = 0)
+        self.send_packets(request_pkts)
 
     def hdl_top_level_ports(self):
         return ["input wire crsdv", \

@@ -82,34 +82,19 @@ class UARTInterface:
 
         return int(response_str[1:5], 16)
 
-    def read_register(self, addr):
-        self.open_port_if_not_alredy_open()
 
-        # request from the bus
-        request = f"M{addr:04X}\r\n".encode('ascii')
-        self.ser.write(request)
+    def read(self, addr):
+        # Perform type checks, output list of addresses
+        if isinstance(addr, int):
+            addrs = [addr]
 
-        # read and parse the response
-        data = self.decode_response(self.ser.read(7))
+        elif isinstance(addr, list):
+            assert all(isinstance(a, int) for a in addr), \
+                "Read addresses must be integer or list of integers."
+            addrs = addr
 
-        if self.verbose:
-            print(f"read {data:04X} from {addr:04X}")
-
-        return data
-
-    def write_register(self, addr, data):
-        self.open_port_if_not_alredy_open()
-
-        # request from the bus
-        request = f"M{addr:04X}{data:04X}\r\n".encode('ascii')
-        self.ser.write(request)
-
-        if self.verbose:
-            print(f"wrote {data:04X} to {addr:04X}")
-
-    def read_registers(self, addrs):
-        assert isinstance(addrs, list), "Read addresses must be list of integers."
-        assert all(isinstance(addr, int) for addr in addrs), "Read addresses must be list of integers."
+        else:
+            raise ValueError("Read addresses must be integer or list of integers.")
 
         # send data in chunks because the reponses will fill up the OS's
         # input buffer in no time flat
@@ -131,16 +116,37 @@ class UARTInterface:
             response = inbound_bytes[i:i+7]
             data.append(self.decode_response(response))
 
-        return data
+        if len(data) == 1:
+            return data[0]
 
-    def write_registers(self, addrs, datas):
-        assert isinstance(addrs, list), "Write addresses must be list of integers."
-        assert isinstance(datas, list), "Write data must be list of integers."
-        assert all(isinstance(addr, int) for addr in addrs), "Write addresses must be list of integers."
-        assert all(isinstance(data, int) for data in datas), "Write data must be list of integers."
-        assert len(addrs) == len(datas), "Write addresses and write data must be of same length."
+        else:
+            return data
 
-        # send data in chunks because the responses will fill up the OS's
+    def write(self, addr, data):
+        # Perform type checks, output list of addresses
+        if isinstance(addr, int):
+            assert isinstance(data, int), \
+                "Data must also be integer if address is integer."
+            addrs = [addr]
+            datas = [data]
+
+        elif isinstance(addr, list):
+            assert all(isinstance(a, int) for a in addr), \
+                "Write addresses must be integer or list of integers."
+
+            assert all(isinstance(d, int) for d in data), \
+                "Write data must be integer or list of integers."
+
+            assert len(addr) == len(data), \
+                "There must be equal number of write addresses and data."
+
+            addrs = addr
+            datas = data
+
+        else:
+            raise ValueError("Write addresses and data must be integer or list of integers.")
+
+        # send data in chunks because the reponses will fill up the OS's
         # input buffer in no time flat
         self.open_port_if_not_alredy_open()
 
@@ -157,7 +163,6 @@ class UARTInterface:
 
     def hdl_top_level_ports(self):
         # this should return the probes that we want to connect to top-level, but like as a string of verilog
-
         return ["input wire rx", "output reg tx"]
 
     def rx_hdl_def(self):

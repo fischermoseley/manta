@@ -7,5 +7,3 @@ cores:
 
 ethernet:
   interface: "en8"
-  turbo_super_sonic_fast_hedgehog_mode: true
-  tcpreplay: true

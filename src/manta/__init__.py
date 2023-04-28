@@ -1,7 +1,5 @@
 # Internal Dependencies
 from .hdl_utils import *
-from .uart_iface import *
-from .ether_iface import *
 from .la_core import *
 from .io_core import *
 from .block_mem_core import *
@@ -19,9 +17,11 @@ class Manta:
 
         # set interface
         if "uart" in config:
+            from .uart_iface import UARTInterface
             self.interface = UARTInterface(config["uart"])
 
         elif "ethernet" in config:
+            from .ether_iface import EthernetInterface
             self.interface = EthernetInterface(config["ethernet"])
 
         else:

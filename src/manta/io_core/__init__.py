@@ -24,7 +24,7 @@ class IOCoreProbe:
         self.interface.write_register(self.base_addr, data)
 
     def get(self):
-        return self.interface.read_register(self.base_addr)
+        return self.interface.read(self.base_addr)
 
 class IOCore:
     def __init__(self, config, name, base_addr, interface):

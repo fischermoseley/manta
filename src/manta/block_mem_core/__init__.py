@@ -61,8 +61,17 @@ class BlockMemoryCore:
         tlp.append(f"input wire {self.name}_we")
         return tlp
 
+    def get_physical_addr(self, addr):
+        if isinstance(addr, int):
+            return addr + self.base_addr
+
+        elif isinstance(addr, list):
+            return [a + self.base_addr for a in addr]
+
+        raise ValueError("Read address must be integer or list of integers.")
+
     def read(self, addr):
-        return self.interface.read_register(addr + self.base_addr)
+        return self.interface.read(self.get_physical_addr(addr))
 
     def write(self, addr, data):
-        return self.interface.write_register(addr + self.base_addr, data)
+        return self.interface.write(self.get_physical_addr(addr), data)
