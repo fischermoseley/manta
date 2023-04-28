@@ -86,7 +86,7 @@ bridge_tx_tb:
 	rm sim.out
 
 lut_mem_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/lut_mem_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta/lut_mem_core test/functional_sim/lut_mem_tb.sv
 	vvp sim.out
 	rm sim.out
 
