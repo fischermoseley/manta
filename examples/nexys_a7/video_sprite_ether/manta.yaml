@@ -1,0 +1,11 @@
+---
+cores:
+  image_mem:
+    type: block_mem
+    width: 12
+    depth: 16384
+
+ethernet:
+  interface: "en8"
+  turbo_super_sonic_fast_hedgehog_mode: true
+  tcpreplay: true
