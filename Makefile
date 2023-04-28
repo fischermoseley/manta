@@ -32,7 +32,7 @@ auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Functional Simulation
-functional_sim: io_core_tb logic_analyzer_tb bit_fifo_tb bridge_rx_tb bridge_tx_tb lut_mem_tb
+functional_sim: io_core_tb logic_analyzer_tb bridge_rx_tb bridge_tx_tb lut_mem_tb
 
 ethernet_tx_tb:
 	iverilog -g2012 -o sim.out -y src/manta/ether_iface test/functional_sim/ethernet_tx_tb.sv
@@ -68,20 +68,13 @@ logic_analyzer_tb:
 	vvp sim.out; 												\
 	rm sim.out
 
-bit_fifo_tb:
-	iverilog -g2012 -o sim.out -y src/manta 		\
-	test/functional_sim/bit_fifo_tb/bit_fifo_tb.sv 	\
-	test/functional_sim/bit_fifo_tb/bit_fifo.v
-	vvp sim.out
-	rm sim.out
-
 bridge_rx_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/bridge_rx_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta/uart_iface test/functional_sim/bridge_rx_tb.sv
 	vvp sim.out
 	rm sim.out
 
 bridge_tx_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/bridge_tx_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta/uart_iface test/functional_sim/bridge_tx_tb.sv
 	vvp sim.out
 	rm sim.out
 
