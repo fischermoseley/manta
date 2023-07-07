@@ -7,13 +7,13 @@ Manta is a tool for getting information into and out of FPGAs over an interface 
 
 You might find Manta useful for:
 
-* Verifying specification adherence for connected hardware - your I2S decoder works in simulation, but doesn't in hardware. Manta will help you figure out why.
+* _Verifying specification adherence for connected hardware_ - your I2S decoder works in simulation, but doesn't in hardware. Manta will help you figure out why.
 
-* Moving generic data between a host and connected FPGA - you're working on a cool new ML accerleator, but you don't want to think about how to get training data and weights out of TensorFlow, across some interface, and into your core.
+* _Moving generic data between a host and connected FPGA_ - you're working on a cool new ML accerleator, but you don't want to think about how to get training data and weights out of TensorFlow, across some interface, and into your core.
 
-* Prototyping designs in Python, and incrementally migrating them to hardware. You're working on some real-time signal processing, but you want to prototype it with some sample data in numpy before meticulously implementing everything in Verilog.
+* _Prototyping designs in Python, and incrementally migrating them to hardware_ - you're working on some real-time signal processing, but you want to prototype it with some sample data in Numpy before meticulously implementing everything in Verilog.
 
-Manta is written in Python, and generates Verilog-2001 HDL. It's cross-platform, and its only strict dependencies are pySerial and pyYAML. However, pyvcd is required if you want to export a waveform from the Logic Analyzer core to a `.vcd` file.
+Mant is written in Python, and generates Verilog-2001 HDL. It's cross-platform, and its only strict dependency is pyYAML. However, [pySerial](https://github.com/pyserial/pyserial) is required for using UART, [scapy](https://github.com/secdev/scapy) is required for using Ethernet, and [pyvcd](https://github.com/westerndigitalcorporation/pyvcd) is required if you want to export a waveform from the Logic Analyzer core to a `.vcd` file.
 
 ## Cores
 
@@ -23,15 +23,13 @@ Manta includes a few cores, configurable to your liking:
 
 * __I/O Core__: This exposes a number of probes that can be read or set, allowing for signals inside the FPGA to be monitored and controlled by the host machine. This is similar to Xilinx's [Virtual IO](https://docs.xilinx.com/v/u/en-US/pg159-vio) core.
 
-* __LUT RAM__ and __BRAM Cores__: Under the hood, Manta is just a bunch of modules sharing a common address and data bus, so cores that add Block RAM and LUT RAM to said bus are also available. More information on this bus configuration is on the [How it Works](how_it_works) page.
+* __LUT Memory__ and __Block Memory Cores__: Under the hood, Manta is just a bunch of memory-mapped modules sharing a common address and data bus, so adding memory of either type to the bus is straightforward. Block memories are dual-port, so interfacing with them in your own HDL is incredibly easy.
 
-These are more explicity described on their individual pages.
+These cores are more explicity described on their individual pages.
 
 ## Design Philosophy
 
 * _Things that are easy to misconfigure should be easy to reconfigure_. For instance, it's easy to accidentally put the wrong amount of holdoff in a logic analyzer core and shouldn't require regenerating a bitstream to fix.
-
-* _Don't use macros._ There's a possibility that they'll conflict with something in user code.
 
 * _Autogenerate Verilog 2001 for compatibility._ However, some SystemVerilog 2012 is used for simulation and test.
 
