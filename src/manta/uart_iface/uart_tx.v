@@ -4,65 +4,54 @@
 module uart_tx (
 	input wire clk,
 
-	input wire [7:0] data,
-	input wire valid,
-	output reg busy,
-	output reg ready,
+	input wire [7:0] data_i,
+	input wire start_i,
+	output reg done_o,
 
 	output reg tx);
 
-	// this transmitter only works with 8N1 serial, at configurable baudrate
-	parameter CLOCKS_PER_BAUD = 868;
+	// this module supports only 8N1 serial at a configurable baudrate
+	parameter CLOCKS_PER_BAUD = 0;
+	reg [$clog2(CLOCKS_PER_BAUD)-1:0] baud_counter = 0;
 
-	reg [9:0] baud_counter;
-	reg [8:0] data_buf;
-	reg [3:0] bit_index;
+	reg [8:0] buffer = 0;
+	reg [3:0] bit_index = 0;
 
-	initial begin
-		baud_counter = CLOCKS_PER_BAUD;
-		data_buf = 0;
-		bit_index = 0;
-		busy = 0;
-		ready = 1;
-		tx = 1;
-	end
+	initial done_o = 1;
+	initial tx = 1;
 
 	always @(posedge clk) begin
-		if (valid && !busy) begin
-			data_buf <= {1'b1, data};
-			bit_index <= 0;
-			tx <= 0; //wafflestomp that start bit
+		if (start_i && done_o) begin
 			baud_counter <= CLOCKS_PER_BAUD - 1;
-			busy <= 1;
-			ready <= 0;
+			buffer <= {1'b1, data_i};
+			bit_index <= 0;
+			done_o <= 0;
+			tx <= 0;
 		end
 
-		else if (busy) begin
+		else if (!done_o) begin
 			baud_counter <= baud_counter - 1;
+			done_o <= (baud_counter == 1) && (bit_index == 9);
 
-			ready <= (baud_counter == 1) && (bit_index == 9);
-
+			// a baud period has elapsed
 			if (baud_counter == 0) begin
 				baud_counter <= CLOCKS_PER_BAUD - 1;
 
+				// clock out another bit if there are any left
+				if (bit_index < 9) begin
+					tx <= buffer[bit_index];
+					bit_index <= bit_index + 1;
+				end
 
-				if (bit_index == 9) begin
-					if(valid) begin
-						data_buf <= {1'b1, data};
+				// byte has been sent, send out next one or go to idle
+				else begin
+					if(start_i) begin
+						buffer <= {1'b1, data_i};
 						bit_index <= 0;
 						tx <= 0;
 					end
 
-					else begin
-						busy <= 0;
-						ready <= 1;
-					end
-					// if valid happens here then we should bool
-				end
-
-				else begin
-					tx <= data_buf[bit_index];
-					bit_index <= bit_index + 1;
+					else done_o <= 1;
 				end
 			end
 		end

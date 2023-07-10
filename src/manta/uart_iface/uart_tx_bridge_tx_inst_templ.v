@@ -1,23 +1,23 @@
 bridge_tx btx (
     .clk(clk),
 
-    .rdata_i(),
+    .data_i(),
     .rw_i(),
     .valid_i(),
 
-    .ready_i(utx_btx_ready),
     .data_o(btx_utx_data),
-    .valid_o(btx_utx_valid));
+    .start_o(btx_utx_start),
+    .done_i(utx_btx_done));
 
-logic utx_btx_ready;
-logic btx_utx_valid;
-logic [7:0] btx_utx_data;
+reg [7:0] btx_utx_data;
+reg btx_utx_start;
+reg utx_btx_done;
 
 uart_tx #(.CLOCKS_PER_BAUD(/* CLOCKS_PER_BAUD */)) utx (
     .clk(clk),
 
-    .data(btx_utx_data),
-    .valid(btx_utx_valid),
-    .ready(utx_btx_ready),
+    .data_i(btx_utx_data),
+    .start_i(btx_utx_start),
+    .done_o(utx_btx_done),
 
     .tx(tx));

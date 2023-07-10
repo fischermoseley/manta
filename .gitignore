@@ -24,3 +24,6 @@ manta.v
 dist/
 *.egg-info
 __pycache__/
+
+# Verilator outputs
+obj_dir/
