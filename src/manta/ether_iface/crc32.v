@@ -28,7 +28,7 @@ module crc32(
 	output reg axiov,
 	output reg [31:0] axiod);
 
-	logic[31:0] caxiod, saxiod;
+	reg [31:0] caxiod, saxiod;
 	initial caxiod = 32'hFFFF_FFFF;
 	integer i;
 

@@ -20,12 +20,12 @@ module firewall (
 	/* Buffers to hold our MAC address in the reverse order,
 	 * to make comparison easier than it otherwise would be
 	 */
-	logic[0:47] me;
+	reg [0:47] me;
 
 	/* A counter, to determine whether we should be comparing
 	 * with a MAC address or stripping off data
 	 */
-	logic[31:0] counter;
+	reg [31:0] counter;
 
 	/* An internal set of flags to mark whether the currently
 	 * traversing packet is valid, i.e we should forward data,
@@ -36,7 +36,7 @@ module firewall (
 	 * destination MAC finishes rolling through, the packet
 	 * is forwarded.
 	 */
-	logic matchme, matchbcast;
+	reg matchme, matchbcast;
 
 	assign me = FPGA_MAC;
 
