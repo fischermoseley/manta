@@ -1,0 +1,11 @@
+---
+cores:
+  mem:
+    type: block_mem
+    width: 18
+    depth: 256
+
+uart:
+  port: "auto"
+  baudrate: 115200
+  clock_freq: 100000000

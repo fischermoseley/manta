@@ -1,17 +1,18 @@
-rx_uart #(.CLOCKS_PER_BAUD(/* CLOCKS_PER_BAUD */)) urx (
-    .i_clk(clk),
-    .i_uart_rx(rx),
-    .o_wr(urx_brx_axiv),
-    .o_data(urx_brx_axid));
+uart_rx #(.CLOCKS_PER_BAUD(/* CLOCKS_PER_BAUD */)) urx (
+    .clk(clk),
+    .rx(rx),
 
-reg [7:0] urx_brx_axid;
-reg urx_brx_axiv;
+    .data_o(urx_brx_data),
+    .valid_o(urx_brx_valid));
+
+reg [7:0] urx_brx_data;
+reg urx_brx_valid;
 
 bridge_rx brx (
     .clk(clk),
 
-    .rx_data(urx_brx_axid),
-    .rx_valid(urx_brx_axiv),
+    .data_i(urx_brx_data),
+    .valid_i(urx_brx_valid),
 
     .addr_o(),
     .wdata_o(),
