@@ -1,25 +1,6 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-function [3:0] from_ascii_hex;
-    // convert an ascii char encoding a hex value to
-    // the corresponding hex value
-    input [7:0] c;
-
-    if ((c >= 8'h30) && (c <= 8'h39)) from_ascii_hex = c - 8'h30;
-    else if ((c >= 8'h41) && (c <= 8'h46)) from_ascii_hex = c - 8'h41 + 'd1;
-    else from_ascii_hex = 0;
-endfunction
-
-function is_ascii_hex;
-    // checks if a byte is an ascii char encoding a hex digit
-    input [7:0] c;
-
-    if ((c >= 8'h30) && (c <= 8'h39)) is_ascii_hex = 1; // 0-9
-    else if ((c >= 8'h41) && (c <= 8'h46)) is_ascii_hex = 1; // A-F
-    else is_ascii_hex = 0;
-endfunction
-
 module bridge_rx (
     input wire clk,
 
@@ -36,7 +17,26 @@ module bridge_rx (
     initial rw_o = 0;
     initial valid_o = 0;
 
-    reg [7:0] buffer [7:0]; // todo: see if sby will tolerate packed arrays?
+    function [3:0] from_ascii_hex;
+        // convert an ascii char encoding a hex value to
+        // the corresponding hex value
+        input [7:0] c;
+
+        if ((c >= 8'h30) && (c <= 8'h39)) from_ascii_hex = c - 8'h30;
+        else if ((c >= 8'h41) && (c <= 8'h46)) from_ascii_hex = c - 8'h41 + 'd10;
+        else from_ascii_hex = 0;
+    endfunction
+
+    function is_ascii_hex;
+        // checks if a byte is an ascii char encoding a hex digit
+        input [7:0] c;
+
+        if ((c >= 8'h30) && (c <= 8'h39)) is_ascii_hex = 1; // 0-9
+        else if ((c >= 8'h41) && (c <= 8'h46)) is_ascii_hex = 1; // A-F
+        else is_ascii_hex = 0;
+    endfunction
+
+    reg [7:0][7:0] buffer = 0; // todo: see if sby will tolerate packed arrays?
 
     localparam IDLE = 0;
     localparam READ = 1;
@@ -68,17 +68,15 @@ module bridge_rx (
                 if(state == READ) begin
 
                     // go to idle if anything doesn't make sense
-                    if(byte_num <= 3)
+                    if(byte_num < 4) begin
                         if(!is_ascii_hex(data_i)) state <= IDLE;
+                    end
 
-                    else if(byte_num == 4)
-                        if(data_i != CR) state <= IDLE;
-
-                    else if(byte_num == 5) begin
+                    else if(byte_num == 4) begin
                         state <= IDLE;
 
                         // put data on the bus if the last byte looks good
-                        if(data_i == LF) begin
+                        if((data_i == 8'h0D) || (data_i == 8'h0A)) begin
                             addr_o <=   (from_ascii_hex(buffer[0]) << 12) |
                                         (from_ascii_hex(buffer[1]) << 8)  |
                                         (from_ascii_hex(buffer[2]) << 4)  |
@@ -94,17 +92,15 @@ module bridge_rx (
                 if(state == WRITE) begin
 
                     // go to idle if anything doesn't make sense
-                    if(byte_num <= 3)
+                    if(byte_num < 8) begin
                         if(!is_ascii_hex(data_i)) state <= IDLE;
+                    end
 
-                    else if(byte_num == 4)
-                        if(data_i != CR) state <= IDLE;
-
-                    else if(byte_num == 5) begin
+                    else if(byte_num == 8) begin
                         state <= IDLE;
 
                         // put data on the bus if the last byte looks good
-                        if(data_i == LF) begin
+                        if((data_i == 8'h0A) || (data_i == 8'h0D)) begin
                             addr_o <=   (from_ascii_hex(buffer[0]) << 12) |
                                         (from_ascii_hex(buffer[1]) << 8)  |
                                         (from_ascii_hex(buffer[2]) << 4)  |
