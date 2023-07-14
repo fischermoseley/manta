@@ -83,6 +83,14 @@ lut_mem_tb:
 	vvp sim.out
 	rm sim.out
 
+# Formal Verification
+formal:
+	sby test/formal_verification/uart_rx.sby
+
+formal_clean:
+	rm -rf test/formal_verification/*_basic
+	rm -rf test/formal_verification/*_cover
+
 # Build Examples
 
 examples: icestick nexys_a7
