@@ -1,6 +1,25 @@
 `default_nettype none
 `timescale 1ns/1ps
 
+function [3:0] from_ascii_hex;
+    // convert an ascii char encoding a hex value to
+    // the corresponding hex value
+    input [7:0] c;
+
+    if ((c >= 8'h30) && (c <= 8'h39)) from_ascii_hex = c - 8'h30;
+    else if ((c >= 8'h41) && (c <= 8'h46)) from_ascii_hex = c - 8'h41 + 'd1;
+    else from_ascii_hex = 0;
+endfunction
+
+function is_ascii_hex;
+    // checks if a byte is an ascii char encoding a hex digit
+    input [7:0] c;
+
+    if ((c >= 8'h30) && (c <= 8'h39)) is_ascii_hex = 1; // 0-9
+    else if ((c >= 8'h41) && (c <= 8'h46)) is_ascii_hex = 1; // A-F
+    else is_ascii_hex = 0;
+endfunction
+
 module bridge_rx (
     input wire clk,
 
@@ -8,123 +27,108 @@ module bridge_rx (
     input wire valid_i,
 
     output reg [15:0] addr_o,
-    output reg [15:0] wdata_o,
+    output reg [15:0] data_o,
     output reg rw_o,
     output reg valid_o);
 
-    // this is a hack, the FSM needs to be updated
-    // but this will bypass it for now
-    parameter ready_i = 1;
+    initial addr_o = 0;
+    initial data_o = 0;
+    initial rw_o = 0;
+    initial valid_o = 0;
 
-    parameter ADDR_WIDTH = 0;
-    parameter DATA_WIDTH = 0;
+    reg [7:0] buffer [7:0]; // todo: see if sby will tolerate packed arrays?
 
-    localparam PREAMBLE = 8'h4D;
-    localparam CR = 8'h0D;
-    localparam LF = 8'h0A;
-
-    localparam ACQUIRE = 0;
-    localparam TRANSMIT = 1;
-    localparam ERROR = 2;
-
-    reg [1:0] state;
-    reg [3:0] bytes_received;
-
-    // no global resets!
-    initial begin
-        addr_o = 0;
-        wdata_o = 0;
-        rw_o = 0;
-        valid_o = 0;
-        bytes_received = 0;
-        state = ACQUIRE;
-    end
-
-    reg [3:0] data_i_decoded;
-    reg data_i_is_0_thru_9;
-    reg data_i_is_A_thru_F;
-
-    always @(*) begin
-        data_i_is_0_thru_9 = (data_i >= 8'h30) & (data_i <= 8'h39);
-        data_i_is_A_thru_F = (data_i >= 8'h41) & (data_i <= 8'h46);
-
-        if (data_i_is_0_thru_9) data_i_decoded = data_i - 8'h30;
-        else if (data_i_is_A_thru_F) data_i_decoded = data_i - 8'h41 + 'd10;
-        else data_i_decoded = 0;
-    end
-
+    localparam IDLE = 0;
+    localparam READ = 1;
+    localparam WRITE = 2;
+    reg [1:0] state = 0;
+    reg [3:0] byte_num = 0;
 
     always @(posedge clk) begin
-        if (state == ACQUIRE) begin
-            if(valid_i) begin
+        addr_o <= 0;
+        data_o <= 0;
+        rw_o <= 0;
+        valid_o <= 0;
 
-                if (bytes_received == 0) begin
-                    if(data_i == PREAMBLE) bytes_received <= 1;
-                end
-
-                else if( (bytes_received >= 1) & (bytes_received <= 4) ) begin
-                    // only advance if byte is valid hex digit
-                    if(data_i_is_0_thru_9 | data_i_is_A_thru_F) begin
-                        addr_o <= (addr_o << 4) | data_i_decoded;
-                        bytes_received <= bytes_received + 1;
-                    end
-
-                    else state <= ERROR;
-                end
-
-                else if( bytes_received == 5) begin
-                        if( (data_i == CR) | (data_i == LF)) begin
-                            valid_o <= 1;
-                            rw_o <= 0;
-                            bytes_received <= 0;
-                            state <= TRANSMIT;
-                        end
-
-                        else if (data_i_is_0_thru_9 | data_i_is_A_thru_F) begin
-                            bytes_received <= bytes_received + 1;
-                            wdata_o <= (wdata_o << 4) | data_i_decoded;
-                        end
-
-                        else state <= ERROR;
-                end
-
-                else if ( (bytes_received >= 6) & (bytes_received <= 8) ) begin
-
-                    if (data_i_is_0_thru_9 | data_i_is_A_thru_F) begin
-                        wdata_o <= (wdata_o << 4) | data_i_decoded;
-                        bytes_received <= bytes_received + 1;
-                    end
-
-                    else state <= ERROR;
-                end
-
-                else if (bytes_received == 9) begin
-                    bytes_received <= 0;
-                    if( (data_i == CR) | (data_i == LF)) begin
-                        valid_o <= 1;
-                        rw_o <= 1;
-                        state <= TRANSMIT;
-                    end
-
-                    else state <= ERROR;
-                end
-            end
+        if (state == IDLE) begin
+            byte_num <= 0;
+            if (valid_i) begin
+                if (data_i == "R") state <= READ;
+                if (data_i == "W") state <= WRITE;
+           end
         end
 
+        else begin
+            if (valid_i) begin
+                // buffer bytes regardless of if they're good
+                byte_num <= byte_num + 1;
+                buffer[byte_num] <= data_i;
 
-        else if (state == TRANSMIT) begin
-            if(ready_i) begin
-                valid_o <= 0;
-                state <= ACQUIRE;
-            end
+                // current transaction specifies a read operation
+                if(state == READ) begin
 
-            if(valid_i) begin
-                if ( (data_i != CR) & (data_i != LF)) begin
-                    valid_o <= 0;
-                    state <= ERROR;
+                    // go to idle if anything doesn't make sense
+                    if(byte_num <= 3)
+                        if(!is_ascii_hex(data_i)) state <= IDLE;
+
+                    else if(byte_num == 4)
+                        if(data_i != CR) state <= IDLE;
+
+                    else if(byte_num == 5) begin
+                        state <= IDLE;
+
+                        // put data on the bus if the last byte looks good
+                        if(data_i == LF) begin
+                            addr_o <=   (from_ascii_hex(buffer[0]) << 12) |
+                                        (from_ascii_hex(buffer[1]) << 8)  |
+                                        (from_ascii_hex(buffer[2]) << 4)  |
+                                        (from_ascii_hex(buffer[3]));
+                            data_o <= 0;
+                            rw_o <= 0;
+                            valid_o <= 1;
+                        end
+                    end
+                end
+
+                // current transaction specifies a write transaction
+                if(state == WRITE) begin
+
+                    // go to idle if anything doesn't make sense
+                    if(byte_num <= 3)
+                        if(!is_ascii_hex(data_i)) state <= IDLE;
+
+                    else if(byte_num == 4)
+                        if(data_i != CR) state <= IDLE;
+
+                    else if(byte_num == 5) begin
+                        state <= IDLE;
+
+                        // put data on the bus if the last byte looks good
+                        if(data_i == LF) begin
+                            addr_o <=   (from_ascii_hex(buffer[0]) << 12) |
+                                        (from_ascii_hex(buffer[1]) << 8)  |
+                                        (from_ascii_hex(buffer[2]) << 4)  |
+                                        (from_ascii_hex(buffer[3]));
+                            data_o <=   (from_ascii_hex(buffer[4]) << 12) |
+                                        (from_ascii_hex(buffer[5]) << 8)  |
+                                        (from_ascii_hex(buffer[6]) << 4)  |
+                                        (from_ascii_hex(buffer[7]));
+                            rw_o <= 1;
+                            valid_o <= 1;
+                        end
+                    end
                 end
             end
         end
     end
+
+`ifdef FORMAL
+        always @(posedge clk) begin
+            cover(data_o == 16'h1234);
+            //cover(data_o == 16'h1234 && addr_o == 16'h5678 && rw_o == 1 && valid_o == 1);
+        end
+`endif // FORMAL
 endmodule
+
+
 `default_nettype wire

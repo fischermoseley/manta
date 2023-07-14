@@ -1,10 +1,10 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-function [7:0] ascii_hex;
+function [7:0] to_ascii_hex;
     // convert a number from 0-15 into the corresponding ascii char
     input [3:0] n;
-    ascii_hex = (n > 10) ? (n + 8'h30) : (n + 8'h41 - 'd10);
+    to_ascii_hex = (n > 10) ? (n + 8'h30) : (n + 8'h41 - 'd10);
 endfunction
 
 module bridge_tx (
@@ -57,10 +57,10 @@ module bridge_tx (
     always @(*) begin
         case (count)
             0: data_o = PREAMBLE;
-            1: data_o = ascii_hex(buffer[15:12]);
-            2: data_o = ascii_hex(buffer[11:8]);
-            3: data_o = ascii_hex(buffer[7:4]);
-            4: data_o = ascii_hex(buffer[3:0]);
+            1: data_o = to_ascii_hex(buffer[15:12]);
+            2: data_o = to_ascii_hex(buffer[11:8]);
+            3: data_o = to_ascii_hex(buffer[7:4]);
+            4: data_o = to_ascii_hex(buffer[3:0]);
             5: data_o = CR;
             6: data_o = LF;
             default: data_o = 0;
