@@ -93,87 +93,96 @@ initial begin
     #`CP
     #`HCP
 
-    $display("\n=== test 1: transmit W12345678(CR)(LF) for baseline functionality ===");
-    test_num = 1;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit W12345678(CR)(LF) for baseline functionality ===", test_num);
     message = {"W12345678", 8'h0D, 8'h0A};
     `TEST_GOOD_WRITE_MSG(message, 16'h1234, 16'h5678)
     #(10*`CP);
 
-    $display("\n=== test 2: transmit WDEADBEEF(CR)(LF) for proper state reset ===");
-    test_num = 2;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit WDEADBEEF(CR)(LF) for proper state reset ===", test_num);
     message = {"WDEADBEEF", 8'h0D, 8'h0A};
     `TEST_GOOD_WRITE_MSG(message, 16'hDEAD, 16'hBEEF)
     #(10*`CP);
 
-    $display("\n=== test 3: transmit RBABE(CR)(LF) for baseline functionality ===");
-    test_num = 3;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit RBABE(CR)(LF) for baseline functionality ===", test_num);
     message = {"RBABE", 8'h0D, 8'h0A};
     `TEST_GOOD_READ_MSG(message, 16'hBABE);
     #(10*`CP);
 
-    $display("\n=== test 4: transmit R0000(CR) for EOL insensitivity ===");
-    test_num = 4;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit R0000(CR) for EOL insensitivity ===", test_num);
     message = {"R0000", 8'h0D};
     `TEST_GOOD_READ_MSG(message, 16'hBABE);
     #(10*`CP);
 
-    $display("\n=== test 5: transmit R1234(LF) for EOL insensitivity ===");
-    test_num = 5;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit R1234(LF) for EOL insensitivity ===", test_num);
     message = {"R1234", 8'h0D};
     `TEST_GOOD_READ_MSG(message, 16'h1234);
     #(10*`CP);
 
-    $display("\n=== test 6: transmit WF00DBEEF(CR) for EOL insensitivity ===");
-    test_num = 6;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit WF00DBEEF(CR) for EOL insensitivity ===", test_num);
     message = {"WF00DBEEF", 8'h0D};
     `TEST_GOOD_WRITE_MSG(message, 16'hF00D, 16'hBEEF);
     #(10*`CP);
 
-    $display("\n=== test 7: transmit WB0BACAFE(LF) for EOL insensitivity ===");
-    test_num = 7;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit WB0BACAFE(LF) for EOL insensitivity ===", test_num);
     message = {"WB0BACAFE", 8'h0D};
     `TEST_GOOD_WRITE_MSG(message, 16'hB0BA, 16'hCAFE)
     #(10*`CP);
 
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit R1234(LF)R5678 for back-to-back messages ===", test_num);
+    message = {"R1234", 8'h0D, 8'h0A};
+    `TEST_GOOD_READ_MSG(message, 16'h1234)
+    message = {"R5678", 8'h0D, 8'h0A};
+    `TEST_GOOD_READ_MSG(message, 16'h5678)
+    #(10*`CP);
+
     $display("\n\nIntentionally bad messages:");
-    $display("\n=== test 8: transmit RABC(CR)(LF) for message length ===");
-    test_num = 8;
+
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit RABC(CR)(LF) for message length ===", test_num);
     message = {"RABC", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message);
     #(10*`CP);
 
-    $display("\n=== test 9: transmit R12345(CR)(LF) for message length ===");
-    test_num = 9;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit R12345(CR)(LF) for message length ===", test_num);
     message = {"RABC", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message)
     #(10*`CP);
 
-    $display("\n=== test 10: transmit M(CR)(LF) for message length ===");
-    test_num = 10;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit M(CR)(LF) for message length ===", test_num);
     message = {"WABC", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message)
     #(10*`CP);
 
-    $display("\n=== test 11: transmit W123456789101112131415161718191201222(CR)(LF) for message length ===");
-    test_num = 11;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit W123456789101112131415161718191201222(CR)(LF) for message length ===", test_num);
     message = {"W123456789101112131415161718191201222", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message)
     #(10*`CP);
 
-    $display("\n=== test 12: transmit RABCG(CR)(LF) for invalid characters ===");
-    test_num = 12;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit RABCG(CR)(LF) for invalid characters ===", test_num);
     message = {"RABCG", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message)
     #(10*`CP);
 
-    $display("\n=== test 13: transmit WABC[]()##*@(CR)(LF) for invalid characters and message length ===");
-    test_num = 13;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit WABC[]()##*@(CR)(LF) for invalid characters and message length ===", test_num);
     message = {"WABC[]()##*@", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message)
     #(10*`CP);
 
-    $display("\n=== test 14: transmit R(CR)(LF) for message length ===");
-    test_num = 14;
+    test_num = test_num + 1;
+    $display("\n=== test %2d: transmit R(CR)(LF) for message length ===", test_num);
     message = {"R", 8'h0D, 8'h0A};
     `TEST_BAD_MSG(message)
     #(10*`CP);
