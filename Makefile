@@ -3,7 +3,8 @@ test: auto_gen sim formal
 examples: icestick nexys_a7
 
 clean:
-	rm -f *.out *.vcd
+	rm *.out *.vcd
+	rm **/lab-bc.py
 	rm -rf dist/
 	rm -rf src/mantaray.egg-info
 
@@ -103,39 +104,45 @@ nexys_a7: nexys_a7_video_sprite_uart nexys_a7_io_core nexys_a7_ps2_logic_analyze
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
 	manta gen manta.yaml manta.v;		\
-	build
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
 	manta gen manta.yaml manta.v;		\
-	build
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 nexys_a7_lut_mem_ether:
 	cd examples/nexys_a7/lut_mem_ether/;\
 	manta gen manta.yaml manta.v;		\
-	build
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 nexys_a7_lut_mem_uart:
 	cd examples/nexys_a7/lut_mem_uart/;\
 	manta gen manta.yaml manta.v;		\
-	build
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 nexys_a7_ps2_logic_analyzer:
 	cd examples/nexys_a7/ps2_logic_analyzer/;  					\
 	manta gen manta.yaml src/manta.v;							\
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
-	build
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 nexys_a7_video_sprite_ether:
 	cd examples/nexys_a7/video_sprite_ether;\
 	manta gen manta.yaml src/manta.v;		\
-	build
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 nexys_a7_video_sprite_uart:
 	cd examples/nexys_a7/video_sprite_uart;	\
 	manta gen manta.yaml src/manta.v;		\
-	build
-
+	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	python3 lab-bc.py
 
 icestick: icestick_io_core icestick_lut_mem
 
