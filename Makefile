@@ -10,20 +10,11 @@ clean:
 	rm -rf test/formal_verification/*_basic
 	rm -rf test/formal_verification/*_cover
 
-	rm -f examples/nexys_a7/io_core/obj/*
-	rm -f examples/nexys_a7/io_core/src/manta.v
+	rm -f examples/nexys_a7/*/obj/*
+	rm -f examples/nexys_a7/*/src/manta.v
 
-	rm -f examples/nexys_a7/logic_analyzer/obj/*
-	rm -f examples/nexys_a7/logic_analyzer/src/manta.v
-
-	rm -f examples/nexys_a7/lut_mem/obj/*
-	rm -f examples/nexys_a7/lut_mem/src/manta.v
-
-	rm -f examples/icestick/io_core/*.bin
-	rm -f examples/icestick/io_core/manta.v
-
-	rm -f examples/icestick/lut_mem/*.bin
-	rm -f examples/icestick/lut_mem/manta.v
+	rm -f examples/icestick/*/*.bin
+	rm -f examples/icestick/*/manta.v
 
 serve_docs:
 	mkdocs serve
@@ -106,15 +97,25 @@ formal:
 	sby -f test/formal_verification/uart_rx.sby
 
 # Build Examples
-nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_mem
+nexys_a7: nexys_a7_video_sprite_uart nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_mem
 
-nexys_a7_video_sprite:
-	cd examples/nexys_a7/video_sprite;	\
-	manta gen manta.yaml src/manta.v;	\
+nexys_a7_io_core_ether:
+	cd examples/nexys_a7/io_core_ether/;\
+	manta gen manta.yaml manta.v;		\
 	build
 
-nexys_a7_io_core:
-	cd examples/nexys_a7/io_core/;   	\
+nexys_a7_io_core_uart:
+	cd examples/nexys_a7/io_core_uart/; \
+	manta gen manta.yaml manta.v;		\
+	build
+
+nexys_a7_lut_mem_ether:
+	cd examples/nexys_a7/lut_mem_ether/;\
+	manta gen manta.yaml manta.v;		\
+	build
+
+nexys_a7_lut_mem_uart:
+	cd examples/nexys_a7/lut_mem_uart/;\
 	manta gen manta.yaml manta.v;		\
 	build
 
@@ -124,10 +125,16 @@ nexys_a7_ps2_logic_analyzer:
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
 	build
 
-nexys_a7_lut_mem:
-	cd examples/nexys_a7/lut_mem/;   	\
-	manta gen manta.yaml manta.v;	\
+nexys_a7_video_sprite_ether:
+	cd examples/nexys_a7/video_sprite_ether;\
+	manta gen manta.yaml src/manta.v;		\
 	build
+
+nexys_a7_video_sprite_uart:
+	cd examples/nexys_a7/video_sprite_uart;	\
+	manta gen manta.yaml src/manta.v;		\
+	build
+
 
 icestick: icestick_io_core icestick_lut_mem
 
