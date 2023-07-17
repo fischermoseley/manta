@@ -105,24 +105,28 @@ nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
 	manta gen manta.yaml manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
 	manta gen manta.yaml manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_lut_mem_ether:
 	cd examples/nexys_a7/lut_mem_ether/;\
 	manta gen manta.yaml manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_lut_mem_uart:
 	cd examples/nexys_a7/lut_mem_uart/;\
 	manta gen manta.yaml manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_ps2_logic_analyzer:
@@ -130,18 +134,21 @@ nexys_a7_ps2_logic_analyzer:
 	manta gen manta.yaml src/manta.v;							\
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_video_sprite_ether:
 	cd examples/nexys_a7/video_sprite_ether;\
 	manta gen manta.yaml src/manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_video_sprite_uart:
 	cd examples/nexys_a7/video_sprite_uart;	\
 	manta gen manta.yaml src/manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	mkdir -p obj; \
 	python3 lab-bc.py
 
 icestick: icestick_io_core icestick_lut_mem
