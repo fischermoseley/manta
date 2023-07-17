@@ -27,3 +27,7 @@ __pycache__/
 
 # Verilator outputs
 obj_dir/
+
+# Formal outputs
+test/formal_verification/*_basic
+test/formal_verification/*_cover

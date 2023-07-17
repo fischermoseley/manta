@@ -1,12 +1,6 @@
 `default_nettype none
 `timescale 1ns/1ps
 
-function [7:0] to_ascii_hex;
-    // convert a number from 0-15 into the corresponding ascii char
-    input [3:0] n;
-    to_ascii_hex = (n > 10) ? (n + 8'h30) : (n + 8'h41 - 'd10);
-endfunction
-
 module bridge_tx (
     input wire clk,
 
@@ -17,6 +11,12 @@ module bridge_tx (
     output reg [7:0] data_o,
     output reg start_o,
     input wire done_i);
+
+    function [7:0] to_ascii_hex;
+        // convert a number from 0-15 into the corresponding ascii char
+        input [3:0] n;
+        to_ascii_hex = (n > 10) ? (n + 8'h30) : (n + 8'h41 - 'd10);
+    endfunction
 
     localparam PREAMBLE = 8'h4D;
     localparam CR = 8'h0D;

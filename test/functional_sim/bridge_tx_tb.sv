@@ -13,13 +13,7 @@ integer test_num;
 
 // tb -> bridge_tx signals
 logic [15:0] tb_btx_rdata;
-logic res_ready;
 logic tb_btx_valid;
-
-// uart_tx <--> bridge_tx signals
-logic [7:0] btx_utx_data;
-logic btx_utx_valid;
-logic btx_utx_ready;
 
 // uart_tx -> tb signals
 logic utx_tb_tx;
@@ -27,23 +21,24 @@ logic utx_tb_tx;
 bridge_tx btx (
     .clk(clk),
 
-    .rdata_i(tb_btx_rdata),
+    .data_i(tb_btx_rdata),
     .rw_i(1'b1),
     .valid_i(tb_btx_valid),
 
     .data_o(btx_utx_data),
-    .ready_i(btx_utx_ready),
-    .valid_o(btx_utx_valid));
+    .start_o(btx_utx_start),
+    .done_i(utx_btx_done));
 
-uart_tx #(
-    .CLOCKS_PER_BAUD(868))
-    utx (
+reg [7:0] btx_utx_data;
+reg btx_utx_start;
+reg utx_btx_done;
+
+uart_tx #(.CLOCKS_PER_BAUD(/* CLOCKS_PER_BAUD */)) utx (
     .clk(clk),
 
-    .data(btx_utx_data),
-    .valid(btx_utx_valid),
-    .busy(),
-    .ready(btx_utx_ready),
+    .data_i(btx_utx_data),
+    .start_i(btx_utx_start),
+    .done_o(utx_btx_done),
 
     .tx(utx_tb_tx));
 
@@ -71,7 +66,6 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);
@@ -84,7 +78,6 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);
@@ -97,7 +90,6 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);
@@ -110,7 +102,6 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);

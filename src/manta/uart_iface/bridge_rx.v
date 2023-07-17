@@ -36,7 +36,7 @@ module bridge_rx (
         else is_ascii_hex = 0;
     endfunction
 
-    reg [7:0][7:0] buffer = 0; // todo: see if sby will tolerate packed arrays?
+    reg [7:0] buffer [7:0]; // = 0; // todo: see if sby will tolerate packed arrays?
 
     localparam IDLE = 0;
     localparam READ = 1;
@@ -120,8 +120,39 @@ module bridge_rx (
 
 `ifdef FORMAL
         always @(posedge clk) begin
-            cover(data_o == 16'h1234);
-            //cover(data_o == 16'h1234 && addr_o == 16'h5678 && rw_o == 1 && valid_o == 1);
+            // covers
+            // find_any_write_transaction: cover(rw_o == 1);
+            // find_any_read_transaction: cover(rw_o == 0);
+
+            // find_specific_write_transaction:
+            //     cover(data_o == 16'h1234 && addr_o == 16'h5678 && rw_o == 1 && valid_o == 1);
+
+            // find_specific_read_transaction:
+            //     cover(addr_o == 16'h1234 && rw_o == 0 && valid_o == 1);
+
+            // find_spacey_write_transaction:
+            //     cover((rw_o == 1) && ($past(valid_i, 3) == 0));
+
+            // // asserts
+            // no_back_to_back_transactions:
+            //     assert( ~(valid_o && $past(valid_o)) );
+
+            // no_invalid_states:
+            //     assert(state == IDLE || state == READ || state == WRITE);
+
+            // byte_counter_only_increases:
+            //     assert(byte_num == $past(byte_num) || byte_num == $past(byte_num) + 1 || byte_num == 0);
+
+            // only_r_triggers_reads:
+            //     assert property ( (state == READ) |=> ($past(valid_i) ) );
+
+
+            // state transitions
+            enter_read:
+                assert( ($past(state) == IDLE && state == READ) )
+
+
+
         end
 `endif // FORMAL
 endmodule
