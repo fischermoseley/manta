@@ -166,7 +166,7 @@ class UARTInterface:
         return ["input wire rx", "output reg tx"]
 
     def rx_hdl_def(self):
-        uart_rx_def = VerilogManipulator("uart_iface/rx_uart.v").get_hdl()
+        uart_rx_def = VerilogManipulator("uart_iface/uart_rx.v").get_hdl()
         bridge_rx_def = VerilogManipulator("uart_iface/bridge_rx.v").get_hdl()
         return uart_rx_def + '\n' + bridge_rx_def
 

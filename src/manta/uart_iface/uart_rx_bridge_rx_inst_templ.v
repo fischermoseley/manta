@@ -15,6 +15,6 @@ bridge_rx brx (
     .valid_i(urx_brx_valid),
 
     .addr_o(),
-    .wdata_o(),
+    .data_o(),
     .rw_o(),
     .valid_o());

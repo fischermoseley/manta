@@ -26,6 +26,9 @@ clean:
 	rm -f *.out *.vcd
 	rm -rf dist/
 	rm -rf src/mantaray.egg-info
+	rm -rf test/formal_verification/*_basic
+	rm -rf test/formal_verification/*_cover
+
 
 # API Generation Tests
 auto_gen:
@@ -86,10 +89,6 @@ lut_mem_tb:
 # Formal Verification
 formal:
 	sby test/formal_verification/uart_rx.sby
-
-formal_clean:
-	rm -rf test/formal_verification/*_basic
-	rm -rf test/formal_verification/*_cover
 
 # Build Examples
 
