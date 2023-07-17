@@ -28,9 +28,9 @@ jobs:
 
       - name: Install oss-cad-suite
         run: |
-        wget --no-verbose https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-02-23/oss-cad-suite-linux-x64-20230223.tgz
-        tar -xzf oss-cad-suite-linux-x64-20230223.tgz
-        echo "$(pwd)/oss-cad-suite/bin" >> $GITHUB_PATH
+          wget --no-verbose https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-02-23/oss-cad-suite-linux-x64-20230223.tgz
+          tar -xzf oss-cad-suite-linux-x64-20230223.tgz
+          echo "$(pwd)/oss-cad-suite/bin" >> $GITHUB_PATH
 
       - name: Build Nexys A7 examples
         run: make nexys_a7
