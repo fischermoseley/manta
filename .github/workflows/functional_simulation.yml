@@ -1,4 +1,4 @@
-name: functional_sim
+name: functional_simulation
 on: [push]
 jobs:
   all:
@@ -27,6 +27,3 @@ jobs:
 
       - name: Run functional simulations
         run: make sim
-
-      - name: Run formal verification
-        run: make formal
