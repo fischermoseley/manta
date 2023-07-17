@@ -71,7 +71,7 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
+    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);
@@ -84,7 +84,7 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
+    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);
@@ -97,7 +97,7 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
+    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);
@@ -110,7 +110,7 @@ initial begin
     tb_btx_valid = 1;
 
     #`CP;
-    assert(res_ready == 0) else $error("invalid handshake: res_ready held high for more than one clock cycle");
+    assert(res_ready == 0) else $fatal(0, "invalid handshake: res_ready held high for more than one clock cycle");
     tb_btx_valid = 0;
 
     #(100000*`CP);

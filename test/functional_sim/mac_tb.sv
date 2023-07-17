@@ -77,7 +77,7 @@ module mac_tb();
 
             #1000;
 
-            assert(mrx_payload == i) else $error("data mismatch!");
+            assert(mrx_payload == i) else $fatal(0, "data mismatch!");
         end
         $finish();
     end
