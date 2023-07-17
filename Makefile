@@ -1,18 +1,32 @@
-build:
-	python3 -m build
+test: auto_gen sim formal
 
-pypi_upload: build
-	python3 -m twine upload --repository testpypi dist/*
+examples: icestick nexys_a7
 
-lint:
-	python3 -m black src/manta/__init__.py
-	python3 -m black src/manta/__main__.py
+clean:
+	rm -f *.out *.vcd
+	rm -rf dist/
+	rm -rf src/mantaray.egg-info
+
+	rm -rf test/formal_verification/*_basic
+	rm -rf test/formal_verification/*_cover
+
+	rm -f examples/nexys_a7/io_core/obj/*
+	rm -f examples/nexys_a7/io_core/src/manta.v
+
+	rm -f examples/nexys_a7/logic_analyzer/obj/*
+	rm -f examples/nexys_a7/logic_analyzer/src/manta.v
+
+	rm -f examples/nexys_a7/lut_mem/obj/*
+	rm -f examples/nexys_a7/lut_mem/src/manta.v
+
+	rm -f examples/icestick/io_core/*.bin
+	rm -f examples/icestick/io_core/manta.v
+
+	rm -f examples/icestick/lut_mem/*.bin
+	rm -f examples/icestick/lut_mem/manta.v
 
 serve_docs:
 	mkdocs serve
-
-src_loc:
-	find src -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
 
 total_loc:
 	find . -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.yml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
@@ -20,22 +34,23 @@ total_loc:
 real_loc:
 	find src test -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
 
-test: auto_gen functional_sim
+# Python Operations
+python_build:
+	python3 -m build
 
-clean:
-	rm -f *.out *.vcd
-	rm -rf dist/
-	rm -rf src/mantaray.egg-info
-	rm -rf test/formal_verification/*_basic
-	rm -rf test/formal_verification/*_cover
+pypi_upload: build
+	python3 -m twine upload --repository testpypi dist/*
 
+python_lint:
+	python3 -m black src/manta/__init__.py
+	python3 -m black src/manta/__main__.py
 
 # API Generation Tests
 auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Functional Simulation
-functional_sim: io_core_tb logic_analyzer_tb bridge_rx_tb bridge_tx_tb lut_mem_tb
+sim: ethernet_tx_tb ethernet_rx_tb mac_tb block_memory_tb io_core_tb logic_analyzer_tb bridge_rx_tb bridge_tx_tb lut_mem_tb block_memory_tb
 
 ethernet_tx_tb:
 	iverilog -g2012 -o sim.out -y src/manta/ether_iface test/functional_sim/ethernet_tx_tb.sv
@@ -48,12 +63,12 @@ ethernet_rx_tb:
 	rm sim.out
 
 mac_tb:
-	iverilog -g2012 -o sim.out -y src/manta test/functional_sim/mac_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta/ether_iface test/functional_sim/mac_tb.sv
 	vvp sim.out
 	rm sim.out
 
 block_memory_tb:
-	iverilog -g2012 -o sim.out -y src/manta	test/functional_sim/block_memory_tb.sv
+	iverilog -g2012 -o sim.out -y src/manta/block_mem_core test/functional_sim/block_memory_tb.sv
 	vvp sim.out
 	rm sim.out
 
@@ -88,12 +103,9 @@ lut_mem_tb:
 
 # Formal Verification
 formal:
-	sby test/formal_verification/uart_rx.sby
+	sby -f test/formal_verification/uart_rx.sby
 
 # Build Examples
-
-examples: icestick nexys_a7
-
 nexys_a7: nexys_a7_video_sprite nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_mem
 
 nexys_a7_video_sprite:
@@ -128,19 +140,3 @@ icestick_lut_mem:
 	cd examples/icestick/lut_mem/; 	\
 	manta gen manta.yaml manta.v;  	\
 	./build.sh
-
-clean_examples:
-	rm -f examples/nexys_a7/io_core/obj/*
-	rm -f examples/nexys_a7/io_core/src/manta.v
-
-	rm -f examples/nexys_a7/logic_analyzer/obj/*
-	rm -f examples/nexys_a7/logic_analyzer/src/manta.v
-
-	rm -f examples/nexys_a7/lut_mem/obj/*
-	rm -f examples/nexys_a7/lut_mem/src/manta.v
-
-	rm -f examples/icestick/io_core/*.bin
-	rm -f examples/icestick/io_core/manta.v
-
-	rm -f examples/icestick/lut_mem/*.bin
-	rm -f examples/icestick/lut_mem/manta.v
