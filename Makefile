@@ -99,7 +99,8 @@ formal:
 	sby -f test/formal_verification/bridge_rx.sby
 
 # Build Examples
-nexys_a7: nexys_a7_video_sprite_uart nexys_a7_io_core nexys_a7_ps2_logic_analyzer nexys_a7_lut_mem
+nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_lut_mem_ether nexys_a7_lut_mem_uart nexys_a7_ps2_logic_analyzer nexys_a7_video_sprite_ether nexys_a7_video_sprite_uart
+
 
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
