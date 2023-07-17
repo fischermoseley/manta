@@ -47,7 +47,7 @@ task write_and_verify(
 
     write_reg(addr, write_data, desc);
     read_reg(addr, read_data, desc);
-    assert(read_data == write_data) else $error("data read does not match data written!");
+    assert(read_data == write_data) else $fatal(0, "data read does not match data written!");
 endtask
 
 task read_all_reg();
@@ -229,7 +229,7 @@ module logic_analyzer_tb;
         // write_and_verify(10, 3, "shemp_arg"); // set argument to 3
 
         // assert( (la.fsm_registers.state == la.la_controller.IDLE) || (la.fsm_registers.state == la.la_controller.CAPTURED) )
-        //     else $error("core is running when it shouldn't be!");
+        //     else $fatal(0, "core is running when it shouldn't be!");
 
         // larry = 0;
         // curly = 0;

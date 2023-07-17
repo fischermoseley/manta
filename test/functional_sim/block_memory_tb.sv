@@ -50,7 +50,7 @@ task write_and_verify_bus_side(
 
     write_reg_bus_side(addr, write_data);
     read_reg_bus_side(addr, read_data);
-    assert(read_data == write_data) else $error("data read does not match data written!");
+    assert(read_data == write_data) else $fatal(0, "data read does not match data written!");
 endtask
 
 task read_user_side(

@@ -148,10 +148,10 @@ module lut_mem_tb;
 
         // TODO: make this check that all bus outputs are 0
 
-        // assert(req_addr == 16'h1234) else $error("incorrect addr!");
-        // assert(req_data == 16'h5678) else $error("incorrect data!");
-        // assert(req_rw == 1) else $error("incorrect rw!");
-        // assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $error("in error state after transmission");
+        // assert(req_addr == 16'h1234) else $fatal(0, "incorrect addr!");
+        // assert(req_data == 16'h5678) else $fatal(0, "incorrect data!");
+        // assert(req_rw == 1) else $fatal(0, "incorrect rw!");
+        // assert(bridge_rx_uut.state != bridge_rx_uut.ERROR) else $fatal(0, "in error state after transmission");
 
         tb_mem_1_addr = 16'h0001;
         tb_mem_1_valid = 1;

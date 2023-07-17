@@ -1,51 +1,58 @@
 `default_nettype none
-`timescale 1ns/1ps
+// `timescale 1ns/1ps
 
 `define CP 10
 `define HCP 5
 
-`define SEND_MESSAGE(MESSAGE) \
-    tb_brx_valid = 1; \
-    for(int i=0; i < $size(MESSAGE); i++) begin \
-        tb_brx_data = MESSAGE[i]; \
-        #`CP; \
-    end \
-    tb_brx_valid = 0; \
+task test_good_read_msg (
+    input string message,
+    input [15:0] addr
+    );
 
-`define TEST_GOOD_READ_MSG(MESSAGE, ADDR) \
-    tb_brx_valid = 1; \
-    for(int i=0; i < $size(MESSAGE); i++) begin \
-        tb_brx_data = MESSAGE[i]; \
-        if(brx_tb_valid) begin \
-            assert(brx_tb_addr == ADDR) else $error("wrong addr!"); \
-            assert(brx_tb_rw == 0) else $error("wrong rw!");        \
-            assert(brx_tb_data == 0) else $error("wrong data!");    \
-        end \
-        #`CP; \
-    end \
-    tb_brx_valid = 0; \
+    bridge_rx_tb.tb_brx_valid = 1;
+    for(int i=0; i < $size(message); i++) begin
+        bridge_rx_tb.tb_brx_data = message [i];
+        if(bridge_rx_tb.brx_tb_valid) begin
+            assert(bridge_rx_tb.brx_tb_addr == addr) else $fatal(0, "wrong addr!");
+            assert(bridge_rx_tb.brx_tb_rw == 0) else $fatal(0, "wrong rw!");
+            assert(bridge_rx_tb.brx_tb_data == 0) else $fatal(0, "wrong data!");
+        end
+        #`CP;
+    end
+    bridge_rx_tb.tb_brx_valid = 0;
+endtask
 
-`define TEST_GOOD_WRITE_MSG(MESSAGE, ADDR, DATA) \
-    tb_brx_valid = 1; \
-    for(int i=0; i < $size(MESSAGE); i++) begin \
-        tb_brx_data = MESSAGE[i]; \
-        if(brx_tb_valid) begin \
-            assert(brx_tb_addr == ADDR) else $error("wrong addr!"); \
-            assert(brx_tb_rw == 1) else $error("wrong rw!");        \
-            assert(brx_tb_data == DATA) else $error("wrong data!"); \
-        end \
-        #`CP; \
-    end \
-    tb_brx_valid = 0; \
+task test_good_write_msg (
+    input string message,
+    input [15:0] addr,
+    input [15:0] data
+    );
 
-`define TEST_BAD_MSG(MESSAGE) \
-    tb_brx_valid = 1; \
-    for(int i=0; i < $size(MESSAGE); i++) begin \
-        tb_brx_data = MESSAGE[i]; \
-        assert(brx_tb_valid == 0) else $error("wrong valid!"); \
-        #`CP; \
-    end \
-    tb_brx_valid = 0; \
+    bridge_rx_tb.tb_brx_valid = 1;
+    for(int i=0; i < $size(message); i++) begin
+        bridge_rx_tb.tb_brx_data = message[i];
+        if(bridge_rx_tb.brx_tb_valid) begin
+            assert(bridge_rx_tb.brx_tb_addr == addr) else $fatal(0, "wrong addr!");
+            assert(bridge_rx_tb.brx_tb_rw == 1) else $fatal(0, "wrong rw!");
+            assert(bridge_rx_tb.brx_tb_data == data) else $fatal(0, "wrong data!");
+        end
+        #`CP;
+    end
+    bridge_rx_tb.tb_brx_valid = 0;
+endtask
+
+task test_bad_msg (
+    input string message
+    );
+
+    bridge_rx_tb.tb_brx_valid = 1;
+    for(int i=0; i < $size(message); i++) begin
+        bridge_rx_tb.tb_brx_data = message[i];
+        assert(bridge_rx_tb.brx_tb_valid == 0) else $fatal(0, "wrong valid!");
+        #`CP;
+    end
+    bridge_rx_tb.tb_brx_valid = 0;
+endtask
 
 
 module bridge_rx_tb;
@@ -53,7 +60,6 @@ module bridge_rx_tb;
 
 //boilerplate
 logic clk;
-string message;
 integer test_num;
 
 // uart inputs and outputs
@@ -95,96 +101,80 @@ initial begin
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit W12345678(CR)(LF) for baseline functionality ===", test_num);
-    message = {"W12345678", 8'h0D, 8'h0A};
-    `TEST_GOOD_WRITE_MSG(message, 16'h1234, 16'h5678)
+    test_good_write_msg("W12345678\r\n", 16'h1234, 16'h5678);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit WDEADBEEF(CR)(LF) for proper state reset ===", test_num);
-    message = {"WDEADBEEF", 8'h0D, 8'h0A};
-    `TEST_GOOD_WRITE_MSG(message, 16'hDEAD, 16'hBEEF)
+    test_good_write_msg("WDEADBEEF\r\n", 16'hDEAD, 16'hBEEF);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit RBABE(CR)(LF) for baseline functionality ===", test_num);
-    message = {"RBABE", 8'h0D, 8'h0A};
-    `TEST_GOOD_READ_MSG(message, 16'hBABE);
+    test_good_read_msg("RBABE\r\n", 16'hBABE);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit R0000(CR) for EOL insensitivity ===", test_num);
-    message = {"R0000", 8'h0D};
-    `TEST_GOOD_READ_MSG(message, 16'hBABE);
+    test_good_read_msg("R0000\r", 16'hBABE);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit R1234(LF) for EOL insensitivity ===", test_num);
-    message = {"R1234", 8'h0D};
-    `TEST_GOOD_READ_MSG(message, 16'h1234);
+    test_good_read_msg("R1234\n", 16'h1234);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit WF00DBEEF(CR) for EOL insensitivity ===", test_num);
-    message = {"WF00DBEEF", 8'h0D};
-    `TEST_GOOD_WRITE_MSG(message, 16'hF00D, 16'hBEEF);
+    test_good_write_msg("WF00DBEEF\r", 16'hF00D, 16'hBEEF);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit WB0BACAFE(LF) for EOL insensitivity ===", test_num);
-    message = {"WB0BACAFE", 8'h0D};
-    `TEST_GOOD_WRITE_MSG(message, 16'hB0BA, 16'hCAFE)
+    test_good_write_msg("WB0BACAFE\r", 16'hB0BA, 16'hCAFE);
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit R1234(LF)R5678 for back-to-back messages ===", test_num);
-    message = {"R1234", 8'h0D, 8'h0A};
-    `TEST_GOOD_READ_MSG(message, 16'h1234)
-    message = {"R5678", 8'h0D, 8'h0A};
-    `TEST_GOOD_READ_MSG(message, 16'h5678)
+    test_good_read_msg("R1234\r\n", 16'h1234);
+    test_good_read_msg("R5678\r\n", 16'h5678);
     #(10*`CP);
 
     $display("\n\nIntentionally bad messages:");
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit RABC(CR)(LF) for message length ===", test_num);
-    message = {"RABC", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message);
+    test_bad_msg("RABC\r\n");
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit R12345(CR)(LF) for message length ===", test_num);
-    message = {"RABC", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message)
+    test_bad_msg("R12345\r\n");
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit M(CR)(LF) for message length ===", test_num);
-    message = {"WABC", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message)
+    test_bad_msg("WABC\r\n");
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit W123456789101112131415161718191201222(CR)(LF) for message length ===", test_num);
-    message = {"W123456789101112131415161718191201222", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message)
+    test_bad_msg("W123456789101112131415161718191201222\r\n");
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit RABCG(CR)(LF) for invalid characters ===", test_num);
-    message = {"RABCG", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message)
+    test_bad_msg("RABCG\r\n");
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit WABC[]()##*@(CR)(LF) for invalid characters and message length ===", test_num);
-    message = {"WABC[]()##*@", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message)
+    test_bad_msg("WABC[]()##*@\r\n");
     #(10*`CP);
 
     test_num = test_num + 1;
     $display("\n=== test %2d: transmit R(CR)(LF) for message length ===", test_num);
-    message = {"R", 8'h0D, 8'h0A};
-    `TEST_BAD_MSG(message)
+    test_bad_msg("R\r\n");
     #(10*`CP);
 
     $finish();
