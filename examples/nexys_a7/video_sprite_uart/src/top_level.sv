@@ -97,16 +97,16 @@
     reg [15:0] data_latched = 0;
     reg rw_latched = 0;
 
-    always @(posedge clk) begin
-        if (manta.brx_image_mem_valid) begin
-            addr_latched <= manta.image_mem_brx_addr;
-            data_latched <= manta.image_mem_brx_data;
-            rw_latched <= manta.image_mem_btx_rw;
+    always @(posedge clk_65mhz) begin
+        if (manta_inst.brx_image_mem_valid) begin
+            addr_latched <= manta_inst.brx_image_mem_addr;
+            data_latched <= manta_inst.brx_image_mem_data;
+            rw_latched <= manta_inst.brx_image_mem_rw;
         end
     end
 
     ssd ssd (
-        .clk(clk),
+        .clk(clk_65mhz),
         .val( (addr_latched << 16) | (data_latched) ),
         .cat({cg,cf,ce,cd,cc,cb,ca}),
         .an(an));

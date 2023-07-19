@@ -26,10 +26,10 @@ module top_level (
     reg rw_latched = 0;
 
     always @(posedge clk) begin
-        if (manta.brx_my_lut_mem_valid) begin
-            addr_latched <= manta.my_lut_mem_brx_addr;
-            data_latched <= manta.my_lut_mem_brx_data;
-            rw_latched <= manta.my_lut_mem_btx_rw;
+        if (manta_inst.brx_my_lut_mem_valid) begin
+            addr_latched <= manta_inst.my_lut_mem_brx_addr;
+            data_latched <= manta_inst.my_lut_mem_brx_data;
+            rw_latched <= manta_inst.my_lut_mem_btx_rw;
         end
     end
 
