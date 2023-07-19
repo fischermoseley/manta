@@ -23,15 +23,13 @@ module io_core_tb;
 
     // tb -> io bus
     logic [15:0] tb_io_addr;
-    logic [15:0] tb_io_wdata;
-    logic [15:0] tb_io_rdata;
+    logic [15:0] tb_io_data;
     logic tb_io_rw;
     logic tb_io_valid;
 
     // la -> io bus
     logic [15:0] la_tb_addr;
-    logic [15:0] la_tb_wdata;
-    logic [15:0] la_tb_rdata;
+    logic [15:0] la_tb_data;
     logic la_tb_rw;
     logic la_tb_valid;
 
@@ -53,15 +51,13 @@ module io_core_tb;
 
         // input port
         .addr_i(tb_io_addr),
-        .wdata_i(tb_io_wdata),
-        .rdata_i(tb_io_rdata),
+        .data_i(tb_io_data),
         .rw_i(tb_io_rw),
         .valid_i(tb_io_valid),
 
         // output port
         .addr_o(la_tb_addr),
-        .wdata_o(la_tb_wdata),
-        .rdata_o(la_tb_rdata),
+        .data_o(la_tb_data),
         .rw_o(la_tb_rw),
         .valid_o(la_tb_valid));
 
@@ -79,8 +75,7 @@ module io_core_tb;
         test_num = 0;
 
         tb_io_addr = 0;
-        tb_io_rdata = 0;
-        tb_io_wdata = 0;
+        tb_io_data = 0;
         tb_io_rw = 0;
         tb_io_valid = 0;
 
@@ -101,7 +96,7 @@ module io_core_tb;
         #`CP
         tb_io_valid = 0;
         while (!la_tb_valid) #`CP;
-        $display(" -> read  0x%h from state reg (addr 0x0000)", la_tb_rdata);
+        $display(" -> read  0x%h from state reg (addr 0x0000)", la_tb_data);
 
 
         #(10*`CP);

@@ -19,7 +19,7 @@ task read_reg_bus_side (
     block_memory_tb.tb_bc_rw = 0;
     block_memory_tb.tb_bc_valid = 0;
     while (!block_memory_tb.bc_tb_valid) #`CP;
-    data = block_memory_tb.bc_tb_rdata;
+    data = block_memory_tb.bc_tb_data;
 
     $display(" -> bus  read  0x%h from addr 0x%h", data, addr);
 endtask
@@ -30,7 +30,7 @@ task write_reg_bus_side(
     );
 
     block_memory_tb.tb_bc_addr = addr;
-    block_memory_tb.tb_bc_wdata = data;
+    block_memory_tb.tb_bc_data = data;
     block_memory_tb.tb_bc_rw = 1;
     block_memory_tb.tb_bc_valid = 1;
     #`CP
@@ -85,15 +85,13 @@ module block_memory_tb;
 
     // tb -> bram_core bus
     logic [15:0] tb_bc_addr;
-    logic [15:0] tb_bc_wdata;
-    logic [15:0] tb_bc_rdata;
+    logic [15:0] tb_bc_data;
     logic tb_bc_rw;
     logic tb_bc_valid;
 
     // bram_core -> tb bus
     logic [15:0] bc_tb_addr;
-    logic [15:0] bc_tb_wdata;
-    logic [15:0] bc_tb_rdata;
+    logic [15:0] bc_tb_data;
     logic bc_tb_rw;
     logic bc_tb_valid;
 
@@ -110,14 +108,12 @@ module block_memory_tb;
         .clk(clk),
 
         .addr_i(tb_bc_addr),
-        .wdata_i(tb_bc_wdata),
-        .rdata_i(tb_bc_rdata),
+        .data_i(tb_bc_data),
         .rw_i(tb_bc_rw),
         .valid_i(tb_bc_valid),
 
         .addr_o(bc_tb_addr),
-        .wdata_o(bc_tb_wdata),
-        .rdata_o(bc_tb_rdata),
+        .data_o(bc_tb_data),
         .rw_o(bc_tb_rw),
         .valid_o(bc_tb_valid),
 
@@ -141,8 +137,7 @@ module block_memory_tb;
         test_num = 0;
 
         tb_bc_addr = 0;
-        tb_bc_rdata = 0;
-        tb_bc_wdata = 0;
+        tb_bc_data = 0;
         tb_bc_rw = 0;
         tb_bc_valid = 0;
 

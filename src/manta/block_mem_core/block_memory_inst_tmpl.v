@@ -5,8 +5,7 @@ block_memory #(
     .clk(clk),
 
     .addr_i(),
-    .wdata_i(),
-    .rdata_i(),
+    .data_i(),
     .rw_i(),
     .valid_i(),
 
@@ -17,7 +16,6 @@ block_memory #(
     .user_we(/* INST_NAME */_we),
 
     .addr_o(),
-    .wdata_o(),
-    .rdata_o(),
+    .data_o(),
     .rw_o(),
     .valid_o());

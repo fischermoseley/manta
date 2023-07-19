@@ -12,8 +12,7 @@ module lut_mem_tb;
 
     // tb --> mem_1 signals
     logic [15:0] tb_mem_1_addr;
-    logic [15:0] tb_mem_1_wdata;
-    logic [15:0] tb_mem_1_rdata;
+    logic [15:0] tb_mem_1_data;
     logic tb_mem_1_rw;
     logic tb_mem_1_valid;
 
@@ -23,22 +22,19 @@ module lut_mem_tb;
     ) mem_1 (
         .clk(clk),
         .addr_i(tb_mem_1_addr),
-        .wdata_i(tb_mem_1_wdata),
-        .rdata_i(tb_mem_1_rdata),
+        .data_i(tb_mem_1_data),
         .rw_i(tb_mem_1_rw),
         .valid_i(tb_mem_1_valid),
 
         .addr_o(mem_1_mem_2_addr),
-        .wdata_o(mem_1_mem_2_wdata),
-        .rdata_o(mem_1_mem_2_rdata),
+        .data_o(mem_1_mem_2_data),
         .rw_o(mem_1_mem_2_rw),
         .valid_o(mem_1_mem_2_valid)
     );
 
     // mem_1 --> mem_2 signals
     logic [15:0] mem_1_mem_2_addr;
-    logic [15:0] mem_1_mem_2_wdata;
-    logic [15:0] mem_1_mem_2_rdata;
+    logic [15:0] mem_1_mem_2_data;
     logic mem_1_mem_2_rw;
     logic mem_1_mem_2_valid;
 
@@ -48,22 +44,19 @@ module lut_mem_tb;
     ) mem_2 (
         .clk(clk),
         .addr_i(mem_1_mem_2_addr),
-        .wdata_i(mem_1_mem_2_wdata),
-        .rdata_i(mem_1_mem_2_rdata),
+        .data_i(mem_1_mem_2_data),
         .rw_i(mem_1_mem_2_rw),
         .valid_i(mem_1_mem_2_valid),
 
         .addr_o(mem_2_mem_3_addr),
-        .wdata_o(mem_2_mem_3_wdata),
-        .rdata_o(mem_2_mem_3_rdata),
+        .data_o(mem_2_mem_3_data),
         .rw_o(mem_2_mem_3_rw),
         .valid_o(mem_2_mem_3_valid)
     );
 
     // mem_2 --> mem_3 signals
     logic [15:0] mem_2_mem_3_addr;
-    logic [15:0] mem_2_mem_3_wdata;
-    logic [15:0] mem_2_mem_3_rdata;
+    logic [15:0] mem_2_mem_3_data;
     logic mem_2_mem_3_rw;
     logic mem_2_mem_3_valid;
 
@@ -73,22 +66,19 @@ module lut_mem_tb;
     ) mem_3 (
         .clk(clk),
         .addr_i(mem_2_mem_3_addr),
-        .wdata_i(mem_2_mem_3_wdata),
-        .rdata_i(mem_2_mem_3_rdata),
+        .data_i(mem_2_mem_3_data),
         .rw_i(mem_2_mem_3_rw),
         .valid_i(mem_2_mem_3_valid),
 
         .addr_o(mem_3_tb_addr),
-        .wdata_o(mem_3_tb_wdata),
-        .rdata_o(mem_3_tb_rdata),
+        .data_o(mem_3_tb_data),
         .rw_o(mem_3_tb_rw),
         .valid_o(mem_3_tb_valid)
     );
 
     // mem_3 --> tb signals
     logic [15:0] mem_3_tb_addr;
-    logic [15:0] mem_3_tb_wdata;
-    logic [15:0] mem_3_tb_rdata;
+    logic [15:0] mem_3_tb_data;
     logic mem_3_tb_rw;
     logic mem_3_tb_valid;
 
@@ -135,8 +125,7 @@ module lut_mem_tb;
         mem_3.mem[7] = 16'h0017;
 
         tb_mem_1_addr = 0;
-        tb_mem_1_wdata = 0;
-        tb_mem_1_rdata = 0;
+        tb_mem_1_data = 0;
         tb_mem_1_rw = 0;
         tb_mem_1_valid = 0;
 
@@ -179,7 +168,7 @@ module lut_mem_tb;
         test_num = 3;
 
         tb_mem_1_addr = 16'h0012;
-        tb_mem_1_wdata = 16'h0069;
+        tb_mem_1_data = 16'h0069;
         tb_mem_1_valid = 1;
         tb_mem_1_rw = 1;
         #`CP;

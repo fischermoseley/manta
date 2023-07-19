@@ -6,15 +6,13 @@ module logic_analyzer_fsm_registers(
 
     // input port
     input wire [15:0] addr_i,
-    input wire [15:0] wdata_i,
-    input wire [15:0] rdata_i,
+    input wire [15:0] data_i,
     input wire rw_i,
     input wire valid_i,
 
     // output port
     output reg [15:0] addr_o,
-    output reg [15:0] wdata_o,
-    output reg [15:0] rdata_o,
+    output reg [15:0] data_o,
     output reg rw_o,
     output reg valid_o,
 
@@ -40,8 +38,7 @@ module logic_analyzer_fsm_registers(
 
     always @(posedge clk) begin
         addr_o <= addr_i;
-        wdata_o <= wdata_i;
-        rdata_o <= rdata_i;
+        data_o <= data_i;
         rw_o <= rw_i;
         valid_o <= valid_i;
 
@@ -51,23 +48,23 @@ module logic_analyzer_fsm_registers(
             // reads
             if(!rw_i) begin
                 case (addr_i)
-                    BASE_ADDR + 0: rdata_o <= state;
-                    BASE_ADDR + 1: rdata_o <= trigger_mode;
-                    BASE_ADDR + 2: rdata_o <= trigger_loc;
-                    BASE_ADDR + 3: rdata_o <= request_start;
-                    BASE_ADDR + 4: rdata_o <= request_stop;
-                    BASE_ADDR + 5: rdata_o <= read_pointer;
-                    BASE_ADDR + 6: rdata_o <= write_pointer;
+                    BASE_ADDR + 0: data_o <= state;
+                    BASE_ADDR + 1: data_o <= trigger_mode;
+                    BASE_ADDR + 2: data_o <= trigger_loc;
+                    BASE_ADDR + 3: data_o <= request_start;
+                    BASE_ADDR + 4: data_o <= request_stop;
+                    BASE_ADDR + 5: data_o <= read_pointer;
+                    BASE_ADDR + 6: data_o <= write_pointer;
                 endcase
             end
 
             // writes
             else begin
                 case (addr_i)
-                    BASE_ADDR + 1: trigger_mode <= wdata_i;
-                    BASE_ADDR + 2: trigger_loc <= wdata_i;
-                    BASE_ADDR + 3: request_start <= wdata_i;
-                    BASE_ADDR + 4: request_stop <= wdata_i;
+                    BASE_ADDR + 1: trigger_mode <= data_i;
+                    BASE_ADDR + 2: trigger_loc <= data_i;
+                    BASE_ADDR + 3: request_start <= data_i;
+                    BASE_ADDR + 4: request_stop <= data_i;
                 endcase
             end
         end

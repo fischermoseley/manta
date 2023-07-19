@@ -105,22 +105,22 @@ class IOCore:
 
             # add to read block
             if probe.width == 16:
-                rcsb += f"{probe.base_addr}: rdata_o <= {probe.name};\n"
+                rcsb += f"{probe.base_addr}: data_o <= {probe.name};\n"
 
             else:
-                rcsb += f"{probe.base_addr}: rdata_o <= {{{16-probe.width}'b0, {probe.name}}};\n"
+                rcsb += f"{probe.base_addr}: data_o <= {{{16-probe.width}'b0, {probe.name}}};\n"
 
 
             # if output, add to write block
             if probe.direction == "output":
                 if probe.width == 1:
-                    wcsb += f"{probe.base_addr}: {probe.name} <= wdata_i[0];\n"
+                    wcsb += f"{probe.base_addr}: {probe.name} <= data_i[0];\n"
 
                 elif probe.width == 16:
-                    wcsb += f"{probe.base_addr}: {probe.name} <= wdata_i;\n"
+                    wcsb += f"{probe.base_addr}: {probe.name} <= data_i;\n"
 
                 else:
-                    wcsb += f"{probe.base_addr}: {probe.name} <= wdata_i[{probe.width-1}:0];\n"
+                    wcsb += f"{probe.base_addr}: {probe.name} <= data_i[{probe.width-1}:0];\n"
 
         # remove trailing newline
         rcsb = rcsb.rstrip()

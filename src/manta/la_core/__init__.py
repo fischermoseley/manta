@@ -159,12 +159,12 @@ class LogicAnalyzerCore:
         addr = 0
         for i, name in enumerate(self.probes):
             addr = 2 * i
-            rcsb += f"BASE_ADDR + {addr}: rdata_o <= {name}_op;\n"
-            wcsb += f"BASE_ADDR + {addr}: {name}_op <= wdata_i;\n"
+            rcsb += f"BASE_ADDR + {addr}: data_o <= {name}_op;\n"
+            wcsb += f"BASE_ADDR + {addr}: {name}_op <= data_i;\n"
 
             addr = (2 * i) + 1
-            rcsb += f"BASE_ADDR + {addr}: rdata_o <= {name}_arg;\n"
-            wcsb += f"BASE_ADDR + {addr}: {name}_arg <= wdata_i;\n"
+            rcsb += f"BASE_ADDR + {addr}: data_o <= {name}_arg;\n"
+            wcsb += f"BASE_ADDR + {addr}: {name}_arg <= data_i;\n"
 
         rcsb = rcsb.strip()
         wcsb = wcsb.strip()

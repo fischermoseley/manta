@@ -14,6 +14,7 @@ module top_level (
     input wire [15:0] sw,
 
 	output logic [15:0] led,
+    output logic dp,
     output logic led16_b,
     output logic led16_g,
     output logic led16_r,
@@ -49,11 +50,26 @@ module top_level (
         .led17_g(led17_g),
         .led17_r(led17_r));
 
+    // Show bus on 7-segment display
+    reg [15:0] addr_latched = 0;
+    reg [15:0] data_latched = 0;
+    reg rw_latched = 0;
+
+    always @(posedge clk) begin
+        if (manta.brx_my_io_core_valid) begin
+            addr_latched <= manta.my_io_core_brx_addr;
+            data_latched <= manta.my_io_core_brx_data;
+            rw_latched <= manta.my_io_core_btx_rw;
+        end
+    end
+
     ssd ssd (
         .clk(clk),
-        .val( (manta.my_io_core_btx_rdata << 16) | (manta.brx_my_io_core_wdata) ),
+        .val( (addr_latched << 16) | (data_latched) ),
         .cat({cg,cf,ce,cd,cc,cb,ca}),
         .an(an));
+
+    assign dp = rw_latched;
 
 endmodule
 

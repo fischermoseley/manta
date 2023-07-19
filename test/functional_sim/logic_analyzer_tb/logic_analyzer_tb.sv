@@ -15,7 +15,7 @@ task read_reg (
     #`CP
     logic_analyzer_tb.tb_la_valid = 0;
     while (!logic_analyzer_tb.la_tb_valid) #`CP;
-    data = logic_analyzer_tb.la_tb_rdata;
+    data = logic_analyzer_tb.la_tb_data;
 
     $display(" -> read  0x%h from addr 0x%h (%s)", data, addr, desc);
 endtask
@@ -27,7 +27,7 @@ task write_reg(
     );
 
     logic_analyzer_tb.tb_la_addr = addr;
-    logic_analyzer_tb.tb_la_wdata = data;
+    logic_analyzer_tb.tb_la_data = data;
     logic_analyzer_tb.tb_la_rw = 1;
     logic_analyzer_tb.tb_la_valid = 1;
     #`CP
@@ -76,15 +76,13 @@ module logic_analyzer_tb;
 
     // tb -> la bus
     logic [15:0] tb_la_addr;
-    logic [15:0] tb_la_wdata;
-    logic [15:0] tb_la_rdata;
+    logic [15:0] tb_la_data;
     logic tb_la_rw;
     logic tb_la_valid;
 
     // la -> tb bus
     logic [15:0] la_tb_addr;
-    logic [15:0] la_tb_wdata;
-    logic [15:0] la_tb_rdata;
+    logic [15:0] la_tb_data;
     logic la_tb_rw;
     logic la_tb_valid;
 
@@ -100,15 +98,13 @@ module logic_analyzer_tb;
 
         // input port
         .addr_i(tb_la_addr),
-        .wdata_i(tb_la_wdata),
-        .rdata_i(tb_la_rdata),
+        .data_i(tb_la_data),
         .rw_i(tb_la_rw),
         .valid_i(tb_la_valid),
 
         // output port
         .addr_o(la_tb_addr),
-        .wdata_o(la_tb_wdata),
-        .rdata_o(la_tb_rdata),
+        .data_o(la_tb_data),
         .rw_o(la_tb_rw),
         .valid_o(la_tb_valid));
 
@@ -128,8 +124,7 @@ module logic_analyzer_tb;
         test_num = 0;
 
         tb_la_addr = 0;
-        tb_la_rdata = 0;
-        tb_la_wdata = 0;
+        tb_la_data = 0;
         tb_la_rw = 0;
         tb_la_valid = 0;
 

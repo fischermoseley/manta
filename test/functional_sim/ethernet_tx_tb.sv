@@ -9,7 +9,7 @@ task send_on_etx_receive_on_mrx (
     input [15:0] data
     );
 
-    ethernet_tx_tb.etx_rdata = data;
+    ethernet_tx_tb.etx_data = data;
     ethernet_tx_tb.etx_rw = 0;
     ethernet_tx_tb.etx_valid = 0;
     #10;
@@ -36,7 +36,7 @@ module ethernet_tx_tb();
     logic [1:0] txd;
 
     // ethernet tx
-    reg [15:0] etx_rdata;
+    reg [15:0] etx_data;
     reg etx_rw;
     reg etx_valid;
 
@@ -47,7 +47,7 @@ module ethernet_tx_tb();
     ) etx (
         .clk(clk),
 
-        .rdata_i(etx_rdata),
+        .data_i(etx_data),
         .rw_i(etx_rw),
         .valid_i(etx_valid),
 
@@ -89,7 +89,7 @@ module ethernet_tx_tb();
         $dumpfile("ethernet_tx_tb.vcd");
         $dumpvars(0, ethernet_tx_tb);
         clk = 0;
-        etx_rdata = 16'h6970;
+        etx_data = 16'h6970;
         etx_rw = 0;
         etx_valid = 0;
         #50;

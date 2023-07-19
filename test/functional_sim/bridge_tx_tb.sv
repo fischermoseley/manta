@@ -12,7 +12,7 @@ logic clk;
 integer test_num;
 
 // tb -> bridge_tx signals
-logic [15:0] tb_btx_rdata;
+logic [15:0] tb_btx_data;
 logic tb_btx_valid;
 
 // uart_tx -> tb signals
@@ -21,7 +21,7 @@ logic utx_tb_tx;
 bridge_tx btx (
     .clk(clk),
 
-    .data_i(tb_btx_rdata),
+    .data_i(tb_btx_data),
     .rw_i(1'b1),
     .valid_i(tb_btx_valid),
 
@@ -56,13 +56,13 @@ initial begin
     test_num = 0;
 
     tb_btx_valid = 0;
-    tb_btx_rdata = 0;
+    tb_btx_data = 0;
     #(10*`CP);
 
     /* ==== Test 1 Begin ==== */
     $display("\n=== test 1: receive 0x0123 for baseline functionality ===");
     test_num = 1;
-    tb_btx_rdata = 16'h0123;
+    tb_btx_data = 16'h0123;
     tb_btx_valid = 1;
 
     #`CP;
@@ -74,7 +74,7 @@ initial begin
     /* ==== Test 2 Begin ==== */
     $display("\n=== test 2: receive 0x4567 for baseline functionality ===");
     test_num = 2;
-    tb_btx_rdata = 16'h4567;
+    tb_btx_data = 16'h4567;
     tb_btx_valid = 1;
 
     #`CP;
@@ -86,7 +86,7 @@ initial begin
     /* ==== Test 3 Begin ==== */
     $display("\n=== test 3: receive 0x89AB for baseline functionality ===");
     test_num = 3;
-    tb_btx_rdata = 16'h89AB;
+    tb_btx_data = 16'h89AB;
     tb_btx_valid = 1;
 
     #`CP;
@@ -98,7 +98,7 @@ initial begin
     /* ==== Test 4 Begin ==== */
     $display("\n=== test 4: receive 0xCDEF for baseline functionality ===");
     test_num = 4;
-    tb_btx_rdata = 16'hCDEF;
+    tb_btx_data = 16'hCDEF;
     tb_btx_valid = 1;
 
     #`CP;
