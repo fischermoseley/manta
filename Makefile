@@ -104,28 +104,28 @@ nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_lut_mem_ether ne
 
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
-	manta gen manta.yaml manta.v;		\
+	manta gen manta.yaml src/manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
-	manta gen manta.yaml manta.v;		\
+	manta gen manta.yaml src/manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_lut_mem_ether:
 	cd examples/nexys_a7/lut_mem_ether/;\
-	manta gen manta.yaml manta.v;		\
+	manta gen manta.yaml src/manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_lut_mem_uart:
 	cd examples/nexys_a7/lut_mem_uart/;\
-	manta gen manta.yaml manta.v;		\
+	manta gen manta.yaml src/manta.v;		\
 	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
