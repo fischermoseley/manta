@@ -6,6 +6,7 @@ module top_level (
 
     output logic [15:0] led,
     output logic ca, cb, cc, cd, ce, cf, cg,
+    output logic dp,
     output logic [7:0] an,
 
     output logic led16_r,
@@ -26,8 +27,6 @@ module top_level (
     assign eth_refclk = clk_50mhz;
     divider d (.clk(clk), .ethclk(clk_50mhz));
 
-
-
     manta manta_inst (
         .clk(clk_50mhz),
 
@@ -36,26 +35,26 @@ module top_level (
         .txen(eth_txen),
         .txd(eth_txd));
 
-    // debugging!
-    initial led17_r = 0;
-    reg [31:0] val = 0;
+    // Show bus on 7-segment display
+    reg [15:0] addr_latched = 0;
+    reg [15:0] data_latched = 0;
+    reg rw_latched = 0;
 
-    always @(posedge clk_50mhz) begin
-        if(manta_inst.my_lut_mem.valid_o) begin
-            led <= manta_inst.my_lut_mem.addr_o;
-            led16_r <= manta_inst.my_lut_mem.rw_o;
-            led17_r <= !led17_r;
-            val <= {manta_inst.my_lut_mem.rdata_o, manta_inst.my_lut_mem.wdata_o};
+    always @(posedge clk) begin
+        if (manta.brx_my_lut_mem_valid) begin
+            addr_latched <= manta.my_lut_mem_brx_addr;
+            data_latched <= manta.my_lut_mem_brx_data;
+            rw_latched <= manta.my_lut_mem_btx_rw;
         end
     end
 
     ssd ssd (
-        .clk(clk_50mhz),
-        .val(val),
+        .clk(clk),
+        .val( (addr_latched << 16) | (data_latched) ),
         .cat({cg,cf,ce,cd,cc,cb,ca}),
         .an(an));
 
-
+    assign dp = rw_latched;
 endmodule
 
 `default_nettype wire

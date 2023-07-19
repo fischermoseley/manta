@@ -6,15 +6,13 @@ module block_memory (
 
     // input port
     input wire [15:0] addr_i,
-    input wire [15:0] wdata_i,
-    input wire [15:0] rdata_i,
+    input wire [15:0] data_i,
     input wire rw_i,
     input wire valid_i,
 
     // output port
     output reg [15:0] addr_o,
-    output reg [15:0] wdata_o,
-    output reg [15:0] rdata_o,
+    output reg [15:0] data_o,
     output reg rw_o,
     output reg valid_o,
 
@@ -52,28 +50,24 @@ module block_memory (
 
     // Pipelining
     reg [2:0][15:0] addr_pipe = 0;
-    reg [2:0][15:0] wdata_pipe = 0;
-    reg [2:0][15:0] rdata_pipe = 0;
+    reg [2:0][15:0] data_pipe = 0;
     reg [2:0] valid_pipe = 0;
     reg [2:0] rw_pipe = 0;
 
     always @(posedge clk) begin
         addr_pipe[0] <= addr_i;
-        wdata_pipe[0] <= wdata_i;
-        rdata_pipe[0] <= rdata_i;
+        data_pipe[0] <= data_i;
         valid_pipe[0] <= valid_i;
         rw_pipe[0] <= rw_i;
 
         addr_o <= addr_pipe[2];
-        wdata_o <= wdata_pipe[2];
-        rdata_o <= rdata_pipe[2];
+        data_o <= data_pipe[2];
         valid_o <= valid_pipe[2];
         rw_o <= rw_pipe[2];
 
         for(int i=1; i<3; i=i+1) begin
             addr_pipe[i] <= addr_pipe[i-1];
-            wdata_pipe[i] <= wdata_pipe[i-1];
-            rdata_pipe[i] <= rdata_pipe[i-1];
+            data_pipe[i] <= data_pipe[i-1];
             valid_pipe[i] <= valid_pipe[i-1];
             rw_pipe[i] <= rw_pipe[i-1];
         end
@@ -83,12 +77,12 @@ module block_memory (
         if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= MAX_ADDR)) begin
             wea[addr_i % N_BRAMS]   <= rw_i;
             addra[addr_i % N_BRAMS] <= (addr_i - BASE_ADDR) / N_BRAMS;
-            dina[addr_i % N_BRAMS]  <= wdata_i;
+            dina[addr_i % N_BRAMS]  <= data_i;
         end
 
         // pull BRAM reads from the back of the pipeline
         if( (valid_pipe[2]) && (addr_pipe[2] >= BASE_ADDR) && (addr_pipe[2] <= MAX_ADDR)) begin
-            rdata_o <= douta[addr_pipe[2] % N_BRAMS];
+            data_o <= douta[addr_pipe[2] % N_BRAMS];
         end
     end
 

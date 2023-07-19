@@ -5,7 +5,7 @@ ethernet_tx #(
 ) etx (
     .clk(clk),
 
-    .rdata_i(),
+    .data_i(),
     .rw_i(),
     .valid_i(),
 

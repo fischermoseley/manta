@@ -8,6 +8,6 @@ ethernet_rx #(
     .rxd(rxd),
 
     .addr_o(),
-    .wdata_o(),
+    .data_o(),
     .rw_o(),
     .valid_o());

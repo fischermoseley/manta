@@ -9,15 +9,13 @@ module logic_analyzer (
 
     // input port
     input wire [15:0] addr_i,
-    input wire [15:0] wdata_i,
-    input wire [15:0] rdata_i,
+    input wire [15:0] data_i,
     input wire rw_i,
     input wire valid_i,
 
     // output port
     output reg [15:0] addr_o,
-    output reg [15:0] wdata_o,
-    output reg [15:0] rdata_o,
+    output reg [15:0] data_o,
     output reg rw_o,
     output reg valid_o
     );
@@ -68,14 +66,12 @@ module logic_analyzer (
         .clk(clk),
 
         .addr_i(addr_i),
-        .wdata_i(wdata_i),
-        .rdata_i(rdata_i),
+        .data_i(data_i),
         .rw_i(rw_i),
         .valid_i(valid_i),
 
         .addr_o(fsm_reg_trig_blk_addr),
-        .wdata_o(fsm_reg_trig_blk_wdata),
-        .rdata_o(fsm_reg_trig_blk_rdata),
+        .data_o(fsm_reg_trig_blk_data),
         .rw_o(fsm_reg_trig_blk_rw),
         .valid_o(fsm_reg_trig_blk_valid),
 
@@ -88,8 +84,7 @@ module logic_analyzer (
         .write_pointer(write_pointer));
 
     reg [15:0] fsm_reg_trig_blk_addr;
-    reg [15:0] fsm_reg_trig_blk_wdata;
-    reg [15:0] fsm_reg_trig_blk_rdata;
+    reg [15:0] fsm_reg_trig_blk_data;
     reg fsm_reg_trig_blk_rw;
     reg fsm_reg_trig_blk_valid;
 
@@ -102,20 +97,17 @@ module logic_analyzer (
         .trig(trig),
 
         .addr_i(fsm_reg_trig_blk_addr),
-        .wdata_i(fsm_reg_trig_blk_wdata),
-        .rdata_i(fsm_reg_trig_blk_rdata),
+        .data_i(fsm_reg_trig_blk_data),
         .rw_i(fsm_reg_trig_blk_rw),
         .valid_i(fsm_reg_trig_blk_valid),
 
         .addr_o(trig_blk_block_mem_addr),
-        .wdata_o(trig_blk_block_mem_wdata),
-        .rdata_o(trig_blk_block_mem_rdata),
+        .data_o(trig_blk_block_mem_data),
         .rw_o(trig_blk_block_mem_rw),
         .valid_o(trig_blk_block_mem_valid));
 
     reg [15:0] trig_blk_block_mem_addr;
-    reg [15:0] trig_blk_block_mem_wdata;
-    reg [15:0] trig_blk_block_mem_rdata;
+    reg [15:0] trig_blk_block_mem_data;
     reg trig_blk_block_mem_rw;
     reg trig_blk_block_mem_valid;
 
@@ -129,15 +121,13 @@ module logic_analyzer (
 
         // input port
         .addr_i(trig_blk_block_mem_addr),
-        .wdata_i(trig_blk_block_mem_wdata),
-        .rdata_i(trig_blk_block_mem_rdata),
+        .data_i(trig_blk_block_mem_data),
         .rw_i(trig_blk_block_mem_rw),
         .valid_i(trig_blk_block_mem_valid),
 
         // output port
         .addr_o(addr_o),
-        .wdata_o(wdata_o),
-        .rdata_o(rdata_o),
+        .data_o(data_o),
         .rw_o(rw_o),
         .valid_o(valid_o),
 

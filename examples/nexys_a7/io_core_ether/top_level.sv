@@ -115,7 +115,7 @@ module top_level (
         .tx(uart_rxd_out),
 
         .brx_my_io_core_addr(aggregate_axiod[31:16]),
-        .brx_my_io_core_wdata(aggregate_axiod[15:0]),
+        .brx_my_io_core_data(aggregate_axiod[15:0]),
         .brx_my_io_core_rw(1'b1),
         .brx_my_io_core_valid(aggregate_axiov),
 

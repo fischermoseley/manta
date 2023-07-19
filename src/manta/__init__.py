@@ -96,8 +96,7 @@ class Manta:
             dst = core_pair[1].name
 
             hdl = f"reg [15:0] {src}_{dst}_addr;\n"
-            hdl += f"reg [15:0] {src}_{dst}_wdata;\n"
-            hdl += f"reg [15:0] {src}_{dst}_rdata;\n"
+            hdl += f"reg [15:0] {src}_{dst}_data;\n"
             hdl += f"reg {src}_{dst}_rw;\n"
             hdl += f"reg {src}_{dst}_valid;\n"
             conns.append(hdl)
@@ -119,10 +118,9 @@ class Manta:
 
             else:
                 src_name = self.cores[i-1].name
-                hdl = hdl.replace(".rdata_i()", f".rdata_i({src_name}_{core.name}_rdata)")
 
             hdl = hdl.replace(".addr_i()", f".addr_i({src_name}_{core.name}_addr)")
-            hdl = hdl.replace(".wdata_i()", f".wdata_i({src_name}_{core.name}_wdata)")
+            hdl = hdl.replace(".data_i()", f".data_i({src_name}_{core.name}_data)")
             hdl = hdl.replace(".rw_i()", f".rw_i({src_name}_{core.name}_rw)")
             hdl = hdl.replace(".valid_i()", f".valid_i({src_name}_{core.name}_valid)")
 
@@ -132,12 +130,11 @@ class Manta:
             if (i < len(self.cores)-1):
                 dst_name = self.cores[i+1].name
                 hdl = hdl.replace(".addr_o()", f".addr_o({core.name}_{dst_name}_addr)")
-                hdl = hdl.replace(".wdata_o()", f".wdata_o({core.name}_{dst_name}_wdata)")
 
             else:
                 dst_name = "btx"
 
-            hdl = hdl.replace(".rdata_o()", f".rdata_o({core.name}_{dst_name}_rdata)")
+            hdl = hdl.replace(".data_o()", f".data_o({core.name}_{dst_name}_data)")
             hdl = hdl.replace(".rw_o()", f".rw_o({core.name}_{dst_name}_rw)")
             hdl = hdl.replace(".valid_o()", f".valid_o({core.name}_{dst_name}_valid)")
 
@@ -223,14 +220,14 @@ class Manta:
         interface_rx_inst = self.interface.rx_hdl_inst()
 
         interface_rx_inst = interface_rx_inst.replace("addr_o()", f"addr_o(brx_{self.cores[0].name}_addr)")
-        interface_rx_inst = interface_rx_inst.replace("wdata_o()", f"wdata_o(brx_{self.cores[0].name}_wdata)")
+        interface_rx_inst = interface_rx_inst.replace("data_o()", f"data_o(brx_{self.cores[0].name}_data)")
         interface_rx_inst = interface_rx_inst.replace("rw_o()", f"rw_o(brx_{self.cores[0].name}_rw)")
         interface_rx_inst = interface_rx_inst.replace("valid_o()", f"valid_o(brx_{self.cores[0].name}_valid)")
 
         # connect interface_rx to core_chain
         interface_rx_conn= f"""
 reg [15:0] brx_{self.cores[0].name}_addr;
-reg [15:0] brx_{self.cores[0].name}_wdata;
+reg [15:0] brx_{self.cores[0].name}_data;
 reg brx_{self.cores[0].name}_rw;
 reg brx_{self.cores[0].name}_valid;\n"""
 
@@ -240,7 +237,7 @@ reg brx_{self.cores[0].name}_valid;\n"""
 
         # connect core_chain to interface_tx
         interface_tx_conn = f"""
-reg [15:0] {self.cores[-1].name}_btx_rdata;
+reg [15:0] {self.cores[-1].name}_btx_data;
 reg {self.cores[-1].name}_btx_rw;
 reg {self.cores[-1].name}_btx_valid;\n"""
 
@@ -248,7 +245,7 @@ reg {self.cores[-1].name}_btx_valid;\n"""
         interface_tx_inst = self.interface.tx_hdl_inst()
 
         interface_tx_inst = interface_tx_inst.replace("addr_i()", f"addr_i({self.cores[0].name}_btx_addr)")
-        interface_tx_inst = interface_tx_inst.replace("rdata_i()", f"rdata_i({self.cores[0].name}_btx_rdata)")
+        interface_tx_inst = interface_tx_inst.replace("data_i()", f"data_i({self.cores[0].name}_btx_data)")
         interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_i({self.cores[0].name}_btx_rw)")
         interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_i({self.cores[0].name}_btx_valid)")
 

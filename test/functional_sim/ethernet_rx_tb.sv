@@ -42,7 +42,7 @@ module ethernet_rx_tb();
     assign crsdv = txen;
 
     logic [15:0] erx_addr;
-    logic [15:0] erx_wdata;
+    logic [15:0] erx_data;
     logic erx_rw;
     logic erx_valid;
 
@@ -56,7 +56,7 @@ module ethernet_rx_tb();
         .rxd(rxd),
 
         .addr_o(erx_addr),
-        .wdata_o(erx_wdata),
+        .data_o(erx_data),
         .rw_o(erx_rw),
         .valid_o(erx_valid));
 
