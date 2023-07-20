@@ -1,14 +1,13 @@
-`default_nettype wire
 
-// file: divider.sv
-// 
+// file: clk_gen.v
+//
 // (c) Copyright 2008 - 2013 Xilinx, Inc. All rights reserved.
-// 
+//
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
 // international copyright and other intellectual property
 // laws.
-// 
+//
 // DISCLAIMER
 // This disclaimer is not a license and does not grant any
 // rights to the materials distributed herewith. Except as
@@ -30,7 +29,7 @@
 // by a third party) even if such damage or loss was
 // reasonably foreseeable or Xilinx had been advised of the
 // possibility of the same.
-// 
+//
 // CRITICAL APPLICATIONS
 // Xilinx products are not designed or intended to be fail-
 // safe, or for use in any application requiring fail-safe
@@ -44,20 +43,21 @@
 // liability of any use of Xilinx products in Critical
 // Applications, subject only to applicable laws and
 // regulations governing limitations on product liability.
-// 
+//
 // THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
 // PART OF THIS FILE AT ALL TIMES.
-// 
+//
 //----------------------------------------------------------------------------
 // User entered comments
 //----------------------------------------------------------------------------
-// popopopopopopopopopopop
+// None
 //
 //----------------------------------------------------------------------------
 //  Output     Output      Phase    Duty Cycle   Pk-to-Pk     Phase
 //   Clock     Freq (MHz)  (degrees)    (%)     Jitter (ps)  Error (ps)
 //----------------------------------------------------------------------------
-// __ethclk__50.00000______0.000______50.0______151.636_____98.575
+// clk_50mhz__50.00000______0.000______50.0______150.541_____99.281
+// clk_65mhz__65.00000______0.000______50.0______142.278_____99.281
 //
 //----------------------------------------------------------------------------
 // Input Clock   Freq (MHz)    Input Jitter (UI)
@@ -66,20 +66,21 @@
 
 `timescale 1ps/1ps
 
-module divider
+module clk_gen
 
  (// Clock in ports
   // Clock out ports
-  output        ethclk,
-  input         clk
+  output        clk_50mhz,
+  output        clk_65mhz,
+  input         clk_100mhz
  );
   // Input buffering
   //------------------------------------
-wire clk_divider;
-wire clk_in2_divider;
+wire clk_100mhz_clk_gen;
+wire clk_in2_clk_gen;
   IBUF clkin1_ibufg
-   (.O (clk_divider),
-    .I (clk));
+   (.O (clk_100mhz_clk_gen),
+    .I (clk_100mhz));
 
 
 
@@ -91,23 +92,22 @@ wire clk_in2_divider;
   //    * Unused inputs are tied off
   //    * Unused outputs are labeled unused
 
-  wire        ethclk_divider;
-  wire        clk_out2_divider;
-  wire        clk_out3_divider;
-  wire        clk_out4_divider;
-  wire        clk_out5_divider;
-  wire        clk_out6_divider;
-  wire        clk_out7_divider;
+  wire        clk_50mhz_clk_gen;
+  wire        clk_65mhz_clk_gen;
+  wire        clk_out3_clk_gen;
+  wire        clk_out4_clk_gen;
+  wire        clk_out5_clk_gen;
+  wire        clk_out6_clk_gen;
+  wire        clk_out7_clk_gen;
 
   wire [15:0] do_unused;
   wire        drdy_unused;
   wire        psdone_unused;
   wire        locked_int;
-  wire        clkfbout_divider;
-  wire        clkfbout_buf_divider;
+  wire        clkfbout_clk_gen;
+  wire        clkfbout_buf_clk_gen;
   wire        clkfboutb_unused;
     wire clkout0b_unused;
-   wire clkout1_unused;
    wire clkout1b_unused;
    wire clkout2_unused;
    wire clkout2b_unused;
@@ -125,22 +125,26 @@ wire clk_in2_divider;
     .COMPENSATION         ("ZHOLD"),
     .STARTUP_WAIT         ("FALSE"),
     .DIVCLK_DIVIDE        (1),
-    .CLKFBOUT_MULT_F      (10.000),
+    .CLKFBOUT_MULT_F      (9.750),
     .CLKFBOUT_PHASE       (0.000),
     .CLKFBOUT_USE_FINE_PS ("FALSE"),
-    .CLKOUT0_DIVIDE_F     (20.000),
+    .CLKOUT0_DIVIDE_F     (19.500),
     .CLKOUT0_PHASE        (0.000),
     .CLKOUT0_DUTY_CYCLE   (0.500),
     .CLKOUT0_USE_FINE_PS  ("FALSE"),
+    .CLKOUT1_DIVIDE       (15),
+    .CLKOUT1_PHASE        (0.000),
+    .CLKOUT1_DUTY_CYCLE   (0.500),
+    .CLKOUT1_USE_FINE_PS  ("FALSE"),
     .CLKIN1_PERIOD        (10.000))
   mmcm_adv_inst
     // Output clocks
    (
-    .CLKFBOUT            (clkfbout_divider),
+    .CLKFBOUT            (clkfbout_clk_gen),
     .CLKFBOUTB           (clkfboutb_unused),
-    .CLKOUT0             (ethclk_divider),
+    .CLKOUT0             (clk_50mhz_clk_gen),
     .CLKOUT0B            (clkout0b_unused),
-    .CLKOUT1             (clkout1_unused),
+    .CLKOUT1             (clk_65mhz_clk_gen),
     .CLKOUT1B            (clkout1b_unused),
     .CLKOUT2             (clkout2_unused),
     .CLKOUT2B            (clkout2b_unused),
@@ -150,8 +154,8 @@ wire clk_in2_divider;
     .CLKOUT5             (clkout5_unused),
     .CLKOUT6             (clkout6_unused),
      // Input clock control
-    .CLKFBIN             (clkfbout_buf_divider),
-    .CLKIN1              (clk_divider),
+    .CLKFBIN             (clkfbout_buf_clk_gen),
+    .CLKIN1              (clk_100mhz_clk_gen),
     .CLKIN2              (1'b0),
      // Tied to always select the primary input clock
     .CLKINSEL            (1'b1),
@@ -181,13 +185,23 @@ wire clk_in2_divider;
   //-----------------------------------
 
   BUFG clkf_buf
-   (.O (clkfbout_buf_divider),
-    .I (clkfbout_divider));
+   (.O (clkfbout_buf_clk_gen),
+    .I (clkfbout_clk_gen));
+
+
+
+
+
 
   BUFG clkout1_buf
-   (.O   (ethclk),
-    .I   (ethclk_divider));
+   (.O   (clk_50mhz),
+    .I   (clk_50mhz_clk_gen));
+
+
+  BUFG clkout2_buf
+   (.O   (clk_65mhz),
+    .I   (clk_65mhz_clk_gen));
+
+
 
 endmodule
-
-`default_nettype none

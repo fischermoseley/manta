@@ -42,7 +42,7 @@ auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Functional Simulation
-sim: ethernet_tx_tb ethernet_rx_tb mac_tb block_memory_tb io_core_tb logic_analyzer_tb bridge_rx_tb bridge_tx_tb lut_mem_tb block_memory_tb
+sim: ethernet_tx_tb ethernet_rx_tb mac_tb block_memory_tb io_core_tb logic_analyzer_tb bridge_rx_tb bridge_tx_tb block_memory_tb
 
 ethernet_tx_tb:
 	iverilog -g2012 -o sim.out -y src/manta/ether_iface test/functional_sim/ethernet_tx_tb.sv
@@ -88,45 +88,26 @@ bridge_tx_tb:
 	vvp sim.out
 	rm sim.out
 
-lut_mem_tb:
-	iverilog -g2012 -o sim.out -y src/manta/lut_mem_core test/functional_sim/lut_mem_tb.sv
-	vvp sim.out
-	rm sim.out
-
 # Formal Verification
 formal:
 	sby -f test/formal_verification/uart_rx.sby
 	sby -f test/formal_verification/bridge_rx.sby
 
 # Build Examples
-nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_lut_mem_ether nexys_a7_lut_mem_uart nexys_a7_ps2_logic_analyzer nexys_a7_video_sprite_ether nexys_a7_video_sprite_uart
+nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_ps2_logic_analyzer nexys_a7_video_sprite_ether nexys_a7_video_sprite_uart
 
 
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
 	manta gen manta.yaml src/manta.v;		\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
 	manta gen manta.yaml src/manta.v;		\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
-	mkdir -p obj; \
-	python3 lab-bc.py
-
-nexys_a7_lut_mem_ether:
-	cd examples/nexys_a7/lut_mem_ether/;\
-	manta gen manta.yaml src/manta.v;		\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
-	mkdir -p obj; \
-	python3 lab-bc.py
-
-nexys_a7_lut_mem_uart:
-	cd examples/nexys_a7/lut_mem_uart/;\
-	manta gen manta.yaml src/manta.v;		\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
@@ -134,32 +115,27 @@ nexys_a7_ps2_logic_analyzer:
 	cd examples/nexys_a7/ps2_logic_analyzer/;  					\
 	manta gen manta.yaml src/manta.v;							\
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_video_sprite_ether:
 	cd examples/nexys_a7/video_sprite_ether;\
 	manta gen manta.yaml src/manta.v;		\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
 nexys_a7_video_sprite_uart:
 	cd examples/nexys_a7/video_sprite_uart;	\
 	manta gen manta.yaml src/manta.v;		\
-	wget https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
 	mkdir -p obj; \
 	python3 lab-bc.py
 
-icestick: icestick_io_core icestick_lut_mem
+icestick: icestick_io_core
 
 icestick_io_core:
 	cd examples/icestick/io_core/;	\
-	manta gen manta.yaml manta.v;  	\
-	./build.sh
-
-icestick_lut_mem:
-	cd examples/icestick/lut_mem/; 	\
 	manta gen manta.yaml manta.v;  	\
 	./build.sh

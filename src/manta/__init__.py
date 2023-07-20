@@ -3,7 +3,6 @@ from .hdl_utils import *
 from .la_core import *
 from .io_core import *
 from .block_mem_core import *
-from .lut_mem_core import *
 
 # External Dependencies
 from sys import argv
@@ -46,9 +45,6 @@ class Manta:
 
             elif core["type"] == "io":
                 new_core = IOCore(core, core_name, base_addr, self.interface)
-
-            elif core["type"] == "lut_mem":
-                new_core = LUTMemoryCore(core, core_name, base_addr, self.interface)
 
             elif core["type"] == "block_mem":
                 new_core = BlockMemoryCore(core, core_name, base_addr, self.interface)
