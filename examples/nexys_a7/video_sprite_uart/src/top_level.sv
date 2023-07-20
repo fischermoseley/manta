@@ -1,25 +1,22 @@
-    `timescale 1ns / 1ps
-    `default_nettype none
+`timescale 1ns / 1ps
+`default_nettype none
 
-    module top_level(
-        input wire clk_100mhz,
+module top_level (
+    input wire clk_100mhz,
 
-        output logic [3:0] vga_r, vga_g, vga_b,
-        output logic vga_hs, vga_vs,
+    input wire uart_txd_in,
+    output logic uart_rxd_out,
 
-        input wire btnc,
-        output logic [15:0] led,
-        output logic ca, cb, cc, cd, ce, cf, cg, dp,
-        output logic [7:0] an,
+    output logic [3:0] vga_r, vga_g, vga_b,
+    output logic vga_hs, vga_vs);
 
-        input wire uart_txd_in,
-	    output logic uart_rxd_out);
-
+    // Clock generation
     logic clk_65mhz;
 
-    clk_wiz_lab3 clk_gen(
-        .clk_in1(clk_100mhz),
-        .clk_out1(clk_65mhz));
+    clk_gen gen(
+        .clk_100mhz(clk_100mhz),
+        .clk_50mhz(),
+        .clk_65mhz(clk_65mhz));
 
     // VGA signals
     logic [10:0] hcount;
@@ -46,11 +43,13 @@
         vcount_pipe[0] <= vcount;
         hsync_pipe[0] <= hsync;
         vsync_pipe[0] <= vsync;
-        for (int i=1; i<4; i = i+1)begin
+        blank_pipe[0] <= blank;
+        for (int i=1; i<2; i = i+1)begin
             hcount_pipe[i] <= hcount_pipe[i-1];
             vcount_pipe[i] <= vcount_pipe[i-1];
             hsync_pipe[i] <= hsync_pipe[i-1];
             vsync_pipe[i] <= vsync_pipe[i-1];
+            blank_pipe[i] <= blank_pipe[i-1];
         end
     end
 
@@ -92,26 +91,6 @@
     assign vga_hs = ~hsync_pipe[1];
     assign vga_vs = ~vsync_pipe[1];
 
-    // Show bus on 7-segment display
-    reg [15:0] addr_latched = 0;
-    reg [15:0] data_latched = 0;
-    reg rw_latched = 0;
 
-    always @(posedge clk_65mhz) begin
-        if (manta_inst.brx_image_mem_valid) begin
-            addr_latched <= manta_inst.brx_image_mem_addr;
-            data_latched <= manta_inst.brx_image_mem_data;
-            rw_latched <= manta_inst.brx_image_mem_rw;
-        end
-    end
-
-    ssd ssd (
-        .clk(clk_65mhz),
-        .val( (addr_latched << 16) | (data_latched) ),
-        .cat({cg,cf,ce,cd,cc,cb,ca}),
-        .an(an));
-
-    assign dp = rw_latched;
-    endmodule
-
-    `default_nettype wire
+endmodule
+`default_nettype wire

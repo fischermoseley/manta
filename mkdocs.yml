@@ -63,7 +63,6 @@ nav:
         - IO Core: io_core.md
         - Logic Analyzer Core: logic_analyzer_core.md
         - Block Memory Core: block_memory_core.md
-        - LUT Memory Core: lut_memory_core.md
       - Tutorials:
         - Tutorial 0 - IO Core: tutorial_0.md
         - Tutorial 1 - Logic Analyzer Core: tutorial_1.md

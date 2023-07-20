@@ -20,7 +20,6 @@ cores:
       led17_g: 1
       led17_r: 1
 
-uart:
-  port: "auto"
-  baudrate: 115200
-  clock_freq: 100000000
+ethernet:
+  interface: "en8"
+  host_mac: "12:34:56:78:90:ab"
