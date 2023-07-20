@@ -96,7 +96,6 @@ formal:
 # Build Examples
 nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_ps2_logic_analyzer nexys_a7_video_sprite_ether nexys_a7_video_sprite_uart
 
-
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
 	manta gen manta.yaml src/manta.v;		\
