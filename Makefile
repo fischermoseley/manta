@@ -88,6 +88,16 @@ bridge_tx_tb:
 	vvp sim.out
 	rm sim.out
 
+uart_rx_tb:
+	iverilog -g2012 -o sim.out -y src/manta/uart_iface test/functional_sim/uart_rx_tb.sv
+	vvp sim.out
+	rm sim.out
+
+uart_tx_tb:
+	iverilog -g2012 -o sim.out -y src/manta/uart_iface test/functional_sim/uart_tx_tb.sv
+	vvp sim.out
+	rm sim.out
+
 # Formal Verification
 formal:
 	sby -f test/formal_verification/uart_rx.sby
