@@ -23,7 +23,7 @@ Manta includes a few cores, configurable to your liking:
 
 * __I/O Core__: This exposes a number of probes that can be read or set, allowing for signals inside the FPGA to be monitored and controlled by the host machine. This is similar to Xilinx's [Virtual IO](https://docs.xilinx.com/v/u/en-US/pg159-vio) core.
 
-* __LUT Memory__ and __Block Memory Cores__: Under the hood, Manta is just a bunch of memory-mapped modules sharing a common address and data bus, so adding memory of either type to the bus is straightforward. Block memories are dual-port, so interfacing with them in your own HDL is incredibly easy.
+* __Block Memory Cores__: Under the hood, Manta is just a bunch of memory on a common address and data bus, so adding memory of either type to the bus is straightforward. Block memories are dual-port, so interfacing with them in your own HDL is incredibly easy.
 
 These cores are more explicity described on their individual pages.
 
