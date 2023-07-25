@@ -63,10 +63,10 @@ nav:
         - IO Core: io_core.md
         - Logic Analyzer Core: logic_analyzer_core.md
         - Block Memory Core: block_memory_core.md
-      - Tutorials:
-        - Tutorial 0 - IO Core: tutorial_0.md
-        - Tutorial 1 - Logic Analyzer Core: tutorial_1.md
-        - Tutorial 2 - Block Memory Core: tutorial_2.md
+      - Examples:
+        - IO Core: tutorial_io_core.md
+        - Logic Analyzer Core: tutorial_logic_analyzer.md
+        - Block Memory Core: tutorial_block_memory.md
     - Developer Reference:
       - System Architecture: system_architecture.md
       - Tools Used: tools_used.md
