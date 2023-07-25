@@ -61,4 +61,4 @@ print(my_io_core.btnc.get())
 
 This creates a Manta object from the same configuration file we used earlier, which contains all of the cores we specified. In this case it's just the single IO core, which can have its outputs registers written to (and input registers read from) with the methods above. The [`examples/api_example.py`](https://github.com/fischermoseley/manta/tree/main/examples/nexys_a7/io_core_uart/api_example.py) script uses this to display a pattern on the onboard LEDs, and report the status of the onboard buttons and switches.
 
-This is just a quick example! More details about the IO core can be found on [its page](./io_core).
+This is just a quick example! More details about the IO core can be found on [its page](./io_core.md).
