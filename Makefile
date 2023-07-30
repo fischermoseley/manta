@@ -108,39 +108,44 @@ nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_ps2_logic_analyz
 
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
-	manta gen manta.yaml src/manta.v;		\
-	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	manta gen manta.yaml src/manta.v; \
+	rm -rf obj; \
 	mkdir -p obj; \
-	python3 lab-bc.py
+	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
+	vivado -mode batch -source build.tcl
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
 	manta gen manta.yaml src/manta.v;		\
-	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	rm -rf obj; \
 	mkdir -p obj; \
-	python3 lab-bc.py
+	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
+	vivado -mode batch -source build.tcl
 
 nexys_a7_ps2_logic_analyzer:
 	cd examples/nexys_a7/ps2_logic_analyzer/;  					\
 	manta gen manta.yaml src/manta.v;							\
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
-	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	rm -rf obj; \
 	mkdir -p obj; \
-	python3 lab-bc.py
+	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
+	vivado -mode batch -source build.tcl
 
 nexys_a7_video_sprite_ether:
 	cd examples/nexys_a7/video_sprite_ether;\
 	manta gen manta.yaml src/manta.v;		\
-	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	rm -rf obj; \
 	mkdir -p obj; \
-	python3 lab-bc.py
+	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
+	vivado -mode batch -source build.tcl
 
 nexys_a7_video_sprite_uart:
 	cd examples/nexys_a7/video_sprite_uart;	\
 	manta gen manta.yaml src/manta.v;		\
-	wget -nc  https://fpga.mit.edu/6205/_static/F22/documentation/vivado/lab-bc.py; \
+	rm -rf obj; \
 	mkdir -p obj; \
-	python3 lab-bc.py
+	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
+	vivado -mode batch -source build.tcl
 
 icestick: icestick_io_core
 

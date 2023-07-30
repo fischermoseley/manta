@@ -165,3 +165,13 @@ Nominal interaction with the logic analyzer core should be:
 - Read out contents from memory
 - Pulse stop_request to end the capture and return the state back to IDLE
 
+
+## Design Philosophy
+
+* _Things that are easy to misconfigure should be easy to reconfigure_. For instance, it's easy to accidentally put the wrong amount of holdoff in a logic analyzer core and shouldn't require regenerating a bitstream to fix.
+
+* _Autogenerate Verilog 2001 for compatibility._ However, some SystemVerilog 2012 is used for simulation and test.
+
+* _Separate data and operations on it._ This basically means that there shouldn't be much Verilog in the Python, and vice versa. As a result, the code autogeneration is done with a series of HDL templates that have sections filled in by Python. This is done with a bunch of find-and-replace, where hooks in the template file are replaced with the customized Verilog needed at that particular point.
+
+* _Make no assumptions about what the tools can do._ For instance, if you want to make a logic analyzer that has an input probe that's ten billion bits wide, Manta shouldn't complain - it'll leave that to your implementation engine. This allows Manta to maintain portability.
