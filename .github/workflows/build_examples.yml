@@ -5,14 +5,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - name: Add SSH Keys for lab-bc
-        run: |
-          mkdir ~/.ssh
-          touch ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.LAB_BC_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          echo "${{ secrets.LAB_BC_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-
       - name: Install Manta from Source
         run: |
           pip install setuptools --upgrade
@@ -25,12 +17,6 @@ jobs:
           export DEB_PYTHON_INSTALL_LAYOUT=deb_system
 
           python3 -m pip install .
-
-      - name: Install oss-cad-suite
-        run: |
-          wget --no-verbose https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2023-02-23/oss-cad-suite-linux-x64-20230223.tgz
-          tar -xzf oss-cad-suite-linux-x64-20230223.tgz
-          echo "$(pwd)/oss-cad-suite/bin" >> $GITHUB_PATH
 
       - name: Build Nexys A7 examples
         run: make nexys_a7
