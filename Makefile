@@ -73,7 +73,7 @@ io_core_tb:
 
 logic_analyzer_tb:
 	cd test/functional_sim/logic_analyzer_tb;					\
-	manta gen manta.yaml manta.v;								\
+	python3 -m manta gen manta.yaml manta.v;								\
 	iverilog -g2012 -o sim.out logic_analyzer_tb.sv manta.v;	\
 	vvp sim.out; 												\
 	rm sim.out
@@ -108,7 +108,7 @@ nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_ps2_logic_analyz
 
 nexys_a7_io_core_ether:
 	cd examples/nexys_a7/io_core_ether/;\
-	manta gen manta.yaml src/manta.v; \
+	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
 	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
@@ -116,7 +116,7 @@ nexys_a7_io_core_ether:
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
-	manta gen manta.yaml src/manta.v;		\
+	python3 -m manta gen manta.yaml src/manta.v;		\
 	rm -rf obj; \
 	mkdir -p obj; \
 	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
@@ -124,7 +124,7 @@ nexys_a7_io_core_uart:
 
 nexys_a7_ps2_logic_analyzer:
 	cd examples/nexys_a7/ps2_logic_analyzer/;  					\
-	manta gen manta.yaml src/manta.v;							\
+	python3 -m manta gen manta.yaml src/manta.v;							\
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
 	rm -rf obj; \
 	mkdir -p obj; \
@@ -133,7 +133,7 @@ nexys_a7_ps2_logic_analyzer:
 
 nexys_a7_video_sprite_ether:
 	cd examples/nexys_a7/video_sprite_ether;\
-	manta gen manta.yaml src/manta.v;		\
+	python3 -m manta gen manta.yaml src/manta.v;		\
 	rm -rf obj; \
 	mkdir -p obj; \
 	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
@@ -141,7 +141,7 @@ nexys_a7_video_sprite_ether:
 
 nexys_a7_video_sprite_uart:
 	cd examples/nexys_a7/video_sprite_uart;	\
-	manta gen manta.yaml src/manta.v;		\
+	python3 -m manta gen manta.yaml src/manta.v;		\
 	rm -rf obj; \
 	mkdir -p obj; \
 	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
@@ -151,5 +151,5 @@ icestick: icestick_io_core
 
 icestick_io_core:
 	cd examples/icestick/io_core/;	\
-	manta gen manta.yaml manta.v;  	\
+	python3 -m manta gen manta.yaml manta.v;  	\
 	./build.sh
