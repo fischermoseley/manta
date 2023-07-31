@@ -75,7 +75,7 @@ io_core_tb:
 
 logic_analyzer_tb:
 	cd test/functional_sim/logic_analyzer_tb;					\
-	python3 -m manta gen manta.yaml manta.v;								\
+	python3 -m manta gen manta.yaml manta.v;					\
 	iverilog -g2012 -o sim.out logic_analyzer_tb.sv manta.v;	\
 	vvp sim.out; 												\
 	rm sim.out
@@ -106,47 +106,22 @@ formal:
 	sby -f test/formal_verification/bridge_rx.sby
 
 # Build Examples
-nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_ps2_logic_analyzer nexys_a7_video_sprite_ether nexys_a7_video_sprite_uart
+NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart
+ICESTICK_EXAMPLES := io_core
 
-nexys_a7_io_core_ether:
-	cd examples/nexys_a7/io_core_ether/; \
+.PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
+nexys_a7: $(NEXYS_A7_EXAMPLES)
+
+$(NEXYS_A7_EXAMPLES):
+	cd examples/nexys_a7/$(NEXYS_A7_EXAMPLES)
 	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
 	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
-nexys_a7_io_core_uart:
-	cd examples/nexys_a7/io_core_uart/; \
-	python3 -m manta gen manta.yaml src/manta.v; \
-	rm -rf obj; \
-	mkdir -p obj; \
-	$(VIVADO_PATH) -mode batch -source ../build.tcl
+icestick: $(ICESTICK_EXAMPLES)
 
-nexys_a7_ps2_logic_analyzer:
-	cd examples/nexys_a7/ps2_logic_analyzer/; \
-	python3 -m manta gen manta.yaml src/manta.v; \
-	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
-	rm -rf obj; \
-	mkdir -p obj; \
-	$(VIVADO_PATH) -mode batch -source ../build.tcl
-
-nexys_a7_video_sprite_ether:
-	cd examples/nexys_a7/video_sprite_ether; \
-	python3 -m manta gen manta.yaml src/manta.v; \
-	rm -rf obj; \
-	mkdir -p obj; \
-	$(VIVADO_PATH) -mode batch -source ../build.tcl
-
-nexys_a7_video_sprite_uart:
-	cd examples/nexys_a7/video_sprite_uart;	\
-	python3 -m manta gen manta.yaml src/manta.v; \
-	rm -rf obj; \
-	mkdir -p obj; \
-	$(VIVADO_PATH) -mode batch -source ../build.tcl
-
-icestick: icestick_io_core
-
-icestick_io_core:
-	cd examples/icestick/io_core/; \
+$(ICESTICK_EXAMPLES):
+	cd examples/icestick/$(ICESTICK_EXAMPLES); \
 	python3 -m manta gen manta.yaml manta.v; \
-	./build.sh
+	../build.sh
