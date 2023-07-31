@@ -1,4 +1,8 @@
-VIVADO_PATH=/tools/Xilinx/Vivado/2023.1/bin/vivado
+# Tool Paths
+VIVADO=/tools/Xilinx/Vivado/2023.1/bin/vivado
+YOSYS=/tools/oss-cad-suite/bin/yosys
+NEXTPNR_ICE40=/tools/oss-cad-suite/bin/nextpnr-ice40
+ICEPACK=/tools/oss-cad-suite/bin/icepack
 
 test: auto_gen sim formal
 
@@ -116,7 +120,7 @@ $(NEXYS_A7_EXAMPLES):
 	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
-	$(VIVADO_PATH) -mode batch -source ../build.tcl
+	$(VIVADO) -mode batch -source ../build.tcl
 
 # Build Icestick Examples
 ICESTICK_EXAMPLES := io_core
@@ -127,4 +131,8 @@ icestick: $(ICESTICK_EXAMPLES)
 $(ICESTICK_EXAMPLES):
 	cd examples/icestick/$@; \
 	python3 -m manta gen manta.yaml manta.v; \
-	../build.sh
+	$(YOSYS) -p 'synth_ice40 -top top_level -json top_level.json' top_level.sv; \
+	$(NEXTPNR_ICE40) --hx1k --json top_level.json --pcf top_level.pcf --asc top_level.asc; \
+	$(ICEPACK) top_level.asc top_level.bin; \
+	rm -f *.json; \
+	rm -f *.asc;
