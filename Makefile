@@ -105,23 +105,26 @@ formal:
 	sby -f test/formal_verification/uart_rx.sby
 	sby -f test/formal_verification/bridge_rx.sby
 
-# Build Examples
+# Build Nexys A7 Examples
 NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart
-ICESTICK_EXAMPLES := io_core
 
 .PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
 nexys_a7: $(NEXYS_A7_EXAMPLES)
 
 $(NEXYS_A7_EXAMPLES):
-	cd examples/nexys_a7/$(NEXYS_A7_EXAMPLES)
+	cd examples/nexys_a7/$@
 	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
 	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
+# Build Icestick Examples
+ICESTICK_EXAMPLES = io_core
+
+.PHONY icestick $(ICESTICK_EXAMPLES)
 icestick: $(ICESTICK_EXAMPLES)
 
 $(ICESTICK_EXAMPLES):
-	cd examples/icestick/$(ICESTICK_EXAMPLES); \
+	cd examples/icestick/$@; \
 	python3 -m manta gen manta.yaml manta.v; \
 	../build.sh
