@@ -119,9 +119,9 @@ $(NEXYS_A7_EXAMPLES):
 	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
 # Build Icestick Examples
-ICESTICK_EXAMPLES = io_core
+ICESTICK_EXAMPLES := io_core
 
-.PHONY icestick $(ICESTICK_EXAMPLES)
+.PHONY: icestick $(ICESTICK_EXAMPLES)
 icestick: $(ICESTICK_EXAMPLES)
 
 $(ICESTICK_EXAMPLES):
