@@ -176,11 +176,11 @@ class UARTInterface:
         return bridge_tx_def + '\n' + uart_tx_def
 
     def rx_hdl_inst(self):
-        rx = VerilogManipulator("uart_iface/uart_rx_bridge_rx_inst_templ.v")
+        rx = VerilogManipulator("uart_iface/uart_rx_bridge_rx_inst_tmpl.v")
         rx.sub(self.clocks_per_baud, "/* CLOCKS_PER_BAUD */")
         return rx.get_hdl()
 
     def tx_hdl_inst(self):
-        tx = VerilogManipulator("uart_iface/uart_tx_bridge_tx_inst_templ.v")
+        tx = VerilogManipulator("uart_iface/uart_tx_bridge_tx_inst_tmpl.v")
         tx.sub(self.clocks_per_baud, "/* CLOCKS_PER_BAUD */")
         return tx.get_hdl()
