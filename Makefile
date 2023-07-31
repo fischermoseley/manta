@@ -112,7 +112,7 @@ NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_
 nexys_a7: $(NEXYS_A7_EXAMPLES)
 
 $(NEXYS_A7_EXAMPLES):
-	cd examples/nexys_a7/$@
+	cd examples/nexys_a7/$@; \
 	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
