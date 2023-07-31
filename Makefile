@@ -1,3 +1,5 @@
+VIVADO_PATH=/tools/Xilinx/Vivado/2023.1/bin/vivado
+
 test: auto_gen sim formal
 
 examples: icestick nexys_a7
@@ -107,49 +109,44 @@ formal:
 nexys_a7: nexys_a7_io_core_ether nexys_a7_io_core_uart nexys_a7_ps2_logic_analyzer nexys_a7_video_sprite_ether nexys_a7_video_sprite_uart
 
 nexys_a7_io_core_ether:
-	cd examples/nexys_a7/io_core_ether/;\
+	cd examples/nexys_a7/io_core_ether/; \
 	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
-	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
-	vivado -mode batch -source build.tcl
+	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
 nexys_a7_io_core_uart:
 	cd examples/nexys_a7/io_core_uart/; \
-	python3 -m manta gen manta.yaml src/manta.v;		\
+	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
-	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
-	vivado -mode batch -source build.tcl
+	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
 nexys_a7_ps2_logic_analyzer:
-	cd examples/nexys_a7/ps2_logic_analyzer/;  					\
-	python3 -m manta gen manta.yaml src/manta.v;							\
+	cd examples/nexys_a7/ps2_logic_analyzer/; \
+	python3 -m manta gen manta.yaml src/manta.v; \
 	manta playback manta.yaml my_logic_analyzer sim/playback.v;	\
 	rm -rf obj; \
 	mkdir -p obj; \
-	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
-	vivado -mode batch -source build.tcl
+	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
 nexys_a7_video_sprite_ether:
-	cd examples/nexys_a7/video_sprite_ether;\
-	python3 -m manta gen manta.yaml src/manta.v;		\
+	cd examples/nexys_a7/video_sprite_ether; \
+	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
-	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
-	vivado -mode batch -source build.tcl
+	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
 nexys_a7_video_sprite_uart:
 	cd examples/nexys_a7/video_sprite_uart;	\
-	python3 -m manta gen manta.yaml src/manta.v;		\
+	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
-	wget -nc https://fpga.mit.edu/6205/_static/F22/labs/lab05/build.tcl; \
-	vivado -mode batch -source build.tcl
+	$(VIVADO_PATH) -mode batch -source ../build.tcl
 
 icestick: icestick_io_core
 
 icestick_io_core:
-	cd examples/icestick/io_core/;	\
-	python3 -m manta gen manta.yaml manta.v;  	\
+	cd examples/icestick/io_core/; \
+	python3 -m manta gen manta.yaml manta.v; \
 	./build.sh
