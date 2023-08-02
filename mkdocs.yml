@@ -56,18 +56,14 @@ markdown_extensions:
   - pymdownx.superfences
 
 nav:
-    - User Reference:
-      - Home: index.md
-      - Installation: installation.md
-      - Cores:
-        - IO Core: io_core.md
-        - Logic Analyzer Core: logic_analyzer_core.md
-        - Block Memory Core: block_memory_core.md
-      - Examples:
-        - IO Core: tutorial_io_core.md
-        - Logic Analyzer Core: tutorial_logic_analyzer.md
-        - Block Memory Core: tutorial_block_memory.md
-    - Developer Reference:
-      - System Architecture: system_architecture.md
-      - Tools Used: tools_used.md
-      - Roadmap: roadmap.md
+    - Home: index.md
+    - Installation: installation.md
+    - Reference:
+      - How It Works: how_it_works.md
+      - IO Core: io_core.md
+      - Logic Analyzer Core: logic_analyzer.md
+      - Block Memory Core: block_memory.md
+      - Ethernet Interface: ethernet.md
+      - UART: uart.md
+    - Repository Structure: repository_structure.md
+    - Roadmap: roadmap.md

@@ -1,3 +1,14 @@
+## Dependencies
+Manta requires the following dependencies:
+
+- pyYAML, which is used for parsing configuration files written in YAML.
+- pySerial, used for communicating with the FPGA over UART.
+- Scapy, used for communicating with FPGA over Ethernet.
+- pyVCD, used for writing waveforms captured by the Logic Analyzer Core to standard Value Change Dump (VCD) files.
+
+All of these dependencies are technically optional. If you're comfortable writing configuration files in JSON, then you don't need pyYAML. If you're using UART exclusively in your project, then you won't need Scapy. That said, Manta will try to install (or use an existing copy of) pyYAML, pySerial, and pyVCD during its own installation to cover all use cases.
+
+## Installation
 You can install the latest version of Manta directly from source with:
 
 ```
