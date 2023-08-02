@@ -10,6 +10,7 @@ dependencies = [
   "PyYAML",
   "pyserial",
   "pyvcd",
+  "scapy"
 ]
 
 requires-python = ">=3.7"

@@ -47,6 +47,39 @@ python_lint:
 auto_gen:
 	python3 test/auto_gen/run_tests.py
 
+# Build Nexys A7 Examples
+NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart
+
+.PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
+nexys_a7: $(NEXYS_A7_EXAMPLES)
+
+$(NEXYS_A7_EXAMPLES):
+	cd examples/nexys_a7/$@; \
+	python3 -m manta gen manta.yaml src/manta.v; \
+	rm -rf obj; \
+	mkdir -p obj; \
+	$(VIVADO) -mode batch -source ../build.tcl
+
+# Build Icestick Examples
+ICESTICK_EXAMPLES := io_core
+
+.PHONY: icestick $(ICESTICK_EXAMPLES)
+icestick: $(ICESTICK_EXAMPLES)
+
+$(ICESTICK_EXAMPLES):
+	cd examples/icestick/$@; \
+	python3 -m manta gen manta.yaml manta.v; \
+	$(YOSYS) -p 'synth_ice40 -top top_level -json top_level.json' top_level.sv; \
+	$(NEXTPNR_ICE40) --hx1k --json top_level.json --pcf top_level.pcf --asc top_level.asc; \
+	$(ICEPACK) top_level.asc top_level.bin; \
+	rm -f *.json; \
+	rm -f *.asc;
+
+# Formal Verification
+formal:
+	sby -f test/formal_verification/uart_rx.sby
+	sby -f test/formal_verification/bridge_rx.sby
+
 # Functional Simulation
 sim: ethernet_tx_tb ethernet_rx_tb mac_tb block_memory_tb io_core_tb logic_analyzer_tb bridge_rx_tb bridge_tx_tb block_memory_tb
 
@@ -104,35 +137,3 @@ uart_tx_tb:
 	vvp sim.out
 	rm sim.out
 
-# Formal Verification
-formal:
-	sby -f test/formal_verification/uart_rx.sby
-	sby -f test/formal_verification/bridge_rx.sby
-
-# Build Nexys A7 Examples
-NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart
-
-.PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
-nexys_a7: $(NEXYS_A7_EXAMPLES)
-
-$(NEXYS_A7_EXAMPLES):
-	cd examples/nexys_a7/$@; \
-	python3 -m manta gen manta.yaml src/manta.v; \
-	rm -rf obj; \
-	mkdir -p obj; \
-	$(VIVADO) -mode batch -source ../build.tcl
-
-# Build Icestick Examples
-ICESTICK_EXAMPLES := io_core
-
-.PHONY: icestick $(ICESTICK_EXAMPLES)
-icestick: $(ICESTICK_EXAMPLES)
-
-$(ICESTICK_EXAMPLES):
-	cd examples/icestick/$@; \
-	python3 -m manta gen manta.yaml manta.v; \
-	$(YOSYS) -p 'synth_ice40 -top top_level -json top_level.json' top_level.sv; \
-	$(NEXTPNR_ICE40) --hx1k --json top_level.json --pcf top_level.pcf --asc top_level.asc; \
-	$(ICEPACK) top_level.asc top_level.bin; \
-	rm -f *.json; \
-	rm -f *.asc;

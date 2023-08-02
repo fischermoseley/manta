@@ -1,5 +1,4 @@
-## What Goes Where?
-
+## Repository Structure
 - `src/manta/` contains the Python and Verilog source needed to generate and run the cores.
 - `test/` contains testbenchs for HDL. Manta is written in Verilog 2001, but the testbenches are written in SystemVerilog 2012. These are simulated using Icarus Verilog, which produces `.vcd` files, viewable your favorite waveform viewer, like GTKWave.
 - `doc/` contains the documentation you're reading right now! It's built into a nice static site by Material for MkDocs, which automatically rebuilds the site on every commit to `main`. This is done with a GitHub Action configured in `.github/`
@@ -7,7 +6,7 @@
 - `.github/` also contains some GitHub Actions configuration for automatically running the SystemVerilog testbenches and building the examples, in addition to automatically rebuilding the site.
 
 ## Tools Used
-- Verilator is used for linting
-- Wavedrom for waveform diagrams, and draw.io for block diagrams
-- GNU make for making it more convenient to run simulations.
-- GitHub Pages serves the documentation site.
+- Icarus Verilog is used for functional simulation.
+- The Project Icestorm tools and Vivado are used for building bitstreams.
+- Wavedrom is used for for waveform diagrams, and draw.io for block diagrams
+- GitHub Pages is used to serve the documentation site.

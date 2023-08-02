@@ -1,37 +1,18 @@
-ok so the way the new packets work is:
+\section{Ethernet Interface}
+\subsection{Description}
+For situations where the onboard UART is not available, Manta provides a 100Mbps Ethernet link for communicating between the host machine and target FPGA. This link implements a L2 MAC on the FPGA, designed to be directly connected to a host machine on a dedicated network adapter. The MAC is controlled by a bridge interface, which performs the exact same function as it does on the UART interface. Incoming packets are parsed into bus transactions, placed on the bus, and any response data is encapsulated into another packet sent to the host.
 
-- everything uses the same ethertype - that's configured once, in manta.yaml, and is set as a parameter in each of the rx and tx stacks
+This is done by interacting with an Ethernet PHY, an onboard transceiver IC that converts between the FPGA's logic-level signaling and the voltages on the cable's twisted pairs. The communication between the Ethernet PHY and the FPGA is done over an interface that's dependent on the speed of the PHY. The 10/100 Mbps interface used on the Nexys A7-100T uses the RMII as defined in IEEE 802.3u. RMII is the second-oldest member in the Media Independent Interface family, with newer revisions of 802.3 supporting faster interfaces.
 
-- we do [addr] [data] for incoming write messages, and [addr] for incoming read messages.
-- we do [data] for outgoing read responses. this means that:
-    - we need to detect packet length on mac_rx
-    - packets coming out of the FPGA are fixed-width, mac_tx will always send out 2 bytes of data
-    - packets going into the FPGA are guarunteed to be longer than packets coming out of the FPGA
+Manta's bus clock must be equivalent to the PHY's reference clock if Ethernet is to be used - in the case of the 100Mbps RMII PHY on the Nexys A7 used in 6.205, this is 50MHz. This doesn't pose a problem for user logic, which is connected through Manta's cores that perform CDC internally. It does mean that a reference clock for the PHY has to be synthesized outside of Manta itself, and the means by which this is done varies by FPGA vendor and toolchain.
 
-- actually this doesn't make a lot of sense - we're going to be padding anyway, so this really just introduces extra complexity for us. let's just do
-    something like [rw] [addr] [data]
-    - since we know that we're _always_ going to get in at least 60 bytes of content and each message only contains like
-    - we could say that in the future since we're using a fixed ethertype and can detect the paket length based on the crsdv line, we could concevably
-        stack a bunch of [rw] [addr] [data] things together in the same packet - and creep right up to the ethernet MTU. but we'll file that along the 'other stuff'
-        and go from there. for now let's just pull 1 + 2 + 2 = 5 bytes = 40 bits into aggregate and see what happens.
+This MAC allows for the usage of packets with the structure shown in Figure \ref{ethernet_packet_structure}. The bus transaction being communicated is placed at the beginning of the packet's payload field, which IEEE 802.3 allows to vary in length from 46 to 1500 bytes. The 46-byte lower limit requires 41 bytes of zero padding to be added to the five bytes used to specify a bus transaction, and only one bus transactions is specified in each Ethernet frame. This abundance of unused space results in all packets being the same length, whether the packet contains a read request, write request, or read response. Packets containing write requests elicit no response from the FPGA, just as write requests delivered over UART produce no response. The justification for this behavior is shared between the Ethernet and UART interfaces, and is provided in Section \ref{uart_justification}.
 
-    - ok so then updated mac_rx is:
-        - ether, with the reset removed from it
-        - bitorder, with the reset removed from it
-        - firewall, but checks the destination MAC of the packet in addition to the ethertype
-        - transaction, which turns the packets coming in into rw/addr/data triplets. this is then outputted to the top level of mac_rx
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{ethernet_packet.png}
+\caption{Structure of the Ethernet packets exchanged between the host and FPGA.}
+\label{ethernet_packet_structure}
+\end{figure}
 
-    - and the updated mac_tx is:
-        - just the same, except we just put the busficiation logic inside it. so then instead of having start we do the logic with rw_i and valid_i ourselves,
-          and buffer thee data ourselves
-
-    - so then we just have mac_tx and mac_rx in the manta core chain. which feels good.
-
-
-previous ideas:
-    - how to do variable length detection? right now our current stack is not well suited for that
-        - keeping in line with the existing stack, we want to progressively take out chunks as time goes on.
-        - i think we should modify firewall to check ethertype in addition to mac address also get rid of the reset while we're at it
-            - because it's jaycode, probably going to be easier to rewrite from scratch to preserve style and sanity. i don't have anything to prove
-            - we can use the 205 checkers for this, ironcially enough
-        - i think we should modify aggregate to get both the payload and length. the payload is clocked in dibit-by-dibit, so we'll want to grab the
+These packets are addressed directly to the host's MAC address, which is obtained during code autogeneration. These packets also use a fixed Ethertype of \texttt{0x88B5}, which is specially reserved for ``public use and for prototype and vendor-specific protocol development'' in IEEE 802.1. This was done to create an Ethernet II frame instead of a legacy 802.3 frame, without having to implement a higher level protocol like TCP or UDP to safely use a fixed Ethertype. This allows the MAC to use modern Ethernet II frames safely, but save FPGA resources.
