@@ -1,8 +1,8 @@
 ## Overview
 
-The Logic Analyzer core allows for debugging logic by capturing a set of digital signals to memory. This is done in response to a ___trigger___ condition, which starts the ___capture___, which continues until the onboard memory is full. The resulting capture is then read out to the user. This pretty much identical to the behavior of a benchtop logic analyzer.
+The Logic Analyzer core allows for debugging logic by capturing a set of digital signals to memory. This is done in response to a ___trigger___ condition, which starts the ___capture___, which continues until the onboard memory is full, and the resulting capture is then read out to the user.
 
-While this sounds simple, Manta has a few tricks up its sleeve that you may find useful! These are described below:
+While this is pretty much identical to the behavior of a benchtop logic analyzer, Manta has a few tricks up its sleeve that you may find useful! These are described below:
 
 ## Configuration
 
