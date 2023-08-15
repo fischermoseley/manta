@@ -1,4 +1,4 @@
-site_name: manta
+site_name: "Manta Documentation"
 site_description: Manta Documentation
 site_author: Fischer Moseley
 
@@ -63,7 +63,7 @@ nav:
       - IO Core: io_core.md
       - Logic Analyzer Core: logic_analyzer.md
       - Block Memory Core: block_memory.md
-      - Ethernet Interface: ethernet.md
-      - UART: uart.md
+      # - Ethernet Interface: ethernet.md
+      # - UART: uart.md
     - Repository Structure: repository_structure.md
     - Roadmap: roadmap.md
