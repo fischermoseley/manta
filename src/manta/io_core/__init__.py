@@ -21,7 +21,7 @@ class IOCoreProbe:
             assert data >= -(2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
             assert data <= (2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
 
-        self.interface.write_register(self.base_addr, data)
+        self.interface.write(self.base_addr, data)
 
     def get(self):
         return self.interface.read(self.base_addr)
