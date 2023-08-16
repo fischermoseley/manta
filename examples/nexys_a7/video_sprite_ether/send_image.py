@@ -34,4 +34,4 @@ if __name__ == "__main__":
         m = Manta('manta.yaml')
 
         addrs = list(range(len(pixels)))
-        m.image_mem.interface.write_batch(addrs, pixels)
+        m.image_mem.write(addrs, pixels)

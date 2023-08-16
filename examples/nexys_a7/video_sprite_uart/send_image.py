@@ -33,8 +33,5 @@ if __name__ == "__main__":
         from manta import Manta
         m = Manta('manta.yaml')
 
-        # for addr, pixel in enumerate(pixels):
-        #     m.image_mem.write(addr, pixel)
-
         addrs = list(range(len(pixels)))
-        m.image_mem.interface.write(addrs, pixels)
+        m.image_mem.write(addrs, pixels)
