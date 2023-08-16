@@ -22,7 +22,7 @@ bridge_tx btx (
     .clk(clk),
 
     .data_i(tb_btx_data),
-    .rw_i(1'b1),
+    .rw_i(1'b0),
     .valid_i(tb_btx_valid),
 
     .data_o(btx_utx_data),
@@ -33,7 +33,7 @@ reg [7:0] btx_utx_data;
 reg btx_utx_start;
 reg utx_btx_done;
 
-uart_tx #(.CLOCKS_PER_BAUD(/* CLOCKS_PER_BAUD */)) utx (
+uart_tx #(.CLOCKS_PER_BAUD(10)) utx (
     .clk(clk),
 
     .data_i(btx_utx_data),

@@ -15,10 +15,10 @@ module bridge_tx (
     function [7:0] to_ascii_hex;
         // convert a number from 0-15 into the corresponding ascii char
         input [3:0] n;
-        to_ascii_hex = (n > 10) ? (n + 8'h30) : (n + 8'h41 - 'd10);
+        to_ascii_hex = (n < 10) ? (n + 8'h30) : (n + 8'h41 - 'd10);
     endfunction
 
-    localparam PREAMBLE = 8'h4D;
+    localparam PREAMBLE = "D";
     localparam CR = 8'h0D;
     localparam LF = 8'h0A;
 

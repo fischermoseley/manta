@@ -75,9 +75,9 @@ class UARTInterface:
         assert response is not None, "No reponse received."
 
         response_str = response.decode('ascii')
-        assert response_str[0] == 'M', "Bad message recieved, incorrect preamble."
-        assert response_str[-1] == '\n', "Bad message received, incorrect EOL."
+        assert response_str[0] == 'D', "Bad message recieved, incorrect preamble."
         assert response_str[-2] == '\r', "Bad message received, incorrect EOL."
+        assert response_str[-1] == '\n', "Bad message received, incorrect EOL."
         assert len(response_str) == 7, f"Wrong number of bytes received, expecting 7 but got {len(response)}."
 
         return int(response_str[1:5], 16)
@@ -104,7 +104,7 @@ class UARTInterface:
         for i in range(0, len(addrs), self.chunk_size):
             addr_chunk = addrs[i:i+self.chunk_size]
 
-            outbound_bytes = [f"M{addr:04X}\r\n".encode('ascii') for addr in addr_chunk]
+            outbound_bytes = [f"R{addr:04X}\r\n".encode('ascii') for addr in addr_chunk]
             outbound_bytes = b"".join(outbound_bytes)
 
             self.ser.write(outbound_bytes)
@@ -155,7 +155,7 @@ class UARTInterface:
             data_chunk = datas[i:i+self.chunk_size]
 
 
-            outbound_bytes = [f"M{a:04X}{d:04X}\r\n" for a, d in zip(addr_chunk, data_chunk)]
+            outbound_bytes = [f"W{a:04X}{d:04X}\r\n" for a, d in zip(addr_chunk, data_chunk)]
             outbound_bytes = [ob.encode('ascii') for ob in outbound_bytes]
             outbound_bytes = b"".join(outbound_bytes)
 
