@@ -324,11 +324,16 @@ Supported commands:
     # list available serial ports
     elif argv[1] == "ports":
         import serial.tools.list_ports
-
         for port in serial.tools.list_ports.comports():
             print(port)
-            print(' ->  vid: 0x{:04X}'.format(port.vid))
-            print(' ->  pid: 0x{:04X}'.format(port.pid))
+
+            # sometimes macOS will enumerate non-serial devices as serial ports,
+            # in which case the PID/VID/serial/location/etc are all None
+            pid = "0x{port.vid:04X}" if port.pid is not None else "None"
+            vid = "0x{port.vid:04X}" if port.vid is not None else "None"
+
+            print(f" ->  pid: {pid}")
+            print(f" ->  vid: {vid}")
             print(f" ->  ser: {port.serial_number}")
             print(f" ->  loc: {port.location}")
             print(f" -> mftr: {port.manufacturer}")
