@@ -1,42 +1,40 @@
 
-## Usage
+## Overview
+Block Memory (also called Block RAM, or BRAM) is the de facto means of storing data on FPGAs when the space needed exceeds a few registers. As a result, Manta provides a Block Memory core, which instantiates a dual-port BRAM on the FPGA. One port is provided to the host, and the other is connected to your logic with the standard BRAM interface (`addr`, `din`, `dout`, `wea`). This allows the host to provide reasonably large amounts of data to user logic - or the other way around, or a mix of both!
 
+This is a very, very simple task - and while configuration is straightforward, there are a few caveats. More on both topics below:
 
-### Configuration
-The block memory core can be included in your configuration just like any other core. Only the `width` and `depth` parameters are needed:
+## Configuration
+
+Just like the rest of the cores, the Block Memory core is configured via an entry in a project's configuration file. This is easiest to show by example:
 
 ```yaml
 ---
 cores:
   my_block_memory:
     type: block_memory
-    width: 12 # (1)
+    width: 12
     depth: 16384
 
 ```
 
-1. If your BRAM is more than 16 bits wide, check out the section on [Synchronicity](#synchronicity) and make sure Manta's behavior is compatible with your project.
+There's a few parameters that get configured here, including:
 
-### Verilog
-Internally this creates a dual-port BRAM, connects one end to Manta's internal bus, and exposes the other to the user:
+- `name`: The name of the Block Memory core. This name is used to reference the core when working with the API, and can be whatever you'd like.
+- `type`: This denotes that this is a Block Memory core. All cores contain a `type` field, which must be set to `block_memory` to be recognized as an Block Memory core.
 
-```systemverilog
-manta manta_inst (
-    .clk(clk),
+### Dimensions
+The dimensions of the block memory are specified in the config file with the `width` and `depth` entries.
 
-    .rx(rx),
-    .tx(tx),
+Manta won't impose any limit on the width or depth of the block memory you instantiate, but since Manta instantiates BRAM primitives on the FPGA, you will be limited by what your FPGA can support. It helps to know your particular FPGA's architecture here.
 
-    .my_block_memory_clk(),
-    .my_block_memory_addr(),
-    .my_block_memory_din(),
-    .my_block_memory_dout(),
-    .my_block_memory_we());
-```
+If your BRAM is more than 16 bits wide, check out the section on [Synchronicity](#synchronicity) and make sure your project will tolerate how Manta writes to the block memory.
 
-Which are free to connect to whatever logic the user desires.
 
-### Python
+### Python API
+
+The Block Memory core functionality is stored in the `Manta.IOCore` and `Manta.IOCoreProbe` classes in [src/manta/io_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/io_core/__init__.py), and it may be controlled with the two functions:
+
 Just like with the other cores, interfacing with the BRAM with the Python API is simple:
 
 ```python

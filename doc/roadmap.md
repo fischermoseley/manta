@@ -3,13 +3,19 @@
 ## Prior to v1.0.0 release:
 _targeting August 2023_
 
-- Clean up UART testbenches, make them actually test things
+- ~~Clean up UART testbenches, make them actually test things~~
 - Pull text from thesis into documentation site
-- Update docs with API reference
-- Make super super sure everything works (need hardware for that)
+- Add API reference to documentation site
 - Port logic analyzer examples to the icestick
-- __IO Core:__ Clock domain crossing, check that >16 bit probes work
-- __Logic Analyzer Core:__ CDC, trigger modes, external trigger
+    - This requires refactoring the block memory core to use unpacked arrays, since Yosys doesn't support packed arrays.
+- Add method for dumping logic analyzer data to Python
+- Add clock domain crossing to IO core
+- Verify that >16 bit probes work on IO core
+- Add clock domain crossing to Logic Analyzer Core
+- Verify that capture modes work on the Logic Analyzer Core
+- Verify that external triggers work on the Logic Analyzer Core
+- Add global AND/OR to Logic Analyzer Core
+- Make super super sure everything works (need hardware for that)
 
 ## Prior to v1.1.0 release:
 - Fix Ethernet packet format

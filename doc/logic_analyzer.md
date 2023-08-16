@@ -29,7 +29,7 @@ cores:
 There's a few parameters that get configured here, including:
 
 - `name`: The name of the Logic Analyzer core. This name is used to reference the core when working with the API, and can be whatever you'd like.
-- `type`: This denotes that this is a Logic Analyzer core. All cores contain a `type` field, which must be set to `logic_analyzer` to be recognized as an IO core.
+- `type`: This denotes that this is a Logic Analyzer core. All cores contain a `type` field, which must be set to `logic_analyzer` to be recognized as an Logic Analyzer core.
 
 ### Sample Depth
 This refers to the number of samples saved in the capture, and is set with the `sample_depth` entry in the config file. A larger sample depth will use more resources, but show what your probes are doing over a longer time.
@@ -132,7 +132,9 @@ This is useful for two situations in particular:
 - _Sparse Sampling_ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more effecient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less BRAM than sampling the entire pattern history table.
 
 ## Python API
+The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py).
 
+At present, this class contains methods used really only for capturing data, and exporting `.vcd` and `.mem` files. It'd be super handy to expose the data from the logic analyzer core in a Pythonic way - which is why the feature is on the [roadmap](roadmap.md)!
 
 ## How It Works
 The Logic Analyzer Core's implementation on the FPGA consists of three primary components:
