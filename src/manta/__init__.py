@@ -240,10 +240,10 @@ reg {self.cores[-1].name}_btx_valid;\n"""
         # instantiate interface_tx, substitute in register names
         interface_tx_inst = self.interface.tx_hdl_inst()
 
-        interface_tx_inst = interface_tx_inst.replace("addr_i()", f"addr_i({self.cores[0].name}_btx_addr)")
-        interface_tx_inst = interface_tx_inst.replace("data_i()", f"data_i({self.cores[0].name}_btx_data)")
-        interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_i({self.cores[0].name}_btx_rw)")
-        interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_i({self.cores[0].name}_btx_valid)")
+        interface_tx_inst = interface_tx_inst.replace("addr_i()", f"addr_i({self.cores[-1].name}_btx_addr)")
+        interface_tx_inst = interface_tx_inst.replace("data_i()", f"data_i({self.cores[-1].name}_btx_data)")
+        interface_tx_inst = interface_tx_inst.replace("rw_i()", f"rw_i({self.cores[-1].name}_btx_rw)")
+        interface_tx_inst = interface_tx_inst.replace("valid_i()", f"valid_i({self.cores[-1].name}_btx_valid)")
 
         return interface_tx_conn + interface_tx_inst
 
