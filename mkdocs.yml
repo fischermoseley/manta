@@ -54,6 +54,7 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tilde
 
 nav:
     - Home: index.md
