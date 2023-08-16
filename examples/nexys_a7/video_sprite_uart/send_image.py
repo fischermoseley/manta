@@ -37,4 +37,4 @@ if __name__ == "__main__":
         #     m.image_mem.write(addr, pixel)
 
         addrs = list(range(len(pixels)))
-        m.image_mem.interface.write_registers(addrs, pixels)
+        m.image_mem.interface.write(addrs, pixels)
