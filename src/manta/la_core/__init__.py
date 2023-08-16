@@ -322,7 +322,7 @@ class LogicAnalyzerCore:
         # Read out contents from memory
         print(" -> Reading sample memory contents...")
         addrs = list(range(self.block_memory_base_addr, self.max_addr))
-        block_mem_contents = self.interface.reads(addrs)
+        block_mem_contents = self.interface.read(addrs)
 
         # Revolve BRAM contents around so the data pointed to by the read_pointer
         # is at the beginning
