@@ -1,14 +1,14 @@
-# macOS being lame
+# Hidden files
 .DS_Store
-
-# VSCode being lame
 *.vscode/
 
 # Vivado output products
+*.Xil/
 *.log
 *.jou
 *.rpt
 *.bit
+cpu_impl_netlist.v
 
 # IceStorm output products
 *.bin
