@@ -46,7 +46,7 @@ class Manta:
             elif core["type"] == "io":
                 new_core = IOCore(core, core_name, base_addr, self.interface)
 
-            elif core["type"] == "block_mem":
+            elif core["type"] == "block_memory":
                 new_core = BlockMemoryCore(core, core_name, base_addr, self.interface)
 
             else:
