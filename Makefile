@@ -48,7 +48,7 @@ auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Build Nexys A7 Examples
-NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart
+NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart block_mem_uart
 
 .PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
 nexys_a7: $(NEXYS_A7_EXAMPLES)
