@@ -31,7 +31,7 @@ auto_gen:
 	python3 test/auto_gen/run_tests.py
 
 # Build Examples
-NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart block_mem_uart
+NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart block_mem_uart logic_analyzer_uart
 
 .PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
 nexys_a7: $(NEXYS_A7_EXAMPLES)
@@ -41,7 +41,10 @@ $(NEXYS_A7_EXAMPLES):
 	python3 -m manta gen manta.yaml src/manta.v; \
 	rm -rf obj; \
 	mkdir -p obj; \
-	$(VIVADO) -mode batch -source ../build.tcl
+	$(VIVADO) -mode batch \
+		-source ../build.tcl \
+		-log obj/build.log \
+		-jou obj/build.jou
 
 ICESTICK_EXAMPLES := io_core
 
