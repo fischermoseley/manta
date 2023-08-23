@@ -9,28 +9,11 @@ test: auto_gen sim formal
 examples: icestick nexys_a7
 
 clean:
-	rm *.out *.vcd
-	rm **/lab-bc.py
-	rm -rf dist/
-	rm -rf src/mantaray.egg-info
-
-	rm -rf test/formal_verification/*_basic
-	rm -rf test/formal_verification/*_cover
-
-	rm -f examples/nexys_a7/*/obj/*
-	rm -f examples/nexys_a7/*/src/manta.v
-
-	rm -f examples/icestick/*/*.bin
-	rm -f examples/icestick/*/manta.v
+	@echo "Deleting everything matched by .gitignore"
+	git clean -Xdf
 
 serve_docs:
 	mkdocs serve
-
-total_loc:
-	find . -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.yml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
-
-real_loc:
-	find src test -type f \( -iname \*.sv -o -iname \*.v -o -iname \*.py -o -iname \*.yaml -o -iname \*.md \) | sed 's/.*/"&"/' | xargs  wc -l
 
 # Python Operations
 python_build:
@@ -47,7 +30,7 @@ python_lint:
 auto_gen:
 	python3 test/auto_gen/run_tests.py
 
-# Build Nexys A7 Examples
+# Build Examples
 NEXYS_A7_EXAMPLES := io_core_ether io_core_uart ps2_logic_analyzer video_sprite_ether video_sprite_uart block_mem_uart
 
 .PHONY: nexys_a7 $(NEXYS_A7_EXAMPLES)
@@ -60,7 +43,6 @@ $(NEXYS_A7_EXAMPLES):
 	mkdir -p obj; \
 	$(VIVADO) -mode batch -source ../build.tcl
 
-# Build Icestick Examples
 ICESTICK_EXAMPLES := io_core
 
 .PHONY: icestick $(ICESTICK_EXAMPLES)
@@ -136,4 +118,3 @@ uart_tx_tb:
 	iverilog -g2012 -o sim.out -y src/manta/uart_iface test/functional_sim/uart_tx_tb.sv
 	vvp sim.out
 	rm sim.out
-

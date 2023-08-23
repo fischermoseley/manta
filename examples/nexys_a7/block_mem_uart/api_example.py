@@ -11,8 +11,8 @@ for addr in range(1024):
     readback = m.my_block_memory.read(addr)
 
     if readback == number:
-        print(f"Success! Wrote and read back {number} from {addr}")
+        print(f"Success! Wrote and read back {hex(number)} from {hex(addr)}")
 
     else:
-        print(f"Failure! Wrote {number} to {addr}, but received {readback}")
+        print(f"Failure! Wrote {hex(number)} to {hex(addr)}, but received {hex(readback)}")
         exit()
