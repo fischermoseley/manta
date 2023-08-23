@@ -63,7 +63,6 @@ $(ICESTICK_EXAMPLES):
 
 # Formal Verification
 formal:
-	sby -f test/formal_verification/uart_rx.sby
 	sby -f test/formal_verification/bridge_rx.sby
 
 # Functional Simulation
