@@ -44,7 +44,8 @@ $(NEXYS_A7_EXAMPLES):
 	$(VIVADO) -mode batch \
 		-source ../build.tcl \
 		-log obj/build.log \
-		-jou obj/build.jou
+		-jou obj/build.jou; \
+	rm -rf .Xil;
 
 ICESTICK_EXAMPLES := io_core
 
