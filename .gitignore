@@ -2,6 +2,12 @@
 .DS_Store
 *.vscode/
 
+# Python outputs
+venv/
+dist/
+*.egg-info
+__pycache__/
+
 # Vivado output products
 *.Xil/
 *.log
@@ -17,17 +23,9 @@ cpu_impl_netlist.v
 *.vcd
 *.out
 
-# Manta output products
-manta.v
-
-# Python Packaging output products
-dist/
-*.egg-info
-__pycache__/
-
-# Any stray lab-bc's
-lab-bc.py
-
 # Formal outputs
 test/formal_verification/*_basic
 test/formal_verification/*_cover
+
+# Manta output products
+manta.v
