@@ -3,12 +3,6 @@
 set partNum xc7a100tcsg324-1
 set outputDir obj
 
-file mkdir $outputDir
-set files [glob -nocomplain "$outputDir/*"]
-if {[llength $files] != 0} {
-    file delete -force {*}[glob -directory $outputDir *];
-}
-
 read_verilog -sv [ glob ./src/*.{sv,v,svh,vh} ]
 read_xdc ./xdc/top_level.xdc
 
@@ -33,7 +27,7 @@ report_timing -file $outputDir/post_place_timing.rpt
 # route design and generate bitstream
 
 route_design -directive Explore
-write_bitstream -force $outputDir/final.bit
+write_bitstream -force $outputDir/out.bit
 
 report_route_status -file $outputDir/post_route_status.rpt
 report_timing_summary -file $outputDir/post_route_timing_summary.rpt
