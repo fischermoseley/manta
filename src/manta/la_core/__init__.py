@@ -78,9 +78,9 @@ class LogicAnalyzerCore:
         self.trigger_block_base_addr = self.fsm_base_addr + 7
 
         self.total_probe_width = sum(self.probes.values())
-        n_brams = math.ceil(self.total_probe_width / 16)
+        self.n_brams = math.ceil(self.total_probe_width / 16)
         self.block_memory_base_addr = self.trigger_block_base_addr + (2*len(self.probes))
-        self.max_addr = self.block_memory_base_addr + (n_brams * self.sample_depth)
+        self.max_addr = self.block_memory_base_addr + (self.n_brams * self.sample_depth)
 
         # build out self register map:
         #   these are also defined in logic_analyzer_fsm_registers.v, and should match
@@ -292,6 +292,7 @@ class LogicAnalyzerCore:
         if state != self.IDLE:
             self.interface.write(self.request_stop_reg_addr, 0)
             self.interface.write(self.request_stop_reg_addr, 1)
+            self.interface.write(self.request_stop_reg_addr, 0)
 
             state = self.interface.read(self.state_reg_addr)
             assert state == self.IDLE, "Logic analyzer did not reset to correct state when requested to."
@@ -328,7 +329,22 @@ class LogicAnalyzerCore:
         # is at the beginning
         print(" -> Reading read_pointer and revolving memory...")
         read_pointer = self.interface.read(self.read_pointer_reg_addr)
-        return block_mem_contents[read_pointer:] + block_mem_contents[:read_pointer]
+
+        # when the total probe width is >16 bits and multiple BRAMs are used,
+        # then a single sample is stored across multiple locations in memory,
+        # so we must combine the data from n_brams addresses to get the value
+        # of the sample at that time
+
+        # convert the sample number at read_pointer to memory address
+        read_address = self.n_brams * read_pointer
+        sample_mem = block_mem_contents[read_address:] + block_mem_contents[:read_address]
+
+        # split sample memory into chunks of size n_brams
+        chunks = [sample_mem[i: i + self.n_brams] for i in range(0, len(sample_mem), self.n_brams)]
+
+        # concat them in little-endian order (ie, chunk[0] is LSB)
+        concat = lambda x: int( ''.join([f'{i:016b}' for i in x[::-1]]), 2)
+        return [concat(c) for c in chunks]
 
 
     def export_vcd(self, capture_data, path):
