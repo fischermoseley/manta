@@ -75,7 +75,7 @@ class LogicAnalyzerCore:
 
         # compute base addresses
         self.fsm_base_addr = self.base_addr
-        self.trigger_block_base_addr = self.fsm_base_addr + 6
+        self.trigger_block_base_addr = self.fsm_base_addr + 7
 
         self.total_probe_width = sum(self.probes.values())
         n_brams = math.ceil(self.total_probe_width / 16)

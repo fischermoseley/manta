@@ -63,7 +63,10 @@ module logic_analyzer_controller (
             write_pointer <= write_pointer + 1;
             bram_we <= 1;
 
-            if(write_pointer == trigger_loc) state <= IN_POSITION;
+            if(write_pointer == trigger_loc) begin
+                if(trig) state <= CAPTURING;
+                else state <= IN_POSITION;
+            end
         end
 
         else if(state == IN_POSITION) begin

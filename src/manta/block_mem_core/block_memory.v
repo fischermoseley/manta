@@ -75,14 +75,14 @@ module block_memory (
         // throw BRAM operations into the front of the pipeline
         wea <= 0;
         if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= MAX_ADDR)) begin
-            wea[addr_i % N_BRAMS]   <= rw_i;
-            addra[addr_i % N_BRAMS] <= (addr_i - BASE_ADDR) / N_BRAMS;
-            dina[addr_i % N_BRAMS]  <= data_i;
+            wea[(addr_i - BASE_ADDR) % N_BRAMS]   <= rw_i;
+            addra[(addr_i - BASE_ADDR) % N_BRAMS] <= (addr_i - BASE_ADDR) / N_BRAMS;
+            dina[(addr_i - BASE_ADDR) % N_BRAMS]  <= data_i;
         end
 
         // pull BRAM reads from the back of the pipeline
         if( (valid_pipe[2]) && (addr_pipe[2] >= BASE_ADDR) && (addr_pipe[2] <= MAX_ADDR)) begin
-            data_o <= douta[addr_pipe[2] % N_BRAMS];
+            data_o <= douta[(addr_pipe[2] - BASE_ADDR) % N_BRAMS];
         end
     end
 
