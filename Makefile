@@ -89,7 +89,7 @@ block_memory_tb:
 	rm sim.out
 
 io_core_tb:
-	iverilog -g2012 -o sim.out -y src/manta			\
+	iverilog -g2012 -o sim.out 						\
 	test/functional_sim/io_core_tb/io_core_tb.sv	\
 	test/functional_sim/io_core_tb/io_core.v
 	vvp sim.out

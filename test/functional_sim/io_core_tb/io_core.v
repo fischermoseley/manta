@@ -2,19 +2,20 @@
 `timescale 1ns/1ps
 
 module io_core(
-    input wire clk,
+    input wire bus_clk,
+    input wire user_clk,
 
     // inputs
-    input wire picard,
-    input wire [6:0] data,
-    input wire [9:0] laforge,
-    input wire troi,
+    input wire probe0,
+    input wire [1:0] probe1,
+    input wire [7:0] probe2,
+    input wire [19:0] probe3,
 
     // outputs
-    output reg kirk,
-    output reg [4:0] spock,
-    output reg [2:0] uhura,
-    output reg chekov,
+    output reg probe4,
+    output reg [1:0] probe5,
+    output reg [7:0] probe6,
+    output reg [19:0] probe7,
 
     // input port
     input wire [15:0] addr_i,
@@ -31,41 +32,83 @@ module io_core(
 
     parameter BASE_ADDR = 0;
 
+    reg strobe = 0;
+
+    // configure buffers
+    // inputs
+    reg probe0_buf = 0;
+    reg [1:0] probe1_buf = 0;
+    reg [7:0] probe2_buf = 0;
+    reg [19:0] probe3_buf = 0;
+
+    // outputs
+    reg probe4_buf = 1; // PROBE4_INITIAL_VALUE;
+    reg [1:0] probe5_buf = 3; // PROBE5_INITIAL_VALUE;
+    reg [7:0] probe6_buf = 6; // PROBE6_INITIAL_VALUE;
+    reg [19:0] probe7_buf = 7; // PROBE7_INITIAL_VALUE;
+
     initial begin
-        kirk = 0;
-        spock = 0;
-        uhura = 0;
-        chekov = 0;
+        probe4 = 1; // PROBE4_INITIAL_VALUE;
+        probe5 = 3; // PROBE5_INITIAL_VALUE;
+        probe6 = 6; // PROBE6_INITIAL_VALUE;
+        probe7 = 7; // PROBE7_INITIAL_VALUE;
     end
 
-    always @(posedge clk) begin
+    // synchronize buffers and probes on strobe
+    always @(posedge user_clk) begin
+        if(strobe) begin
+            // update input buffers from input probes
+            probe0_buf <= probe0;
+            probe1_buf <= probe1;
+            probe2_buf <= probe2;
+            probe3_buf <= probe3;
+
+            // update output buffers from output probes
+            probe4 <= probe4_buf;
+            probe5 <= probe5_buf;
+            probe6 <= probe6_buf;
+            probe7 <= probe7_buf;
+        end
+    end
+
+
+    // handle bus operations
+    always @(posedge bus_clk) begin
         addr_o <= addr_i;
         data_o <= data_i;
         rw_o <= rw_i;
         valid_o <= valid_i;
 
         // check if address is valid
-        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 7)) begin
+        if( (valid_i) && (addr_i >= BASE_ADDR) && (addr_i <= BASE_ADDR + 10)) begin
 
             if(!rw_i) begin // reads
                 case (addr_i)
-                    BASE_ADDR + 0: data_o <= {15'b0, picard};
-                    BASE_ADDR + 1: data_o <= {9'b0,  data};
-                    BASE_ADDR + 2: data_o <= {6'b0,  laforge};
-                    BASE_ADDR + 3: data_o <= {15'b0, troi};
-                    BASE_ADDR + 4: data_o <= {15'b0, kirk};
-                    BASE_ADDR + 5: data_o <= {11'b0, spock};
-                    BASE_ADDR + 6: data_o <= {13'b0, uhura};
-                    BASE_ADDR + 7: data_o <= {15'b0, chekov};
+                    BASE_ADDR + 0: data_o <= strobe;
+
+                    BASE_ADDR + 1: data_o <= probe0_buf; // width 1
+                    BASE_ADDR + 2: data_o <= probe1_buf; // width 2
+                    BASE_ADDR + 3: data_o <= probe2_buf; // width 8
+                    BASE_ADDR + 4: data_o <= probe3_buf[15:0]; // width 20
+                    BASE_ADDR + 5: data_o <= probe3_buf[19:16];
+
+                    BASE_ADDR + 6: data_o <= probe4_buf; // width 1
+                    BASE_ADDR + 7: data_o <= probe5_buf; // width 2
+                    BASE_ADDR + 8: data_o <= probe6_buf; // width 8
+                    BASE_ADDR + 9: data_o <= probe7_buf[15:0]; // width 20
+                    BASE_ADDR + 10: data_o <= probe7_buf[19:16];
                 endcase
             end
 
             else begin // writes
                 case (addr_i)
-                    BASE_ADDR + 4: kirk   <= data_i[0];
-                    BASE_ADDR + 5: spock  <= data_i[4:0];
-                    BASE_ADDR + 6: uhura  <= data_i[2:0];
-                    BASE_ADDR + 7: chekov <= data_i[0];
+                    BASE_ADDR + 0: strobe <= data_i[0];
+
+                    BASE_ADDR + 6: probe4_buf <= data_i[0];
+                    BASE_ADDR + 7: probe5_buf <= data_i[1:0];
+                    BASE_ADDR + 8: probe6_buf <= data_i[7:0];
+                    BASE_ADDR + 9: probe7_buf[15:0] <= data_i;
+                    BASE_ADDR + 10: probe7_buf[19:16] <= data_i[3:0];
                 endcase
             end
         end
