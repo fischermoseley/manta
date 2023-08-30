@@ -1,4 +1,4 @@
-from ..hdl_utils import *
+from ..utils import *
 
 from datetime import datetime
 from pkg_resources import get_distribution

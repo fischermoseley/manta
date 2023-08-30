@@ -1,4 +1,4 @@
-from ..hdl_utils import *
+from ..utils import *
 
 class UARTInterface:
     def __init__(self, config):

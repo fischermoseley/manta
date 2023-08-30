@@ -1,5 +1,6 @@
 /* MODULE_NAME */ /* INST_NAME */ (
-    .clk(clk),
+    .bus_clk(clk),
+    .user_clk(/* USER_CLK */),
 
     // ports
     /* INST_PORTS */

@@ -1,5 +1,20 @@
 import pkgutil
 
+def pack_16bit_words(data):
+    """Takes a list of integers, interprets them as 16-bit integers, and
+    concatenates them together in little-endian order."""
+    for d in data:
+        if d > 0:
+            assert d < 2**16-1, "Unsigned integer too large."
+
+        if d < 0:
+            assert d < 2**15-1, "Signed integer too large."
+
+    return int(''.join([f'{i:016b}' for i in data[::-1]]), 2)
+
+def unpack_16bit_words(data):
+    pass
+
 class VerilogManipulator:
     def __init__(self, filepath=None):
         if filepath is not None:

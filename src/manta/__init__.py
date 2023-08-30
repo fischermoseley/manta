@@ -1,5 +1,5 @@
 # Internal Dependencies
-from .hdl_utils import *
+from .utils import *
 from .la_core import *
 from .io_core import *
 from .block_mem_core import *

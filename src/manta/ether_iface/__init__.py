@@ -1,4 +1,4 @@
-from ..hdl_utils import *
+from ..utils import *
 
 # Lazy and selective imports for quick builds!
 from scapy.interfaces import get_if_list

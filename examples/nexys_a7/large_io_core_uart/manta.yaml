@@ -2,7 +2,6 @@
 cores:
   io_core:
     type: io
-    user_clock: True
 
     inputs:
       probe0: 1
