@@ -68,7 +68,7 @@ A Block Memory core is used in the [video_sprite](https://github.com/fischermose
 
 Each Block Memory core is actually a set of 16-bit wide BRAMs with their ports concatenated together, with any spare bits masked off. Here's a diagram:
 
-<img src="/assets/block_memory_architecture.png" alt="drawing" width="800"/>
+![](assets/block_memory_architecture.png)
 
 This has one major consequence: if the core doesn't have a width that's an exact multiple of 16, synthesis engines (Vivado in particular) will throw some warnings as they optimize out the unused bits. This is expected behavior, and while the warnings are a little annoying, not having to manually deal with the unused bits simplifies the implementation immensely. No Python is needed to generate the core, and it'll configure itself just based on Verilog parameters. This turns the block memory core from a complicated conditionally-instantiated beast to a simple ~_100 line_ [Verilog file](https://github.com/fischermoseley/manta/blob/main/src/manta/block_memory.v).
 

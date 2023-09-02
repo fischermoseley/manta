@@ -69,7 +69,7 @@ Lastly, if you're not able to express your desired trigger condition in terms of
 ### Trigger Position (optional)
 Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accomodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occuring. This is best explained with a picture:
 
-<img src="/assets/trigger_positions.png" alt="drawing" width="800"/>
+![](assets/trigger_positions.png){style="width:90%"}
 
 The windows at the bottom of the diagram show what portions of the timeseries will be captured for different trigger positions. For instance:
 
@@ -134,12 +134,12 @@ This is useful for two situations in particular:
 ## Python API
 The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py).
 
-At present, this class contains methods used really only for capturing data, and exporting `.vcd` and `.mem` files. It'd be super handy to expose the data from the logic analyzer core in a Pythonic way - which is why the feature is on the [roadmap](roadmap.md)!
+At present, this class contains methods used really only for capturing data, and exporting `.vcd` and `.mem` files. It'd be super handy to expose the data from the logic analyzer core in a Pythonic way - which is why the feature is on the [roadmap](https://github.com/fischermoseley/manta/milestones)!
 
 ## How It Works
 The Logic Analyzer Core's implementation on the FPGA consists of three primary components:
 
-<img src="/assets/manta_logic_analyzer_architecture.png" alt="drawing" width="800"/>
+![](assets/manta_logic_analyzer_architecture.png){style="width:85%"}
 
 - The _Finite State Machine (FSM)_, which controls the operation of the core. The FSM's operation is driven by its associated registers, which are placed in a separate module. This permits simple CDC between the bus and user clock domains.
 - The _Trigger Block_, which generates the core's trigger condition. The trigger block contains a trigger for each input probe, and the registers necessary to configure them. It also contains the $N$-logic gate (either AND or OR) that generates the core's trigger from the individual probe triggers. CDC is performed in exactly the same manner as the FSM. If an external trigger is specified, the trigger block is omitted from the Logic Analyzer Core, and the external trigger is routed to the FSM's `trig` input.

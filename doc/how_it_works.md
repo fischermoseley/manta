@@ -3,7 +3,7 @@
 
 To use Manta, you'll need a host machine with a FPGA development board connected to it over UART or Ethernet. The whole system looks like the following:
 
-<img src="/assets/manta_architecture.png" alt="drawing" width="400"/>
+![](assets/manta_architecture.png){:style="width:80%"}
 
 Manta is operated via its Python API, which communicates with the connected FPGA over an interface API like `pySerial` or `Scapy`. These abstract away the OS device drivers, which function differently depending on the host machine's platform. The OS device drivers ultimately send out bytes to the FPGA, across either a USB or Ethernet cable.
 
@@ -57,9 +57,9 @@ uart:
 This will create a Manta instance with an IO Core and a Logic Analyzer, each containing a number of probes at variable widths. The Manta module itself is provided a 100MHz clock, and communicates with the host over UART running at 3Mbaud.
 
 ## System Architecture
-The logic Manta places on the FPGA consists of a series of cores connected in a chain along a common bus. Each core provides a unique method for interacting with the user’s logic, which it connects to by routing signals, called `probes`, between the user’s logic and the cores that interface with it.
+The logic Manta places on the FPGA consists of a series of cores connected in a chain along a common bus. Each core provides a unique method for interacting with the user’s logic, which it connects to by routing signals (called _probes_) between the user’s logic and the cores that interface with it.
 
-<img src="/assets/bus_architecture.png" alt="drawing" width="400"/>
+![](assets/bus_architecture.png){:style="width:40%"}
 
 These probes are presented as addressable memory, and are be controlled by reading and writing to their corresponing memory - not unlike registers on a microcontroller. Each core is allotted a section of address space at compile time, and operations addressed to a core’s address space control the behavior of the core. These cores are then daisy-chained along an internal bus, which permits a chain arbitrarily many cores to be placed on the bus.
 
@@ -77,16 +77,14 @@ The data bus is designed for simplicity, and consists of five signals used to pe
 
 Each core has a bus input and output port, so that cores can be daisy-chained together. When it receives an incoming bus transaction (signalled by `valid`), the core checks the address on the wire against its own memory space. If the address lies within the core, the core will perform the requested operation against its own memory space. In the case of a read, it places the data at that address on `data`, and in the case of a write, it copies the value of `data` to the specified location in memory. However, if the address lies outside of the memory of the core, then no operations are performed.
 
-<img src="/assets/read_transaction.png" width="350"/>
-<img src="/assets/write_transaction.png" width="350"/>
+![](assets/read_transaction.png){:style="width:49%"}
+![](assets/write_transaction.png){:style="width:49%"}
 
 ## Message Format
 
 Ethernet and UART both allow a stream of bytes to be sent between the host and FPGA, but since they're just interfaces, they don't define how these bytes are structured. As a result, Manta implements its own messaging format, with the following structure:
 
-
-<img src="/assets/uart.png" alt="drawing" width="600"/>
-
+![](assets/uart.png){:style="width:85%"}
 
 Each of these messages is a string of ASCII characters consisting of a preamble, optional address and data fields, and an End of Line (EOL). The preamble denotes the type of operation, _R_ for a read and _W_ for a write. The address and data fields are encoded as hexadecimal digits, represented with the characters 0-9 and A-F in ASCII. As a result, four characters are needed to encode a 16-bit address or 16-bits of data. If the message specifies a write request, then it will contain a data field after the address field. Both request types will conclude with an End of Line, which consists of the two ASCII characters indicating a Carriage Return (CR) and a Line Feed (LF).
 

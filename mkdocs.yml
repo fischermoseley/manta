@@ -52,6 +52,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tilde
+  - attr_list
 
 nav:
     - Home: index.md
