@@ -1,4 +1,4 @@
-![](assets/manta.png)
+![](assets/logo.png)
 
 ## Manta: An In-Situ Debugging Tool for Programmable Hardware
 

@@ -8,8 +8,8 @@ docs_dir: 'doc'
 
 theme:
   name: material
-  logo: assets/manta_minimal_border.png
-  favicon: assets/manta_with_shadow.png
+  logo: assets/logo_minimal_border.png
+  favicon: assets/logo_ray_only_with_shadow.png
   features:
     - content.code.copy
     - content.code.annotate
