@@ -1,19 +1,26 @@
 import pkgutil
+from math import ceil
 
 def pack_16bit_words(data):
     """Takes a list of integers, interprets them as 16-bit integers, and
     concatenates them together in little-endian order."""
-    for d in data:
-        if d > 0:
-            assert d < 2**16-1, "Unsigned integer too large."
 
-        if d < 0:
-            assert d < 2**15-1, "Signed integer too large."
+    for d in data:
+        if d > 0: assert d < 2**16-1, "Unsigned integer too large."
+        if d < 0: assert d < 2**15-1, "Signed integer too large."
 
     return int(''.join([f'{i:016b}' for i in data[::-1]]), 2)
 
-def unpack_16bit_words(data):
-    pass
+def unpack_16bit_words(data, n_words):
+    """Takes a integer, interprets it as a set of 16-bit integers
+    concatenated together, and splits it into a list of 16-bit numbers"""
+
+    assert isinstance(data, int), "Behavior is only defined for nonnegative integers."
+    assert data >= 0, "Behavior is only defined for nonnegative integers."
+
+    # convert to binary, split into 16-bit chunks, and then convert back to list of int
+    binary = f'{data:0b}'.zfill(n_words * 16)
+    return [int(binary[i:i+16], 2) for i in range(0, 16 * n_words, 16)][::-1]
 
 class VerilogManipulator:
     def __init__(self, filepath=None):
