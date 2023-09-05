@@ -17,7 +17,8 @@ my_io_core:
     kermit: 3
     piggy: 1
     animal: 38
-    scooter: 4
+    scooter:
+      width: 4
       initial: 13
 
   outputs:
