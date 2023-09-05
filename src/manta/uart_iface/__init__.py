@@ -116,7 +116,7 @@ class UARTInterface:
             response = inbound_bytes[i:i+7]
             data.append(self.decode_response(response))
 
-        if len(data) == 1:
+        if isinstance(addr, int):
             return data[0]
 
         else:

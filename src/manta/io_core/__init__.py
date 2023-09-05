@@ -1,23 +1,56 @@
 from ..utils import *
 from math import ceil
 
-class IOCoreProbe:
-    def __init__(self, name, width, base_addr, initial_value = None):
+class InputProbe:
+    def __init__(self, name, width, base_addr, strobe_addr, interface):
         assert isinstance(width, int), f"Probe {name} must have integer width."
         assert width > 0, f"Probe {name} must have positive width."
 
         self.name = name
         self.width = width
-        self.initial_value = initial_value
+        self.strobe_addr = strobe_addr
+        self.interface = interface
 
         n_addrs = ceil(self.width / 16)
         self.addrs = list(range(base_addr, base_addr + n_addrs))
         self.brackets = "" if self.width == 1 else f"[{self.width-1}:0] "
 
+    def pulse_strobe_register(self):
+        # pulse the strobe register
+        self.interface.write(self.strobe_addr, 1)
+        self.interface.write(self.strobe_addr, 0)
+        strobe = self.interface.read(self.strobe_addr)
+        if strobe != 0:
+            raise ValueError("Unable to set strobe register to zero!")
+
+    def get(self):
+        self.pulse_strobe_register()
+        return pack_16bit_words(self.interface.read(self.addrs))
+
+class OutputProbe(InputProbe):
+    def __init__(self, name, width, base_addr, strobe_addr, interface, initial_value):
+        super().__init__(name, width, base_addr, strobe_addr, interface)
+        self.initial_value = initial_value
+
+    def set(self, value):
+        # check that value is an integer
+        assert isinstance(value, int), "Value must be an integer."
+
+        # check that value is within range for the width of the probe
+        if value > 0:
+            assert value <= (2**self.width) - 1, f"Unsigned value too large for probe of width {self.width}"
+
+        elif value < 0:
+            assert abs(value) <= (2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
+
+        self.interface.write(self.addrs, unpack_16bit_words(value, len(self.addrs)))
+        self.pulse_strobe_register()
+
 class IOCore:
     def __init__(self, config, name, base_addr, interface):
         self.name = name
         self.base_addr = base_addr
+        self.interface = interface
 
         # make sure we have ports defined
         assert ('inputs' in config) or ('outputs' in config), "No input or output ports specified."
@@ -38,7 +71,7 @@ class IOCore:
         last_used_addr = self.base_addr # start at one since strobe register is at BASE_ADDR
         if 'inputs' in config:
            for name, width in config["inputs"].items():
-                probe = IOCoreProbe(name, width, last_used_addr + 1)
+                probe = InputProbe(name, width, last_used_addr + 1, self.base_addr, interface)
                 last_used_addr = probe.addrs[-1]
                 self.input_probes.append(probe)
 
@@ -59,7 +92,7 @@ class IOCore:
                     raise ValueError(f"Unable to determine probe width and initial value for {name}")
 
                 # add probe to core
-                probe = IOCoreProbe(name, width, last_used_addr + 1, initial_value)
+                probe = OutputProbe(name, width, last_used_addr + 1, self.base_addr, interface, initial_value)
                 last_used_addr = probe.addrs[-1]
                 self.output_probes.append(probe)
 
@@ -67,42 +100,8 @@ class IOCore:
 
         # add friendly names to each probe
         # (so users can do io_core.probe.set() and get() for instance)
-        for probe in self.input_probes:
-            setattr(probe, "set", lambda value: self.set(probe, value) )
+        for probe in self.input_probes + self.output_probes:
             setattr(self, probe.name, probe)
-
-        for probe in self.input_probes:
-            setattr(probe, "set", lambda value: self.set(probe, value) )
-            setattr(probe, "get", self.get(probe) )
-            setattr(self, probe.name, probe)
-
-
-    def get(self, probe):
-        self.pulse_strobe_register()
-        return pack_16bit_words(self.interface.read(probe.addrs))
-
-    def set(self, probe, value):
-        # check that value is an integer
-        assert isinstance(value, int), "Value must be an integer."
-
-        # check that value is within range for the width of the probe
-        if value > 0:
-            assert data <= (2**self.width) - 1, f"Unsigned value too large for probe of width {self.width}"
-
-        elif value < 0:
-            assert abs(data) <= (2**(self.width-1))-1, f"Signed value too large for probe of width {self.width}"
-
-        self.pulse_strobe_register()
-        data = unpack_16_bit_words(value)
-        self.interface.write(probe.addrs, data)
-
-    def pulse_strobe_register(self):
-        # pulse the strobe register
-        self.interface.write(self.base_addr, 1)
-        self.interface.write(self.base_addr, 0)
-        strobe = self.interface.read(self.base_addr)
-        if strobe != 0:
-            raise ValueError("Unable to set strobe register to zero!")
 
     def hdl_top_level_ports(self):
         ports = []
@@ -113,7 +112,7 @@ class IOCore:
         for probe in self.input_probes:
             ports.append(f"input wire {probe.brackets}{probe.name}")
 
-        for probe in self.input_probes:
+        for probe in self.output_probes:
             ports.append(f"output reg {probe.brackets}{probe.name}")
 
         return ports
@@ -202,7 +201,7 @@ class IOCore:
         return '\n'.join(lines)
 
     def gen_output_probe_initial_values(self):
-        lines = [f"{p.name} = {p.initial_value}" for p in self.output_probes]
+        lines = [f"{p.name} = {p.initial_value};" for p in self.output_probes]
         return '\n'.join(lines)
 
     def gen_update_input_buffers(self):

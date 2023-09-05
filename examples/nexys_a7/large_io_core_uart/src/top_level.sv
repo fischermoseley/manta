@@ -5,23 +5,12 @@ module top_level (
 	input wire clk,
 
     input wire uart_txd_in,
-	output logic uart_rxd_out,
+	output logic uart_rxd_out);
 
-    input wire btnu,
-    input wire btnd,
-    input wire btnl,
-    input wire btnr,
-	input wire btnc,
-
-    input wire [15:0] sw,
-
-	output logic [15:0] led,
-    output logic led16_b,
-    output logic led16_g,
-    output logic led16_r,
-    output logic led17_b,
-    output logic led17_g,
-    output logic led17_r);
+    logic probe0;
+    logic [1:0] probe1;
+    logic [7:0] probe2;
+    logic [19:0] probe3;
 
     manta manta_inst (
         .clk(clk),
@@ -29,19 +18,14 @@ module top_level (
         .rx(uart_txd_in),
         .tx(uart_rxd_out),
 
-        .btnu(btnu),
-        .btnd(btnd),
-        .btnl(btnl),
-        .btnr(btnr),
-        .btnc(btnc),
-        .sw(sw),
-        .led(led),
-        .led16_b(led16_b),
-        .led16_g(led16_g),
-        .led16_r(led16_r),
-        .led17_b(led17_b),
-        .led17_g(led17_g),
-        .led17_r(led17_r));
+        .probe0(probe0),
+        .probe1(probe1),
+        .probe2(probe2),
+        .probe3(probe3),
+        .probe4(probe0),
+        .probe5(probe1),
+        .probe6(probe2),
+        .probe7(probe3));
 
 endmodule
 
