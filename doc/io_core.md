@@ -19,7 +19,7 @@ my_io_core:
     animal: 38
     scooter:
       width: 4
-      initial: 13
+      initial_value: 13
 
   outputs:
     fozzy: 1
