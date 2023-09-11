@@ -9,4 +9,8 @@
 - [Icarus Verilog](https://github.com/steveicarus/iverilog) is used for functional simulation.
 - The [YosysHQ](https://github.com/YosysHQ) tools and [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) are used for building bitstreams.
 - [Wavedrom](https://wavedrom.com/) is used for for waveform diagrams, and [draw.io](https://app.diagrams.net/) for block diagrams
-- [GitHub Pages](https://pages.github.com/) is used to serve the documentation site.
+- [GitHub Pages](https://pages.github.com/) is used to serve the documentation site, which is built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
+- [GitHub Actions](https://docs.github.com/en/actions) is used for continuous integration.
+
+## GitHub Actions Setup
+Since Vivado is large and requires individual licenses it's run on a private server, which is configured as a self-hosted runner in GitHub Actions. This is a virtual server hosted with KVM/QEMU and managed by libvirt, which is configured as transient so that it reloads its state from a snapshot periodically. A Nexys A7 and Icestick are connected to the physical machine and passthrough-ed to this VM so that continuous integration can check against real hardware.
