@@ -23,12 +23,3 @@ jobs:
 
       - name: Build Icestick examples
         run: make icestick
-
-      - name: Upload examples folder as build artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: examples
-          path: examples/
-
-      - name: Schedule reboot to reset build agent
-        run: shutdown -r +2
