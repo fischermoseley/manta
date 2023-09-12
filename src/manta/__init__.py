@@ -52,6 +52,9 @@ class Manta:
             else:
                 raise ValueError(f"Unrecognized core type specified for {core_name}.")
 
+            # make sure we're not out of address space
+            assert new_core.max_addr < (2**16)-1, f"Ran out of address space to allocate to core {core_name}."
+
             # make the next core's base address start one address after the previous one's
             base_addr = new_core.max_addr + 1
 
@@ -313,11 +316,11 @@ def main():
 \033[96m           '-....-'  \033[00m
 
 Supported commands:
-    gen [config file] [path]                            generate a verilog module with the given configuration, and save to the provided path
-    capture  [config file] [LA core] [path] [path]      start a capture on the specified core, and save the results to a .mem or .vcd file at the provided path(s)
-    playback [config file] [LA core] [path]             generate a verilog module that plays back a capture from a given logic analyzer core, and save to the provided path
-    ports                                               list all available serial ports
-    help, ray                                           display this splash screen (hehe...splash screen)
+    gen [config_file] [verilog_file]                                generate a verilog file specifying the Manta module from a given configuration file, and save to the provided path
+    capture  [config_file] [LA_core_name] [vcd_file] [mem_file]     start a capture on the specified core, and save the results to a .mem or .vcd file at the provided path(s)
+    playback [config file] [LA_core_name] [verilog_file]            generate a verilog module that plays back a capture from a given logic analyzer core, and save to the provided path
+    ports                                                           list all available serial ports
+    help, ray                                                       display this splash screen (hehe...splash screen)
 """
         )
 

@@ -1,7 +1,7 @@
 /*
-This playback module was generated with Manta /* VERSION */ on /* TIMESTAMP */ by /* USER */
+This module was generated with Manta /* VERSION */ on /* TIMESTAMP */ by /* USER */
 
-If this breaks or if you've got dank formal verification memes, contact fischerm [at] mit.edu
+If this breaks or if you've got spicy formal verification memes, contact fischerm [at] mit.edu
 
 Provided under a GNU GPLv3 license. Go wild.
 
