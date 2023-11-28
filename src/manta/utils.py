@@ -6,8 +6,8 @@ def pack_16bit_words(data):
     concatenates them together in little-endian order."""
 
     for d in data:
-        if d > 0: assert d < 2**16-1, "Unsigned integer too large."
-        if d < 0: assert d < 2**15-1, "Signed integer too large."
+        if d > 0: assert d < 2**16, "Unsigned integer too large."
+        if d < 0: assert d < 2**15, "Signed integer too large."
 
     return int(''.join([f'{i:016b}' for i in data[::-1]]), 2)
 
