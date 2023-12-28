@@ -1,124 +1,129 @@
-import pkgutil
+from amaranth.sim import Simulator
 from math import ceil
+import os
 
-def pack_16bit_words(data):
-    """Takes a list of integers, interprets them as 16-bit integers, and
-    concatenates them together in little-endian order."""
+
+def words_to_value(data):
+    """
+    Takes a list of integers, interprets them as 16-bit integers, and
+    concatenates them together in little-endian order.
+    """
 
     for d in data:
-        if d > 0: assert d < 2**16, "Unsigned integer too large."
-        if d < 0: assert d < 2**15, "Signed integer too large."
+        if d > 0 and d > 2**16 - 1:
+            raise ValueError("Unsigned integer too large.")
 
-    return int(''.join([f'{i:016b}' for i in data[::-1]]), 2)
+        if d < 0 and d < -(2**15 - 1):
+            raise ValueError("Signed integer too large.")
 
-def unpack_16bit_words(data, n_words):
-    """Takes a integer, interprets it as a set of 16-bit integers
-    concatenated together, and splits it into a list of 16-bit numbers"""
+    return int("".join([f"{i:016b}" for i in data[::-1]]), 2)
 
-    assert isinstance(data, int), "Behavior is only defined for nonnegative integers."
-    assert data >= 0, "Behavior is only defined for nonnegative integers."
+
+def value_to_words(data, n_words):
+    """
+    Takes a integer, interprets it as a set of 16-bit integers
+    concatenated together, and splits it into a list of 16-bit numbers.
+    """
+
+    if not isinstance(data, int) or data < 0:
+        raise ValueError("Behavior is only defined for nonnegative integers.")
 
     # convert to binary, split into 16-bit chunks, and then convert back to list of int
-    binary = f'{data:0b}'.zfill(n_words * 16)
-    return [int(binary[i:i+16], 2) for i in range(0, 16 * n_words, 16)][::-1]
-
-class VerilogManipulator:
-    def __init__(self, filepath=None):
-        if filepath is not None:
-            self.hdl = pkgutil.get_data(__name__, filepath).decode()
-
-            # scrub any default_nettype or timescale directives from the source
-            self.hdl = self.hdl.replace("`default_nettype none", "")
-            self.hdl = self.hdl.replace("`default_nettype wire", "")
-            self.hdl = self.hdl.replace("`timescale 1ns/1ps", "")
-            self.hdl = self.hdl.strip()
-
-            # python tries to be cute and automatically convert
-            # line endings on Windows, but Manta's source comes
-            # with (and injects) UNIX line endings, so Python
-            # ends up adding way too many line breaks, so we just
-            # undo anything it's done when we load the file
-            self.hdl = self.hdl.replace("\r\n", "\n")
-
-        else:
-            self.hdl = None
-
-    def sub(self, replace, find):
-        # sometimes we have integer inputs, want to accomodate
-        if isinstance(replace, str):
-            replace_str = replace
-
-        elif isinstance(replace, int):
-            replace_str = str(replace)
-
-        else:
-            raise ValueError("Only string and integer arguments supported.")
+    binary = f"{data:0b}".zfill(n_words * 16)
+    return [int(binary[i : i + 16], 2) for i in range(0, 16 * n_words, 16)][::-1]
 
 
-        # if the string being subbed in isn't multiline, just
-        # find-and-replace like normal:
-        if "\n" not in replace_str:
-            self.hdl = self.hdl.replace(find, replace_str)
+def split_into_chunks(data, chunk_size):
+    """
+    Split a list into a list of lists, where each sublist has length `chunk_size`.
+    If the list can't be evenly divided into chunks, then the last entry in the
+    returned list will have length less than `chunk_size`.
+    """
 
-        # if the string being substituted in is multiline,
-        # make sure the replace text gets put at the same
-        # indentation level by adding whitespace to left
-        # of the line.
-        else:
-            for line in self.hdl.split("\n"):
-                if find in line:
-                    # get whitespace that's on the left side of the line
-                    whitespace = line.rstrip().replace(line.lstrip(), "")
-
-                    # add it to every line, except the first
-                    replace_as_lines = replace_str.split("\n")
-                    replace_with_whitespace = f"\n{whitespace}".join(replace_as_lines)
-
-                    # replace the first occurance in the HDL with it
-                    self.hdl = self.hdl.replace(find, replace_with_whitespace, 1)
-
-    def get_hdl(self):
-        return self.hdl
-
-    def net_dec(self, nets, net_type, trailing_comma = False):
-        """Takes a dictonary of nets in the format {probe: width}, and generates
-        the net declarations that would go in a Verilog module definition.
-
-        For example, calling net_dec({foo : 1, bar : 4}, "input wire") would produce:
-
-        input wire foo,
-        input [3:0] wire bar
-
-        Which you'd then slap into your module declaration, along with all the other
-        inputs and outputs the module needs."""
-
-        dec = []
-        for name, width in nets.items():
-            if width == 1:
-                dec.append(f"{net_type} {name}")
-
-            else:
-                dec.append(f"{net_type} [{width-1}:0] {name}")
-
-        dec = ",\n".join(dec)
-        dec = dec + "," if trailing_comma else dec
-        return dec
-
-    def net_conn(self, nets, trailing_comma = False):
-        """Takes a dictionary of nets in the format {probe: width}, and generates
-        the net connections that would go in the Verilog module instantiation.
-
-        For example, calling net_conn({foo: 1, bar: 4}) would produce:
-
-        .foo(foo),
-        .bar(bar)
-
-        Which you'd then slap into your module instantiation, along with all the other
-        module inputs and outputs that get connected elsewhere."""
+    return [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
 
 
-        conn = [f".{name}({name})" for name in nets]
-        conn = ",\n".join(conn)
-        conn = conn + "," if trailing_comma else conn
+def simulate(top, testbench, vcd_path=None):
+    """
+    Run a behavior simulation using Amaranth's built-in simulator `pysim`. Takes
+    the top-level module to simulate, the testbench process to run, and an optional
+    path to export a VCD file to.
+    """
+    sim = Simulator(top)
+    sim.add_clock(1e-6)  # 1 MHz
+    sim.add_sync_process(testbench)
 
-        return conn
+    if vcd_path is None:
+        sim.run()
+
+    else:
+        with sim.write_vcd(vcd_path):
+            sim.run()
+
+
+def verify_register(module, addr, expected_data):
+    """
+    Read the contents of a register out over a module's bus connection, and verify
+    that it contains the expected data.
+
+    Unfortunately because Amaranth uses generator functions to define processes,
+    this must be a generator function and thus cannot return a value - it must
+    yield the next timestep. This means that the comparision with the expected
+    value must occur inside this function and not somewhere else, it's not
+    possible to return a value from here, and compare it in the calling function.
+    """
+
+    # place read transaction on the bus
+    yield module.addr_i.eq(addr)
+    yield module.data_i.eq(0)
+    yield module.rw_i.eq(0)
+    yield module.valid_i.eq(1)
+    yield
+    yield module.addr_i.eq(0)
+    yield module.valid_i.eq(0)
+
+    # wait for output to be valid
+    while not (yield module.valid_o):
+        yield
+
+    # compare returned value with expected
+    data = yield (module.data_o)
+    if data != expected_data:
+        raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")
+
+
+def write_register(module, addr, data):
+    """
+    Write to a register over a module's bus connection, placing the contents of `data`
+    at `addr`.
+    """
+
+    yield module.addr_i.eq(addr)
+    yield module.data_i.eq(data)
+    yield module.rw_i.eq(1)
+    yield module.valid_i.eq(1)
+    yield
+    yield module.valid_i.eq(0)
+    yield
+
+
+def xilinx_tools_installed():
+    """
+    Return whether Vivado is installed, by checking if the VIVADO environment variable is set.
+
+    This variable should point to the binary itself, not just the folder it's located in
+    (ie, /tools/Xilinx/Vivado/2023.1/bin/vivado, not /tools/Xilinx/Vivado/2023.1/bin)
+    """
+    return "VIVADO" in os.environ
+
+
+def ice40_tools_installed():
+    """
+    Return whether the ice40 tools are installed, by checking if the YOSYS, NEXTPNR_ICE40,
+    ICEPACK, and ICEPROG environment variables are defined.
+
+    # These variables should point to the binaries themselves, not just the folder it's located in
+    # (ie, /tools/oss-cad-suite/bin/yosys, not /tools/oss-cad-suite/bin/)
+    """
+    tools = ["YOSYS", "NEXTPNR_ICE40", "ICEPACK", "ICEPROG"]
+    return all(tool in os.environ for tool in tools)

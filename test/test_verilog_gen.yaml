@@ -1,0 +1,27 @@
+---
+cores:
+  io_core:
+    type: io
+
+    inputs:
+      probe0: 1
+      probe1: 2
+      probe2: 8
+      probe3: 20
+
+    outputs:
+      probe4:
+        width: 1
+        initial_value: 1
+      probe5:
+        width: 2
+        initial_value: 2
+      probe6: 8
+      probe7:
+        width: 20
+        initial_value: 65538
+
+uart:
+  port: "/dev/ttyUSB1"
+  baudrate: 115200
+  clock_freq: 12000000

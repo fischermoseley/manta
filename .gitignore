@@ -1,33 +1,10 @@
-# Hidden files
-.DS_Store
-*.vscode/
-
-# Python outputs
 venv/
-dist/
-build/
-*.egg-info
+manta.egg-info/
+.pytest_cache
 __pycache__/
+build/
 
-# Vivado output products
-*.Xil/
-*.log
-*.jou
-*.rpt
-*.bit
-cpu_impl_netlist.v
-
-# IceStorm output products
-*.bin
-
-# iVerilog output products
+*.v
+*.sv
 *.vcd
 *.out
-
-# Formal outputs
-test/formal_verification/*_basic
-test/formal_verification/*_cover
-
-# Manta output products
-manta.v
-*.mem

@@ -1,0 +1,31 @@
+name: run_tests
+on: [push]
+jobs:
+  all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Manta from Source
+        run: |
+          python -m pip install -U pip
+
+          # omitting the following commmand causes the version of setuptools
+          # used by python to get confused, and it doesn't detect the name
+          # or version of the package from pyproject.toml - so the following
+          # workaround is used:
+          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
+          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+
+          python -m pip install ".[dev]"
+
+          # export tool paths
+          export VIVADO=/tools/Xilinx/Vivado/2023.1/bin/vivado
+          export YOSYS=/tools/oss-cad-suite/bin/yosys
+          export NEXTPNR_ICE40=/tools/oss-cad-suite/bin/nextpnr_ice40
+          export ICEPACK=/tools/oss-cad-suite/bin/icepack
+          export ICEPROG=/tools/oss-cad-suite/bin/iceprog
+
+
+      - name: Run tests
+        run: make test
