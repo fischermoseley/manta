@@ -237,6 +237,28 @@ class IOCore(Elaboratable):
         return self.max_addr
 
     def set_probe(self, probe_name, value):
+        # check that probe is an output probe
+        if probe_name not in self.config["outputs"]:
+            raise ValueError(f"Output probe '{probe_name}' not found.")
+
+        # check that value is an integer
+        if not isinstance(value, int):
+            raise ValueError("Value must be an integer.")
+
+        # get the width of the probe, make sure value isn't too large for the probe
+        attrs = self.config["outputs"][probe_name]
+        if isinstance(attrs, int):
+            width = attrs
+
+        if isinstance(attrs, dict):
+            width = attrs["width"]
+
+        if value > 0 and value > 2**width - 1:
+            raise ValueError("Unsigned integer too large.")
+
+        if value < 0 and value < -(2 ** (width - 1)):
+            raise ValueError("Signed integer too large.")
+
         # set value in buffer
         addrs = self.mmap[probe_name + "_buf"]["addrs"]
         datas = value_to_words(value, len(addrs))

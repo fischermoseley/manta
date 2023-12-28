@@ -2,12 +2,14 @@ name: run_tests
 on: [push]
 jobs:
   all:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Manta from Source
         run: |
+          ls -lah
+          pwd
           python -m pip install -U pip
 
           # omitting the following commmand causes the version of setuptools
@@ -19,13 +21,13 @@ jobs:
 
           python -m pip install ".[dev]"
 
+      - name: Run tests
+        run:  |
           # export tool paths
           export VIVADO=/tools/Xilinx/Vivado/2023.1/bin/vivado
           export YOSYS=/tools/oss-cad-suite/bin/yosys
-          export NEXTPNR_ICE40=/tools/oss-cad-suite/bin/nextpnr_ice40
+          export NEXTPNR_ICE40=/tools/oss-cad-suite/bin/nextpnr-ice40
           export ICEPACK=/tools/oss-cad-suite/bin/icepack
           export ICEPROG=/tools/oss-cad-suite/bin/iceprog
 
-
-      - name: Run tests
-        run: make test
+          make test

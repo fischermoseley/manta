@@ -13,7 +13,7 @@ def words_to_value(data):
         if d > 0 and d > 2**16 - 1:
             raise ValueError("Unsigned integer too large.")
 
-        if d < 0 and d < -(2**15 - 1):
+        if d < 0 and d < -(2**15):
             raise ValueError("Signed integer too large.")
 
     return int("".join([f"{i:016b}" for i in data[::-1]]), 2)
