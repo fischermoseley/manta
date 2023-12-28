@@ -10,7 +10,8 @@ jobs:
         run: |
           ls -lah
           pwd
-          python -m pip install -U pip
+          pip freeze
+          python3 -m pip install -U pip
 
           # omitting the following commmand causes the version of setuptools
           # used by python to get confused, and it doesn't detect the name
