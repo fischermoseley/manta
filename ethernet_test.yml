@@ -1,0 +1,19 @@
+---
+cores:
+  io_core:
+    type: io
+
+    inputs:
+      dhcp_done: 1
+      dhcp_ip_address: 32
+      dhcp_timeout: 1
+
+    outputs:
+      dhcp_start: 1
+      ip_address: 32
+
+
+uart:
+  port: "/dev/ttyUSB1"
+  baudrate: 115200
+  clock_freq: 12000000
