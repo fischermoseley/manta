@@ -2,7 +2,8 @@ from .manta import Manta
 from warnings import warn
 from sys import argv
 from pkg_resources import get_distribution
-version = "v" + get_distribution('manta').version
+
+version = "v" + get_distribution("manta").version
 
 logo = f"""
 \033[96m               (\.-./)
@@ -25,6 +26,7 @@ Supported commands:
     ports                                                           list all available serial ports
     help, ray                                                       display this splash screen (hehe...splash screen)
 """
+
 
 def help():
     print(logo)

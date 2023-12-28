@@ -1,9 +1,15 @@
+# Hidden files
+.DS_Store
+*.vscode/
+
+# Python files
 venv/
 manta.egg-info/
 .pytest_cache
 __pycache__/
 build/
 
+# Miscellaneous file types
 *.v
 *.sv
 *.vcd
