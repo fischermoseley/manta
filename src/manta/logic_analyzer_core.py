@@ -509,7 +509,7 @@ class LogicAnalyzerPlayback(Elaboratable):
 
         # State Machine
         self.start = Signal(1)
-        self.idle = Signal(1, reset=1)
+        self.valid = Signal(1)
 
         # Top-Level Probe signals
         self.top_level_probes = {}
@@ -523,24 +523,31 @@ class LogicAnalyzerPlayback(Elaboratable):
             init=self.data,
         )
 
-        self.read_port = self.mem.read_port(domain="comb")
+        self.read_port = self.mem.read_port()
 
     def elaborate(self, platform):
         m = Module()
         m.submodules["mem"] = self.mem
 
-        # Run state machine
-        with m.If(self.idle):
+        m.d.comb += self.read_port.en.eq(1)
+
+        # State Machine
+        busy = Signal(1)
+        with m.If(~busy):
             with m.If(self.start):
-                m.d.sync += self.idle.eq(0)
+                m.d.sync += busy.eq(1)
+                # m.d.sync += self.read_port.addr.eq(1)
 
         with m.Else():
             with m.If(self.read_port.addr == self.config["sample_depth"] - 1):
-                m.d.sync += self.idle.eq(1)
+                m.d.sync += busy.eq(0)
                 m.d.sync += self.read_port.addr.eq(0)
 
             with m.Else():
                 m.d.sync += self.read_port.addr.eq(self.read_port.addr + 1)
+
+        # Pipeline to accomodate for the 2-cycle latency in the RAM
+        m.d.sync += self.valid.eq(busy)
 
         # Assign the probe values by part-selecting from the data port
         lower = 0
@@ -548,7 +555,7 @@ class LogicAnalyzerPlayback(Elaboratable):
             signal = self.top_level_probes[name]
 
             # Set output probe to zero if we're not
-            with m.If(~self.idle):
+            with m.If(self.valid):
                 m.d.comb += signal.eq(self.read_port.data[lower : lower + width])
 
             with m.Else():
@@ -559,4 +566,4 @@ class LogicAnalyzerPlayback(Elaboratable):
         return m
 
     def get_top_level_ports(self):
-        return [self.start, self.idle] + list(self.top_level_probes.values())
+        return [self.start, self.valid] + list(self.top_level_probes.values())
