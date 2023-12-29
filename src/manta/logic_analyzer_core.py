@@ -509,12 +509,7 @@ class LogicAnalyzerPlayback(Elaboratable):
 
         # State Machine
         self.start = Signal(1)
-        self.done = Signal(1)
-        self.states = {
-            "IDLE" : 0,
-            "RUN" : 1,
-            "DONE" : 2
-        }
+        self.idle = Signal(1, reset=1)
 
         # Top-Level Probe signals
         self.top_level_probes = {}
@@ -528,37 +523,24 @@ class LogicAnalyzerPlayback(Elaboratable):
             init=self.data,
         )
 
-        self.read_port = self.mem.read_port()
+        self.read_port = self.mem.read_port(domain="comb")
 
     def elaborate(self, platform):
         m = Module()
         m.submodules["mem"] = self.mem
-        m.d.comb += self.read_port.en.eq(1)
-
-        state = Signal(range(len(self.states)))
-        addr = self.read_port.addr
 
         # Run state machine
-        with m.If(state == self.states["IDLE"]):
+        with m.If(self.idle):
             with m.If(self.start):
-                m.d.sync += state.eq(self.states["RUN"])
-                m.d.sync += addr.eq(0)
+                m.d.sync += self.idle.eq(0)
 
-        with m.Elif(state == self.states["RUN"]):
-            with m.If(addr < self.config["sample_depth"]):
-                m.d.sync += addr.eq(addr + 1)
+        with m.Else():
+            with m.If(self.read_port.addr == self.config["sample_depth"] - 1):
+                m.d.sync += self.idle.eq(1)
+                m.d.sync += self.read_port.addr.eq(0)
 
             with m.Else():
-                m.d.sync += state.eq(self.states["DONE"])
-                m.d.sync += self.done.eq(1)
-
-
-        with m.Else(state == self.states["DONE"]):
-            with m.If(self.start):
-                m.d.sync += self.done.eq(0)
-                m.d.sync += state.eq(self.states["RUN"])
-                m.d.sync += addr.eq(0)
-
+                m.d.sync += self.read_port.addr.eq(self.read_port.addr + 1)
 
         # Assign the probe values by part-selecting from the data port
         lower = 0
@@ -566,7 +548,7 @@ class LogicAnalyzerPlayback(Elaboratable):
             signal = self.top_level_probes[name]
 
             # Set output probe to zero if we're not
-            with m.If(~self.done):
+            with m.If(~self.idle):
                 m.d.comb += signal.eq(self.read_port.data[lower : lower + width])
 
             with m.Else():
@@ -574,5 +556,7 @@ class LogicAnalyzerPlayback(Elaboratable):
 
             lower += width
 
+        return m
+
     def get_top_level_ports(self):
-        return [self.enable, self.done] + list(self.top_level_probes.values())
+        return [self.start, self.idle] + list(self.top_level_probes.values())
