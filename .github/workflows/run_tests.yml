@@ -23,7 +23,7 @@ jobs:
           export DEB_PYTHON_INSTALL_LAYOUT=deb_system
 
           # Install Manta, with optional dev-only dependencies
-          python -m pip install ".[dev]"
+          python3 -m pip install ".[dev]"
 
       - name: Run tests
         run:  |

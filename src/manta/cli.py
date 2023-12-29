@@ -6,34 +6,21 @@ from pkg_resources import get_distribution
 version = "v" + get_distribution("manta").version
 
 logo = f"""
-\033[96m               (\.-./)
-\033[96m               /     \\
-\033[96m             .'   :   '.
-\033[96m        _.-'`     '     `'-._       \033[34;49;1m | \033[34;49;1m Manta {version} \033[00m
-\033[96m     .-'          :          '-.    \033[34;49;1m | \033[34;49;3m An In-Situ Debugging Tool for Programmable Hardware \033[00m
-\033[96m   ,'_.._         .         _.._',  \033[34;49;1m | \033[34;49m https://github.com/fischermoseley/manta \033[00m
-\033[96m   '`    `'-.     '     .-'`
-\033[96m             '.   :   .'            \033[34;49;1m | \033[34;49;3m Originally created by Fischer Moseley \033[00m
-\033[96m               \_. ._/
-\033[96m         \       |^|
-\033[96m          |      | ;
-\033[96m          \\'.___.' /
-\033[96m           '-....-'  \033[00m
+Manta {version}
 
-Supported commands:
-    gen      [config_file] [verilog_file]                           generate a verilog file specifying the Manta module from a given configuration file, and save to the provided path
-    capture  [config_file] [la_core_name] [vcd_file] [verilog_file] start a capture on the specified core, and save the results to a .vcd or .v file at the provided path(s)
-    ports                                                           list all available serial ports
-    help, ray                                                       display this splash screen (hehe...splash screen)
+Usage:
+    gen     [config_file] [verilog_file]                           Generate a verilog file specifying the Manta module from a given configuration file, and save to the provided path
+    capture [config_file] [la_core_name] [vcd_file] [verilog_file] Start a capture on the specified core, and save the results to a .vcd or .v file at the provided path(s)
+    ports                                                          List all available serial ports
+    help                                                           Display this help menu
 """
-
 
 def help():
     print(logo)
 
 
 def wrong_args():
-    raise ValueError('Wrong number of arguments, run "manta help" for usage.')
+    print('Wrong number of arguments, run "manta help" for usage.')
 
 
 def gen(config_path, output_path):
