@@ -484,11 +484,11 @@ class LogicAnalyzerCapture:
 
         vcd_file.close()
 
-    def export_playback_module(self, path):
+    def export_playback_module(self):
         return LogicAnalyzerPlayback(self.data, self.config)
 
     def export_playback_verilog(self, path):
-        lap = LogicAnalyzerPlayback(self.data, self.config)
+        lap = self.export_playback_module()
         from amaranth.back import verilog
 
         with open(path, "w") as f:
