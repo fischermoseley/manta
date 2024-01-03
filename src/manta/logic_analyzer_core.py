@@ -247,61 +247,83 @@ class LogicAnalyzerCore(Elaboratable):
             Cat(attrs["triggered"] for attrs in self.probe_signals.values()).any()
         )
 
+    def increment_mod_sample_depth(self, m, signal):
+        # m.d.sync += signal.eq((signal + 1) % self.config["sample_depth"])
+
+        with m.If(signal == self.config["sample_depth"] - 1):
+            m.d.sync += signal.eq(0)
+
+        with m.Else():
+            m.d.sync += signal.eq(signal + 1)
+
     def run_state_machine(self, m):
-        self.prev_request_start = Signal(1)
-        self.prev_request_stop = Signal(1)
+        prev_request_start = Signal(1)
+        prev_request_stop = Signal(1)
+
+        request_start = self.registers.request_start
+        request_stop = self.registers.request_stop
+        trigger_mode = self.registers.trigger_mode
+        trigger_loc = self.registers.trigger_loc
+        state = self.registers.state
+        rp = self.registers.read_pointer
+        wp = self.registers.write_pointer
+        we = self.sample_mem.user_we
+
+        m.d.comb += self.sample_mem.user_addr.eq(wp)
 
         # Rising edge detection for start/stop requests
-        m.d.sync += self.prev_request_start.eq(self.registers.request_start)
-        m.d.sync += self.prev_request_stop.eq(self.registers.request_stop)
+        m.d.sync += prev_request_start.eq(request_start)
+        m.d.sync += prev_request_stop.eq(request_stop)
 
-        m.d.comb += self.sample_mem.user_addr.eq(self.registers.write_pointer)
+        with m.If(state == self.states["IDLE"]):
+            m.d.sync += wp.eq(0)
+            m.d.sync += rp.eq(0)
+            m.d.sync += we.eq(0)
 
-        with m.If(self.registers.state == self.states["IDLE"]):
-            m.d.sync += self.registers.write_pointer.eq(0)
-            m.d.sync += self.registers.read_pointer.eq(0)
-            m.d.sync += self.sample_mem.user_we.eq(0)  # or something like this
-
-            with m.If((self.registers.request_start) & (~self.prev_request_start)):
-                m.d.sync += self.registers.state.eq(self.states["MOVE_TO_POSITION"])
-
-        with m.Elif(self.registers.state == self.states["MOVE_TO_POSITION"]):
-            m.d.sync += self.registers.write_pointer.eq(
-                self.registers.write_pointer + 1
-            )
-            m.d.sync += self.sample_mem.user_we.eq(1)
-
-            with m.If(self.registers.write_pointer == self.registers.trigger_loc):
-                with m.If(self.trig):
-                    m.d.sync += self.registers.state.eq(self.states["CAPTURING"])
+            with m.If((request_start) & (~prev_request_start)):
+                m.d.sync += we.eq(1)
+                with m.If(trigger_mode == self.trigger_modes["IMMEDIATE"]):
+                    m.d.sync += state.eq(self.states["CAPTURING"])
 
                 with m.Else():
-                    m.d.sync += self.registers.state.eq(self.states["IN_POSITION"])
+                    with m.If(trigger_loc == 0):
+                        m.d.sync += state.eq(self.states["IN_POSITION"])
 
-        with m.Elif(self.registers.state == self.states["IN_POSITION"]):
-            m.d.sync += self.registers.write_pointer.eq(
-                (self.registers.write_pointer + 1) % self.config["sample_depth"]
-            )
-            m.d.sync += self.registers.read_pointer.eq(
-                (self.registers.read_pointer + 1) % self.config["sample_depth"]
-            )
-            m.d.sync += self.sample_mem.user_we.eq(1)
+                    with m.Else():
+                        m.d.sync += state.eq(self.states["MOVE_TO_POSITION"])
+
+                m.d.sync += state.eq(self.states["MOVE_TO_POSITION"])
+
+        with m.Elif(state == self.states["MOVE_TO_POSITION"]):
+            m.d.sync += wp.eq(wp + 1)
+
+            with m.If(wp == trigger_loc):
+                with m.If(self.trig):
+                    m.d.sync += state.eq(self.states["CAPTURING"])
+
+                with m.Else():
+                    m.d.sync += state.eq(self.states["IN_POSITION"])
+                    self.increment_mod_sample_depth(m, rp)
+
+        with m.Elif(state == self.states["IN_POSITION"]):
+            self.increment_mod_sample_depth(m, wp)
 
             with m.If(self.trig):
-                m.d.sync += self.registers.state.eq(self.states["CAPTURING"])
-
-        with m.Elif(self.registers.state == self.states["CAPTURING"]):
-            with m.If(self.registers.write_pointer == self.registers.read_pointer):
-                m.d.sync += self.sample_mem.user_we.eq(0)
-                m.d.sync += self.registers.state.eq(self.states["CAPTURED"])
+                m.d.sync += state.eq(self.states["CAPTURING"])
 
             with m.Else():
-                m.d.sync += self.registers.write_pointer.eq(
-                    (self.registers.write_pointer + 1) % self.config["sample_depth"]
-                )
+                self.increment_mod_sample_depth(m, rp)
 
-        with m.If((self.registers.request_stop) & (~self.prev_request_stop)):
-            m.d.sync += self.registers.state.eq(self.states["IDLE"])
+        with m.Elif(state == self.states["CAPTURING"]):
+            with m.If(wp == rp):
+                m.d.sync += we.eq(0)
+                m.d.sync += state.eq(self.states["CAPTURED"])
+
+            with m.Else():
+                self.increment_mod_sample_depth(m, wp)
+
+        with m.If((request_stop) & (~prev_request_stop)):
+            m.d.sync += state.eq(self.states["IDLE"])
 
     def elaborate(self, platform):
         m = Module()
