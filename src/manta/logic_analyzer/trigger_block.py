@@ -1,0 +1,126 @@
+from amaranth import *
+from ..io_core import IOCore
+
+
+class LogicAnalyzerTriggerBlock(Elaboratable):
+    """ """
+
+    def __init__(self, config, base_addr, interface):
+        self.config = config
+
+        # Instantiate a bunch of trigger blocks
+        self.probes = [
+            Signal(width, name=name) for name, width in self.config["probes"].items()
+        ]
+        self.triggers = [LogicAnalyzerTrigger(p) for p in self.probes]
+
+        # Make IO core for everything
+        outputs = {}
+        for p in self.probes:
+            outputs[p.name + "_arg"] = p.width
+            outputs[p.name + "_op"] = 4
+
+        self.r = IOCore({"outputs": outputs}, base_addr, interface)
+
+        # Bus Input
+        self.addr_i = self.r.addr_i
+        self.data_i = self.r.data_i
+        self.rw_i = self.r.rw_i
+        self.valid_i = self.r.valid_i
+
+        # Bus Output
+        self.addr_o = self.r.addr_o
+        self.data_o = self.r.data_o
+        self.rw_o = self.r.rw_o
+        self.valid_o = self.r.valid_o
+
+        # Global trigger. High if any probe is triggered.
+        self.trig = Signal(1)
+
+    def get_max_addr(self):
+        return self.r.get_max_addr()
+
+    def elaborate(self, platform):
+        m = Module()
+
+        # Add IO Core as submodule
+        m.submodules["registers"] = self.r
+
+        # Add triggers as submodules
+        for t in self.triggers:
+            m.submodules[t.signal.name + "_trigger"] = t
+
+        for probe, trigger in zip(self.probes, self.triggers):
+            # Connect trigger input signals to top-level signals
+            m.d.comb += trigger.signal.eq(probe)
+
+            # Connect IO core registers to triggers
+            m.d.comb += trigger.arg.eq(getattr(self.r, probe.name + "_arg"))
+            m.d.comb += trigger.op.eq(getattr(self.r, probe.name + "_op"))
+
+        m.d.comb += self.trig.eq(Cat([t.triggered for t in self.triggers]).any())
+
+        return m
+
+
+class LogicAnalyzerTrigger(Elaboratable):
+    def __init__(self, signal):
+        self.operations = {
+            "DISABLE": 0,
+            "RISING": 1,
+            "FALLING": 2,
+            "CHANGING": 3,
+            "GT": 4,
+            "LT": 5,
+            "GEQ": 6,
+            "LEQ": 7,
+            "EQ": 8,
+            "NEQ": 9,
+        }
+
+        self.signal = signal
+        self.op = Signal(range(len(self.operations)))
+        self.arg = Signal().like(signal)
+        self.triggered = Signal(1)
+
+    def elaborate(self, platform):
+        m = Module()
+
+        # Save previous value to register for edge detection
+        prev = Signal().like(self.signal)
+        m.d.sync += prev.eq(self.signal)
+
+        with m.If(self.op == self.operations["DISABLE"]):
+            m.d.comb += self.triggered.eq(0)
+
+        with m.Elif(self.op == self.operations["RISING"]):
+            m.d.comb += self.triggered.eq((self.signal) & (~prev))
+
+        with m.Elif(self.op == self.operations["FALLING"]):
+            m.d.comb += self.triggered.eq((~self.signal) & (prev))
+
+        with m.Elif(self.op == self.operations["CHANGING"]):
+            m.d.comb += self.triggered.eq(self.signal != prev)
+
+        with m.Elif(self.op == self.operations["GT"]):
+            m.d.comb += self.triggered.eq(self.signal > self.arg)
+
+        with m.Elif(self.op == self.operations["LT"]):
+            m.d.comb += self.triggered.eq(self.signal < self.arg)
+
+        with m.Elif(self.op == self.operations["GEQ"]):
+            m.d.comb += self.triggered.eq(self.signal >= self.arg)
+
+        with m.Elif(self.op == self.operations["LEQ"]):
+            m.d.comb += self.triggered.eq(self.signal <= self.arg)
+
+        with m.Elif(self.op == self.operations["EQ"]):
+            m.d.comb += self.triggered.eq(self.signal == self.arg)
+
+        with m.Elif(self.op == self.operations["NEQ"]):
+            m.d.comb += self.triggered.eq(self.signal != self.arg)
+
+        with m.Else():
+            m.d.comb += self.triggered.eq(0)
+
+        return m

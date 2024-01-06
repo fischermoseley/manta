@@ -1,5 +1,5 @@
 from amaranth.sim import Simulator
-from manta.logic_analyzer_core import LogicAnalyzerCore
+from manta.logic_analyzer import LogicAnalyzerCore
 from manta.utils import *
 from random import sample
 
@@ -12,6 +12,7 @@ config = {
 }
 
 la = LogicAnalyzerCore(config, base_addr=0, interface=None)
+
 
 def print_data_at_addr(addr):
     # place read transaction on the bus
@@ -30,43 +31,56 @@ def print_data_at_addr(addr):
     print(f"addr: {hex(addr)} data: {hex((yield la.data_o))}")
 
 
-def set_logic_analyzer_register(name, data):
-    addr = la.registers.mmap[f"{name}_buf"]["addrs"][0]
+def set_fsm_register(name, data):
+    addr = la.fsm.r.mmap[f"{name}_buf"]["addrs"][0]
 
     yield from write_register(la, 0, 0)
     yield from write_register(la, addr, data)
     yield from write_register(la, 0, 1)
     yield from write_register(la, 0, 0)
 
+def set_trig_blk_register(name, data):
+    addr = la.trig_blk.r.mmap[f"{name}_buf"]["addrs"][0]
+
+    yield from write_register(la, 0, 0)
+    yield from write_register(la, addr, data)
+    yield from write_register(la, 0, 1)
+    yield from write_register(la, 0, 0)
+
+def set_probe(name, value):
+    probe = None
+    for p in la.probes:
+        if p.name == name:
+            probe = p
+
+    yield p.eq(value)
 
 def test_do_you_fucking_work():
     def testbench():
         # # ok nice what happens if we try to run the core, which includes:
-        yield from set_logic_analyzer_register("request_stop", 1)
-        yield from set_logic_analyzer_register("request_stop", 0)
+        yield from set_fsm_register("request_stop", 1)
+        yield from set_fsm_register("request_stop", 0)
 
         # setting triggers
-        yield from set_logic_analyzer_register("curly_op", la.operations["EQ"])
-        yield from set_logic_analyzer_register("curly_arg", 4)
+        yield from set_trig_blk_register("curly_op", la.trig_blk.triggers[0].operations["EQ"])
+        yield from set_trig_blk_register("curly_arg", 4)
 
         # setting trigger mode
-        yield from set_logic_analyzer_register(
-            "trigger_mode", 0
-        )  # right now this is not actually respected...oops
+        yield from set_fsm_register("trigger_mode", 0)
 
         # setting trigger location
-        yield from set_logic_analyzer_register("trigger_loc", 511)
+        yield from set_fsm_register("trigger_location", 511)
 
         # starting capture
-        yield from set_logic_analyzer_register("request_start", 1)
-        yield from set_logic_analyzer_register("request_start", 0)
+        yield from set_fsm_register("request_start", 1)
+        yield from set_fsm_register("request_start", 0)
 
         # wait a few hundred clock cycles, see what happens
         for _ in range(700):
             yield
 
         # provide the trigger condition
-        yield la.probe_signals["curly"]["top_level"].eq(4)
+        yield from set_probe("curly", 4)
 
         for _ in range(700):
             yield

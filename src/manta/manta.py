@@ -5,7 +5,7 @@ from .uart import UARTInterface
 # from .ethernet import EthernetInterface
 from .io_core import IOCore
 from .memory_core import ReadOnlyMemoryCore
-from .logic_analyzer_core import LogicAnalyzerCore
+from .logic_analyzer import LogicAnalyzerCore
 
 
 class Manta(Elaboratable):

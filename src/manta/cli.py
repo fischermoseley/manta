@@ -15,6 +15,7 @@ Usage:
     help                                                           Display this help menu
 """
 
+
 def help():
     print(logo)
 
