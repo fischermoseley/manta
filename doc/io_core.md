@@ -90,7 +90,7 @@ While the IO core performs a very, very simple task, it carries a few caveats.
 
 This is done with the architecture shown below:
 
-![](assets/io_core_architecture.png){:style="width:49%"}
+![](assets/io_core_architecture.drawio.svg){:style="width:49%"}
 
 Each of the probes is mapped to a register of Manta's internal memory. Since Manta's internal registers are 16 bits wide, probes less than 16 bits are mapped to a single register, but probes wider than 16 bits require multiple.
 

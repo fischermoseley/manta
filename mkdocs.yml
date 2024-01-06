@@ -61,7 +61,7 @@ nav:
       - Getting Started: getting_started.md
       - IO Core: io_core.md
       - Logic Analyzer Core: logic_analyzer_core.md
-      - Block Memory Core: block_memory_core.md
+      - Memory Core: memory_core.md
       - UART Interace: uart_interface.md
       - Ethernet Interface: ethernet_interface.md
     - For Developers:

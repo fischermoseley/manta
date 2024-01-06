@@ -139,7 +139,7 @@ At present, this class contains methods used really only for capturing data, and
 ## How It Works
 The Logic Analyzer Core's implementation on the FPGA consists of three primary components:
 
-![](assets/logic_analyzer_architecture.png){style="width:85%"}
+![](assets/logic_analyzer_architecture.drawio.svg){style="width:85%"}
 
 - The _Finite State Machine (FSM)_, which controls the operation of the core. The FSM's operation is driven by its associated registers, which are placed in a separate module. This permits simple CDC between the bus and user clock domains.
 - The _Trigger Block_, which generates the core's trigger condition. The trigger block contains a trigger for each input probe, and the registers necessary to configure them. It also contains the $N$-logic gate (either AND or OR) that generates the core's trigger from the individual probe triggers. CDC is performed in exactly the same manner as the FSM. If an external trigger is specified, the trigger block is omitted from the Logic Analyzer Core, and the external trigger is routed to the FSM's `trig` input.
