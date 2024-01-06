@@ -5,13 +5,9 @@ from ..io_core import IOCore
 class LogicAnalyzerTriggerBlock(Elaboratable):
     """ """
 
-    def __init__(self, config, base_addr, interface):
-        self.config = config
-
+    def __init__(self, probes, base_addr, interface):
         # Instantiate a bunch of trigger blocks
-        self.probes = [
-            Signal(width, name=name) for name, width in self.config["probes"].items()
-        ]
+        self.probes = probes
         self.triggers = [LogicAnalyzerTrigger(p) for p in self.probes]
 
         # Make IO core for everything

@@ -33,19 +33,23 @@ def print_data_at_addr(addr):
 
 def set_fsm_register(name, data):
     addr = la.fsm.r.mmap[f"{name}_buf"]["addrs"][0]
+    strobe_addr = la.fsm.r.base_addr
 
-    yield from write_register(la, 0, 0)
+    yield from write_register(la, strobe_addr, 0)
     yield from write_register(la, addr, data)
-    yield from write_register(la, 0, 1)
-    yield from write_register(la, 0, 0)
+    yield from write_register(la, strobe_addr, 1)
+    yield from write_register(la, strobe_addr, 0)
+
 
 def set_trig_blk_register(name, data):
     addr = la.trig_blk.r.mmap[f"{name}_buf"]["addrs"][0]
+    strobe_addr = la.trig_blk.r.base_addr
 
-    yield from write_register(la, 0, 0)
+    yield from write_register(la, strobe_addr, 0)
     yield from write_register(la, addr, data)
-    yield from write_register(la, 0, 1)
-    yield from write_register(la, 0, 0)
+    yield from write_register(la, strobe_addr, 1)
+    yield from write_register(la, strobe_addr, 0)
+
 
 def set_probe(name, value):
     probe = None
@@ -53,16 +57,19 @@ def set_probe(name, value):
         if p.name == name:
             probe = p
 
-    yield p.eq(value)
+    yield probe.eq(value)
 
-def test_do_you_fucking_work():
+
+def test_single_shot_capture():
     def testbench():
         # # ok nice what happens if we try to run the core, which includes:
         yield from set_fsm_register("request_stop", 1)
         yield from set_fsm_register("request_stop", 0)
 
         # setting triggers
-        yield from set_trig_blk_register("curly_op", la.trig_blk.triggers[0].operations["EQ"])
+        yield from set_trig_blk_register(
+            "curly_op", la.trig_blk.triggers[0].operations["EQ"]
+        )
         yield from set_trig_blk_register("curly_arg", 4)
 
         # setting trigger mode

@@ -33,7 +33,7 @@ class LogicAnalyzerCore(Elaboratable):
         # Submodules
         self.fsm = LogicAnalyzerFSM(self.config, base_addr, interface)
         self.trig_blk = LogicAnalyzerTriggerBlock(
-            self.config, self.fsm.get_max_addr() + 1, interface
+            self.probes, self.fsm.get_max_addr() + 1, interface
         )
         self.sample_mem = LogicAnalyzerSampleMemory(
             self.config, self.trig_blk.get_max_addr() + 1, interface
@@ -182,6 +182,7 @@ class LogicAnalyzerCore(Elaboratable):
             self.valid_o.eq(sample_mem.valid_o),
             # Non-bus Connections
             fsm.trigger.eq(trig_blk.trig),
+            sample_mem.user_addr.eq(fsm.r.write_pointer),
             sample_mem.user_we.eq(fsm.write_enable),
         ]
 
