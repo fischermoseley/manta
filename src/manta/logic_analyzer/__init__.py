@@ -55,7 +55,7 @@ class LogicAnalyzerCore(Elaboratable):
             "sample_depth",
             "probes",
             "triggers",
-            "trigger_loc",
+            "trigger_location",
             "trigger_mode",
         ]
         for option in config:
@@ -91,14 +91,14 @@ class LogicAnalyzerCore(Elaboratable):
             raise ValueError("Logic Analyzer must have at least one trigger specified.")
 
         # Check trigger location
-        if "trigger_loc" in config:
-            if not isinstance(config["trigger_loc"], int):
+        if "trigger_location" in config:
+            if not isinstance(config["trigger_location"], int):
                 raise ValueError("Trigger location must be an integer.")
 
-            if config["trigger_loc"] < 0:
+            if config["trigger_location"] < 0:
                 raise ValueError("Trigger location must be positive.")
 
-            if config["trigger_loc"] > config["sample_depth"]:
+            if config["trigger_location"] > config["sample_depth"]:
                 raise ValueError("Trigger location cannot exceed sample depth.")
 
         # Check trigger mode, if provided
@@ -110,9 +110,9 @@ class LogicAnalyzerCore(Elaboratable):
                 )
 
             if config["trigger_mode"] == "incremental":
-                if "trigger_loc" in config:
+                if "trigger_location" in config:
                     warn(
-                        "Ignoring option 'trigger_loc', as 'trigger_mode' is set to immediate, and there is no trigger condition to wait for."
+                        "Ignoring option 'trigger_location', as 'trigger_mode' is set to immediate, and there is no trigger condition to wait for."
                     )
 
         # Check triggers themselves
@@ -194,65 +194,48 @@ class LogicAnalyzerCore(Elaboratable):
     def get_max_addr(self):
         return self.sample_mem.get_max_addr()
 
-    def set_triggers(self):
-        # reset all triggers to zero
-        for p in self.probes:
-            self.trig_blk.r.set_probe(p.name + "_op", 0)
-            self.trig_blk.r.set_probe(p.name + "_arg", 0)
-
-        # set triggers
-        for trigger in self.config["triggers"]:
-            components = trigger.strip().split(" ")
-
-            # Handle triggers that don't need an argument
-            if len(components) == 2:
-                name, op = components
-                self.trig_blk.r.set_probe(name + "_op", self.operations[op])
-
-            # Handle triggers that do need an argument
-            elif len(components) == 3:
-                name, op, arg = components
-                self.registers.set_probe(name + "_op", self.operations[op])
-                self.registers.set_probe(name + "_arg", int(arg))
-
     def capture(self, verbose=False):
         print_if_verbose = lambda x: print(x) if verbose else None
 
         # If core is not in IDLE state, request that it return to IDLE
         print_if_verbose(" -> Resetting core...")
-        state = self.registers.get_probe("state")
+        state = self.fsm.r.get_probe("state")
         if state != self.states["IDLE"]:
-            self.registers.set_probe("request_stop", 0)
-            self.registers.set_probe("request_stop", 1)
-            self.registers.set_probe("request_stop", 0)
+            self.fsm.r.set_probe("request_stop", 0)
+            self.fsm.r.set_probe("request_stop", 1)
+            self.fsm.r.set_probe("request_stop", 0)
 
-            if self.registers.get_probe("state") != self.states["IDLE"]:
+            if self.fsm.r.get_probe("state") != self.fsm.states["IDLE"]:
                 raise ValueError("Logic analyzer did not reset to IDLE state.")
 
         # Set triggers
         print_if_verbose(" -> Setting triggers...")
-        self.set_triggers()
+        self.trig_blk.set_triggers()
 
         # Set trigger mode, default to single-shot if user didn't specify a mode
         print_if_verbose(" -> Setting trigger mode...")
         if "trigger_mode" in self.config:
-            self.registers.set_probe("trigger_mode", self.config["trigger_mode"])
+            self.fsm.r.set_probe("trigger_mode", self.config["trigger_mode"])
 
         else:
-            self.registers.set_probe("trigger_mode", self.trigger_modes["SINGLE_SHOT"])
+            self.fsm.r.set_probe("trigger_mode", self.fsm.trigger_modes["SINGLE_SHOT"])
 
         # Set trigger location
         print_if_verbose(" -> Setting trigger location...")
-        self.registers.set_probe("trigger_loc", self.config["trigger_loc"])
+        if "trigger_location" in self.config:
+            self.fsm.r.set_probe("trigger_location", self.config["trigger_location"])
+
+        else:
+            self.fsm.r.set_probe("trigger_location", self.config["sample_depth"] // 2)
 
         # Send a start request to the state machine
         print_if_verbose(" -> Starting capture...")
-        self.registers.set_probe("request_start", 1)
-        self.registers.set_probe("request_start", 0)
+        self.fsm.r.set_probe("request_start", 1)
+        self.fsm.r.set_probe("request_start", 0)
 
         # Poll the state machine's state, and wait for the capture to complete
         print_if_verbose(" -> Waiting for capture to complete...")
-        while self.registers.get_probe("state") != self.states["CAPTURED"]:
+        while self.fsm.r.get_probe("state") != self.fsm.states["CAPTURED"]:
             pass
 
         # Read out the entirety of the sample memory
@@ -263,7 +246,7 @@ class LogicAnalyzerCore(Elaboratable):
         # Revolve the memory around the read_pointer, such that all the beginning
         # of the caputure is at the first element
         print_if_verbose(" -> Checking read pointer and revolving memory...")
-        read_pointer = self.registers.get_probe("read_pointer")
+        read_pointer = self.fsm.r.get_probe("read_pointer")
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]
         return LogicAnalyzerCapture(data, self.config)
@@ -274,8 +257,8 @@ class LogicAnalyzerCapture:
         self.data = data
         self.config = config
 
-    def get_trigger_loc(self):
-        return self.config["trigger_loc"]
+    def get_trigger_location(self):
+        return self.config["trigger_location"]
 
     def get_trace(self, probe_name):
         # sum up the widths of all the probes below this one

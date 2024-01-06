@@ -36,6 +36,27 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
     def get_max_addr(self):
         return self.r.get_max_addr()
 
+    def set_triggers(self, config):
+        # reset all triggers to zero
+        for p in self.probes:
+            self.r.set_probe(p.name + "_op", 0)
+            self.r.set_probe(p.name + "_arg", 0)
+
+        # set triggers
+        for trigger in config["triggers"]:
+            components = trigger.strip().split(" ")
+
+            # Handle triggers that don't need an argument
+            if len(components) == 2:
+                name, op = components
+                self.r.set_probe(name + "_op", self.triggers[0].operations[op])
+
+            # Handle triggers that do need an argument
+            elif len(components) == 3:
+                name, op, arg = components
+                self.r.set_probe(name + "_op", self.triggers[0].operations[op])
+                self.r.set_probe(name + "_arg", int(arg))
+
     def elaborate(self, platform):
         m = Module()
 
