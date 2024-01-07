@@ -37,9 +37,9 @@ class LogicAnalyzerCounterTest(Elaboratable):
         m.submodules["manta"] = self.m
         uart_pins = platform.request("uart")
 
-        larry = self.m.la.probe_signals["larry"]["top_level"]
-        curly = self.m.la.probe_signals["curly"]["top_level"]
-        moe = self.m.la.probe_signals["moe"]["top_level"]
+        larry = self.m.la.probes[0]
+        curly = self.m.la.probes[1]
+        moe = self.m.la.probes[2]
 
         m.d.sync += larry.eq(larry + 1)
         m.d.sync += curly.eq(curly + 1)
@@ -75,10 +75,10 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-def test_mem_core_xilinx():
+def test_logic_analyzer_core_xilinx():
     LogicAnalyzerCounterTest(Nexys4DDRPlatform(), "/dev/ttyUSB2").verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
-def test_mem_core_ice40():
+def test_logic_analyzer_core_ice40():
     LogicAnalyzerCounterTest(ICEStickPlatform(), "/dev/ttyUSB1").verify()

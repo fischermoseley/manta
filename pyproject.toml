@@ -7,7 +7,7 @@ authors = [
 description = "An In-Situ Debugging Tool for Programmable Hardware"
 readme = "README.md"
 dependencies = [
-  "amaranth[builtin-yosys]@git+https://github.com/amaranth-lang/amaranth",
+  "amaranth[builtin-yosys]",
   "PyYAML",
   "pyserial",
   "pyvcd",

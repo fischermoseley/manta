@@ -109,21 +109,36 @@ def write_register(module, addr, data):
 
 def xilinx_tools_installed():
     """
-    Return whether Vivado is installed, by checking if the VIVADO environment variable is set.
+    Return whether Vivado is installed, by checking if the VIVADO environment variable is set,
+    or if the binary exists on PATH.
 
     This variable should point to the binary itself, not just the folder it's located in
     (ie, /tools/Xilinx/Vivado/2023.1/bin/vivado, not /tools/Xilinx/Vivado/2023.1/bin)
     """
-    return "VIVADO" in os.environ
+    from shutil import which
+    return ("VIVADO" in os.environ) or (which("vivado") is not None)
 
 
 def ice40_tools_installed():
     """
     Return whether the ice40 tools are installed, by checking if the YOSYS, NEXTPNR_ICE40,
-    ICEPACK, and ICEPROG environment variables are defined.
+    ICEPACK, and ICEPROG environment variables are defined, or if the binaries exist on PATH.
 
     # These variables should point to the binaries themselves, not just the folder it's located in
     # (ie, /tools/oss-cad-suite/bin/yosys, not /tools/oss-cad-suite/bin/)
     """
-    tools = ["YOSYS", "NEXTPNR_ICE40", "ICEPACK", "ICEPROG"]
-    return all(tool in os.environ for tool in tools)
+
+    # Check environment variables
+    env_vars = ["YOSYS", "NEXTPNR_ICE40", "ICEPACK", "ICEPROG"]
+    if all(var in os.environ for var in env_vars):
+        return True
+
+    # Check PATH
+    binaries = ["yosys", "nextpnr-ice40", "icepack", "iceprog"]
+    from shutil import which
+    if all([which(b) for b in binaries]):
+        return True
+
+    return False
+
+
