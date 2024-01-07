@@ -20,7 +20,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
                 "la": {
                     "type": "logic_analyzer",
                     "sample_depth": 1024,
-                    "trigger_loc": 500,
+                    "trigger_location": 500,
                     "probes": {"larry": 1, "curly": 3, "moe": 9},
                     "triggers": ["moe RISING"],
                 },
@@ -76,9 +76,9 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_xilinx():
-    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), "/dev/ttyUSB2").verify()
+    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), "/dev/ttyUSB3").verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_ice40():
-    LogicAnalyzerCounterTest(ICEStickPlatform(), "/dev/ttyUSB1").verify()
+    LogicAnalyzerCounterTest(ICEStickPlatform(), "/dev/ttyUSB2").verify()

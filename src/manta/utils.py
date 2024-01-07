@@ -116,6 +116,7 @@ def xilinx_tools_installed():
     (ie, /tools/Xilinx/Vivado/2023.1/bin/vivado, not /tools/Xilinx/Vivado/2023.1/bin)
     """
     from shutil import which
+
     return ("VIVADO" in os.environ) or (which("vivado") is not None)
 
 
@@ -136,9 +137,8 @@ def ice40_tools_installed():
     # Check PATH
     binaries = ["yosys", "nextpnr-ice40", "icepack", "iceprog"]
     from shutil import which
+
     if all([which(b) for b in binaries]):
         return True
 
     return False
-
-

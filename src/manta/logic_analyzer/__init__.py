@@ -8,7 +8,29 @@ from .playback import LogicAnalyzerPlayback
 
 
 class LogicAnalyzerCore(Elaboratable):
-    """ """
+    """A logic analzyer, implemented in the FPGA fabric. Connects to the rest of the cores
+    over Manta's internal bus, and may be operated from a user's machine through the Python API.
+
+    Parameters:
+    ----------
+    config : dict
+        Configuration options. This is taken from the section of Manta's configuration YAML that
+        describes the core.
+
+    base_addr : int
+        Where to place the core in Manta's internal memory map. This determines the beginning of
+        the core's address space. The end of the core's address space may be obtained by calling
+        the get_max_addr() method.
+
+    interface : UARTInterface or EthernetInterface
+        The interface used to communicate with the core.
+
+    Attributes:
+    ----------
+    None
+
+
+    """
 
     def __init__(self, config, base_addr, interface):
         self.config = config
@@ -38,15 +60,6 @@ class LogicAnalyzerCore(Elaboratable):
         self.sample_mem = LogicAnalyzerSampleMemory(
             self.config, self.trig_blk.get_max_addr() + 1, interface
         )
-
-        # Top-Level Probes:
-        for name, width in self.config["probes"].items():
-            if hasattr(self, name):
-                raise ValueError(
-                    f"Unable to assign probe name '{name}' as it clashes with a reserved name in the backend. Please rename the probe."
-                )
-
-            setattr(self, name, Signal(width, name=name))
 
     def check_config(self, config):
         # Check for unrecognized options
@@ -196,16 +209,31 @@ class LogicAnalyzerCore(Elaboratable):
             if p.name == name:
                 return p
 
+        raise ValueError(f"Probe '{name}' not found in Logic Analyzer core.")
+
     def get_max_addr(self):
         return self.sample_mem.get_max_addr()
 
     def capture(self, verbose=False):
+        """Perform a capture, recording the state of all input probes to the FPGA's memory, and
+        then reading that out on the host.
+
+        Parameters:
+        ----------
+        verbose : bool
+            Whether or not to print the status of the capture to stdout as it progresses.
+            Defaults to False.
+
+        Returns:
+        ----------
+        An instance of LogicAnalyzerCapture.
+        """
         print_if_verbose = lambda x: print(x) if verbose else None
 
         # If core is not in IDLE state, request that it return to IDLE
         print_if_verbose(" -> Resetting core...")
         state = self.fsm.r.get_probe("state")
-        if state != self.states["IDLE"]:
+        if state != self.fsm.states["IDLE"]:
             self.fsm.r.set_probe("request_stop", 0)
             self.fsm.r.set_probe("request_stop", 1)
             self.fsm.r.set_probe("request_stop", 0)
@@ -215,7 +243,7 @@ class LogicAnalyzerCore(Elaboratable):
 
         # Set triggers
         print_if_verbose(" -> Setting triggers...")
-        self.trig_blk.set_triggers()
+        self.trig_blk.set_triggers(self.config)
 
         # Set trigger mode, default to single-shot if user didn't specify a mode
         print_if_verbose(" -> Setting trigger mode...")
@@ -258,14 +286,52 @@ class LogicAnalyzerCore(Elaboratable):
 
 
 class LogicAnalyzerCapture:
+    """A container for the data collected during a capture from a LogicAnalyzerCore. Contains
+    methods for exporting the data as a VCD waveform file, or as a Verilog module for playing
+    back captured data in simulation/synthesis.
+
+    Parameters:
+    ----------
+    data : list[int]
+        The raw captured data taken by the LogicAnalyzerCore. This consists of the values of
+        all the input probes concatenated together at every timestep.
+
+    config : dict
+        The configuration of the LogicAnalyzerCore that took this capture.
+    """
+
     def __init__(self, data, config):
         self.data = data
         self.config = config
 
     def get_trigger_location(self):
+        """Gets the location of the trigger in the capture. This will match the value of
+        "trigger_location" provided in the configuration file at the time of capture.
+
+        Parameters:
+        ----------
+        None
+
+        Returns:
+        ----------
+        The trigger location as an `int`.
+        """
         return self.config["trigger_location"]
 
     def get_trace(self, probe_name):
+        """Gets the value of a single probe over the capture.
+
+        Parameters:
+        ----------
+        probe_name : int
+            The name of the probe in the LogicAnalyzer Core. This must match the name provided
+            in the configuration file.
+
+        Returns:
+        ----------
+        The value of the probe at every timestep in the capture, as a list of integers.
+        """
+
         # sum up the widths of all the probes below this one
         lower = 0
         for name, width in self.config["probes"].items():
@@ -282,6 +348,19 @@ class LogicAnalyzerCapture:
         return [int(b[lower:upper], 2) for b in binary]
 
     def export_vcd(self, path):
+        """Export the capture to a VCD file, containing the data of all probes in the core.
+
+        Parameters:
+        ----------
+        path : str
+            The path of the output file, including the ".vcd" file extension.
+
+        Returns:
+        ----------
+        None
+
+        """
+
         from vcd import VCDWriter
         from datetime import datetime
 
@@ -310,7 +389,7 @@ class LogicAnalyzerCapture:
                 writer.change(clock, timestamp, timestamp % 2 == 0)
 
                 # set the trigger
-                triggered = (timestamp // 2) >= self.get_trigger_loc()
+                triggered = (timestamp // 2) >= self.get_trigger_location()
                 writer.change(trigger, timestamp, triggered)
 
                 # add other signals
@@ -322,11 +401,35 @@ class LogicAnalyzerCapture:
 
         vcd_file.close()
 
-    def export_playback_module(self):
+    def get_playback_module(self):
+        """Gets an Amaranth module that will playback the captured data. This module is
+        synthesizable, so it may be used in either simulation or synthesis.
+
+        Parameters:
+        ----------
+        None
+
+        Returns:
+        ----------
+        An instance of LogicAnalyzerPlayback, which is a synthesizable Amaranth module.
+        """
         return LogicAnalyzerPlayback(self.data, self.config)
 
     def export_playback_verilog(self, path):
-        lap = self.export_playback_module()
+        """Exports a Verilog module that will playback the captured data. This module is
+        synthesizable, so it may be used in either simulation or synthesis.
+
+        Parameters:
+        ----------
+        path : str
+            The path of the output file, including the ".v" file extension.
+
+        Returns:
+        ----------
+        None
+        """
+
+        lap = self.get_playback_module()
         from amaranth.back import verilog
 
         with open(path, "w") as f:

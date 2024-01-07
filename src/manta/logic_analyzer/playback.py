@@ -2,6 +2,17 @@ from amaranth import *
 
 
 class LogicAnalyzerPlayback(Elaboratable):
+    """A synthesizable module that plays back data captured by a LogicAnalyzerCore.
+
+    Parameters:
+    ----------
+    data : list[int]
+        The raw captured data taken by the LogicAnalyzerCore. This consists of the values of
+        all the input probes concatenated together at every timestep.
+
+    config : dict
+        The configuration of the LogicAnalyzerCore that took this capture.
+    """
     def __init__(self, data, config):
         self.data = data
         self.config = config
