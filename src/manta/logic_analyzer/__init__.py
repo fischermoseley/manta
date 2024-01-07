@@ -191,6 +191,11 @@ class LogicAnalyzerCore(Elaboratable):
     def get_top_level_ports(self):
         return self.probes
 
+    def get_probe(self, name):
+        for p in self.probes:
+            if p.name == name:
+                return p
+
     def get_max_addr(self):
         return self.sample_mem.get_max_addr()
 

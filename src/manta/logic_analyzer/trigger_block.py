@@ -67,11 +67,8 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         for t in self.triggers:
             m.submodules[t.signal.name + "_trigger"] = t
 
+        # Connect IO core registers to triggers
         for probe, trigger in zip(self.probes, self.triggers):
-            # Connect trigger input signals to top-level signals
-            m.d.comb += trigger.signal.eq(probe)
-
-            # Connect IO core registers to triggers
             m.d.comb += trigger.arg.eq(getattr(self.r, probe.name + "_arg"))
             m.d.comb += trigger.op.eq(getattr(self.r, probe.name + "_op"))
 
