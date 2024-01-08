@@ -18,8 +18,8 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         self.r = IOCore({"outputs": outputs}, base_addr, interface)
 
         # Bus Input/Output
-        self.bus_i = Signal(InternalBus())
-        self.bus_o = Signal(InternalBus())
+        self.bus_i = self.r.bus_i
+        self.bus_o = self.r.bus_o
 
         # Global trigger. High if any probe is triggered.
         self.trig = Signal(1)
