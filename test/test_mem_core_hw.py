@@ -94,12 +94,12 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_mem_core_xilinx():
-    MemoryCoreLoopbackTest(Nexys4DDRPlatform(), 33, 1024, "/dev/ttyUSB2").verify()
+    MemoryCoreLoopbackTest(Nexys4DDRPlatform(), 33, 1024, "/dev/ttyUSB1").verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_mem_core_ice40():
-    port = "/dev/ttyUSB1"
+    port = "/dev/ttyUSB2"
     MemoryCoreLoopbackTest(ICEStickPlatform(), 1, 2, port).verify()
     MemoryCoreLoopbackTest(ICEStickPlatform(), 1, 512, port).verify()
     MemoryCoreLoopbackTest(ICEStickPlatform(), 1, 1024, port).verify()

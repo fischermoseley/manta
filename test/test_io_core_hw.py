@@ -121,9 +121,9 @@ class IOCoreLoopbackTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_xilinx():
-    IOCoreLoopbackTest(Nexys4DDRPlatform(), "/dev/ttyUSB2").verify()
+    IOCoreLoopbackTest(Nexys4DDRPlatform(), "/dev/ttyUSB1").verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_ice40():
-    IOCoreLoopbackTest(ICEStickPlatform(), "/dev/ttyUSB1").verify()
+    IOCoreLoopbackTest(ICEStickPlatform(), "/dev/ttyUSB2").verify()

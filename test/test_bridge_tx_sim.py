@@ -17,16 +17,16 @@ def verify_encoding(data, bytes):
     """
 
     # Place a read response on the internal bus
-    yield bridge_tx.bus_i.data.eq(data)
-    yield bridge_tx.bus_i.valid.eq(1)
-    yield bridge_tx.bus_i.rw.eq(0)
+    yield bridge_tx.data_i.eq(data)
+    yield bridge_tx.valid_i.eq(1)
+    yield bridge_tx.rw_i.eq(0)
     yield bridge_tx.done_i.eq(1)
 
     yield
 
-    yield bridge_tx.bus_i.data.eq(0)
-    yield bridge_tx.bus_i.valid.eq(0)
-    yield bridge_tx.bus_i.rw.eq(0)
+    yield bridge_tx.data_i.eq(0)
+    yield bridge_tx.valid_i.eq(0)
+    yield bridge_tx.rw_i.eq(0)
 
     yield
 

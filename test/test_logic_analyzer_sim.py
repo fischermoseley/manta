@@ -16,19 +16,19 @@ la = LogicAnalyzerCore(config, base_addr=0, interface=None)
 
 def print_data_at_addr(addr):
     # place read transaction on the bus
-    yield la.bus_i.addr.eq(addr)
-    yield la.bus_i.data.eq(0)
-    yield la.bus_i.rw.eq(0)
-    yield la.bus_i.valid.eq(1)
+    yield la.addr_i.eq(addr)
+    yield la.data_i.eq(0)
+    yield la.rw_i.eq(0)
+    yield la.valid_i.eq(1)
     yield
-    yield la.bus_i.addr.eq(0)
-    yield la.bus_i.valid.eq(0)
+    yield la.addr_i.eq(0)
+    yield la.valid_i.eq(0)
 
     # wait for output to be valid
-    while not (yield la.bus_o.valid):
+    while not (yield la.valid_o):
         yield
 
-    print(f"addr: {hex(addr)} data: {hex((yield la.bus_o.data))}")
+    print(f"addr: {hex(addr)} data: {hex((yield la.data_o))}")
 
 
 def set_fsm_register(name, data):

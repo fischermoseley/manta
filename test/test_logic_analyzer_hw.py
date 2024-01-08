@@ -76,7 +76,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_xilinx():
-    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), "/dev/ttyUSB3").verify()
+    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), "/dev/ttyUSB1").verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")

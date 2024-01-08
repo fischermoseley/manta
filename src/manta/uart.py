@@ -222,8 +222,15 @@ class UARTInterface(Elaboratable):
         self.rx = Signal()
         self.tx = Signal()
 
-        self.bus_i = Signal(InternalBus())
-        self.bus_o = Signal(InternalBus())
+        self.addr_o = Signal(16)
+        self.data_o = Signal(16)
+        self.rw_o = Signal()
+        self.valid_o = Signal()
+
+        self.addr_i = Signal(16)
+        self.data_i = Signal(16)
+        self.rw_i = Signal()
+        self.valid_i = Signal()
 
     def elaborate(self, platform):
         # fancy submoduling and such goes in here
@@ -239,9 +246,14 @@ class UARTInterface(Elaboratable):
             uart_rx.rx.eq(self.rx),
             bridge_rx.data_i.eq(uart_rx.data_o),
             bridge_rx.valid_i.eq(uart_rx.valid_o),
-            self.bus_o.data.eq(bridge_rx.bus_o),
+            self.data_o.eq(bridge_rx.data_o),
+            self.addr_o.eq(bridge_rx.addr_o),
+            self.rw_o.eq(bridge_rx.rw_o),
+            self.valid_o.eq(bridge_rx.valid_o),
             # Internal Bus -> UART TX
-            bridge_tx.bus_i.eq(self.bus_i),
+            bridge_tx.data_i.eq(self.data_i),
+            bridge_tx.rw_i.eq(self.rw_i),
+            bridge_tx.valid_i.eq(self.valid_i),
             uart_tx.data_i.eq(bridge_tx.data_o),
             uart_tx.start_i.eq(bridge_tx.start_o),
             bridge_tx.done_i.eq(uart_tx.done_o),
@@ -314,7 +326,10 @@ class RecieveBridge(Elaboratable):
         self.data_i = Signal(8)
         self.valid_i = Signal()
 
-        self.bus_o = Signal(InternalBus())
+        self.addr_o = Signal(16, reset=0)
+        self.data_o = Signal(16, reset=0)
+        self.rw_o = Signal(1, reset=0)
+        self.valid_o = Signal(1, reset=0)
 
         # State Machine
         self.IDLE_STATE = 0
@@ -354,27 +369,30 @@ class RecieveBridge(Elaboratable):
         with m.If(
             (self.state == self.READ_STATE) & (self.byte_num == 4) & (self.is_eol)
         ):
-            m.d.comb += self.bus_o.addr.eq(
+            m.d.comb += self.addr_o.eq(
                 Cat(self.buffer[3], self.buffer[2], self.buffer[1], self.buffer[0])
             )
-            m.d.comb += self.bus_o.data.eq(0)
-            m.d.comb += self.bus_o.valid.eq(1)
-            m.d.comb += self.bus_o.rw.eq(0)
+            m.d.comb += self.data_o.eq(0)
+            m.d.comb += self.valid_o.eq(1)
+            m.d.comb += self.rw_o.eq(0)
 
         with m.Elif(
             (self.state == self.WRITE_STATE) & (self.byte_num == 8) & (self.is_eol)
         ):
-            m.d.comb += self.bus_o.addr.eq(
+            m.d.comb += self.addr_o.eq(
                 Cat(self.buffer[3], self.buffer[2], self.buffer[1], self.buffer[0])
             )
-            m.d.comb += self.bus_o.data.eq(
+            m.d.comb += self.data_o.eq(
                 Cat(self.buffer[7], self.buffer[6], self.buffer[5], self.buffer[4])
             )
-            m.d.comb += self.bus_o.valid.eq(1)
-            m.d.comb += self.bus_o.rw.eq(1)
+            m.d.comb += self.valid_o.eq(1)
+            m.d.comb += self.rw_o.eq(1)
 
         with m.Else():
-            m.d.comb += self.bus_o.eq(0)
+            m.d.comb += self.addr_o.eq(0)
+            m.d.comb += self.data_o.eq(0)
+            m.d.comb += self.rw_o.eq(0)
+            m.d.comb += self.valid_o.eq(0)
 
     def drive_fsm(self, m):
         with m.If(self.valid_i):
@@ -482,7 +500,9 @@ class UARTTransmitter(Elaboratable):
 class TransmitBridge(Elaboratable):
     def __init__(self):
         # Top-Level Ports
-        self.bus_i = Signal(InternalBus())
+        self.data_i = Signal(16)
+        self.rw_i = Signal()
+        self.valid_i = Signal()
 
         self.data_o = Signal(8, reset=0)
         self.start_o = Signal(1)
@@ -501,9 +521,9 @@ class TransmitBridge(Elaboratable):
         m.d.comb += self.start_o.eq(self.busy)
 
         with m.If(~self.busy):
-            with m.If((self.bus_i.valid) & (~self.bus_i.rw)):
+            with m.If((self.valid_i) & (~self.rw_i)):
                 m.d.sync += self.busy.eq(1)
-                m.d.sync += self.buffer.eq(self.bus_i.data)
+                m.d.sync += self.buffer.eq(self.data_i)
 
         with m.Else():
             # uart_tx is transmitting a byte:
@@ -515,8 +535,8 @@ class TransmitBridge(Elaboratable):
                     m.d.sync += self.count.eq(0)
 
                     # Go back to idle, or transmit next message
-                    with m.If((self.bus_i.valid) & (~self.bus_i.rw)):
-                        m.d.sync += self.buffer.eq(self.bus_i.data)
+                    with m.If((self.valid_i) & (~self.rw_i)):
+                        m.d.sync += self.buffer.eq(self.data_i)
 
                     with m.Else():
                         m.d.sync += self.busy.eq(0)

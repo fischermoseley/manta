@@ -1,10 +1,11 @@
 from amaranth import *
 from math import ceil, log2
 from ..io_core import IOCore
-from ..utils import *
 
 
 class LogicAnalyzerFSM(Elaboratable):
+    """ """
+
     def __init__(self, config, base_addr, interface):
         self.config = config
         self.states = {
@@ -36,14 +37,24 @@ class LogicAnalyzerFSM(Elaboratable):
 
         self.r = IOCore(register_config, base_addr, interface)
 
-        # Bus Input/Output
-        self.bus_i = self.r.bus_i
-        self.bus_o = self.r.bus_o
+        # Bus Input
+        self.addr_i = self.r.addr_i
+        self.data_i = self.r.data_i
+        self.rw_i = self.r.rw_i
+        self.valid_i = self.r.valid_i
+
+        # Bus Output
+        self.addr_o = self.r.addr_o
+        self.data_o = self.r.data_o
+        self.rw_o = self.r.rw_o
+        self.valid_o = self.r.valid_o
 
     def get_max_addr(self):
         return self.r.get_max_addr()
 
     def increment_mod_sample_depth(self, m, signal):
+        # m.d.sync += signal.eq((signal + 1) % self.config["sample_depth"])
+
         with m.If(signal == self.config["sample_depth"] - 1):
             m.d.sync += signal.eq(0)
 

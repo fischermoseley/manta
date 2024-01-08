@@ -1,19 +1,7 @@
 from amaranth.sim import Simulator
-from amaranth.lib import data, enum
 from math import ceil
 import os
 
-class InternalBus(data.StructLayout):
-    """Describes the layout of Manta's internal bus, such that signals of
-    the appropriate dimension can be instantiated with Signal(InternalBus()).
-    """
-    def __init__(self):
-        super().__init__({
-            "addr": 16,
-            "data": 16,
-            "rw": 1,
-            "valid": 1
-        })
 
 def words_to_value(data):
     """
@@ -86,20 +74,20 @@ def verify_register(module, addr, expected_data):
     """
 
     # place read transaction on the bus
-    yield module.bus_i.addr.eq(addr)
-    yield module.bus_i.data.eq(0)
-    yield module.bus_i.rw.eq(0)
-    yield module.bus_i.valid.eq(1)
+    yield module.addr_i.eq(addr)
+    yield module.data_i.eq(0)
+    yield module.rw_i.eq(0)
+    yield module.valid_i.eq(1)
     yield
-    yield module.bus_i.addr.eq(0)
-    yield module.bus_i.valid.eq(0)
+    yield module.addr_i.eq(0)
+    yield module.valid_i.eq(0)
 
     # wait for output to be valid
-    while not (yield module.bus_o.valid):
+    while not (yield module.valid_o):
         yield
 
     # compare returned value with expected
-    data = yield (module.bus_o.data)
+    data = yield (module.data_o)
     if data != expected_data:
         raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")
 
@@ -110,12 +98,12 @@ def write_register(module, addr, data):
     at `addr`.
     """
 
-    yield module.bus_i.addr.eq(addr)
-    yield module.bus_i.data.eq(data)
-    yield module.bus_i.rw.eq(1)
-    yield module.bus_i.valid.eq(1)
+    yield module.addr_i.eq(addr)
+    yield module.data_i.eq(data)
+    yield module.rw_i.eq(1)
+    yield module.valid_i.eq(1)
     yield
-    yield module.bus_i.valid.eq(0)
+    yield module.valid_i.eq(0)
     yield
 
 
@@ -154,5 +142,3 @@ def ice40_tools_installed():
         return True
 
     return False
-
-

@@ -17,15 +17,15 @@ def verify_read_decoding(bytes, addr):
     for i, byte in enumerate(bytes):
         yield bridge_rx.data_i.eq(byte)
 
-        if (yield bridge_rx.bus_o.valid) and (i > 0):
+        if (yield bridge_rx.valid_o) and (i > 0):
             valid_asserted = True
-            if (yield bridge_rx.bus_o.addr) != addr:
+            if (yield bridge_rx.addr_o) != addr:
                 raise ValueError("wrong addr!")
 
-            if (yield bridge_rx.bus_o.rw) != 0:
+            if (yield bridge_rx.rw_o) != 0:
                 raise ValueError("wrong rw!")
 
-            if (yield bridge_rx.bus_o.data) != 0:
+            if (yield bridge_rx.data_o) != 0:
                 raise ValueError("wrong data!")
 
         yield
@@ -33,7 +33,7 @@ def verify_read_decoding(bytes, addr):
     yield bridge_rx.valid_i.eq(0)
     yield bridge_rx.data_i.eq(0)
 
-    if not valid_asserted and not (yield bridge_rx.bus_o.valid):
+    if not valid_asserted and not (yield bridge_rx.valid_o):
         raise ValueError("Bridge failed to output valid message.")
 
 
@@ -48,15 +48,15 @@ def verify_write_decoding(bytes, addr, data):
     for i, byte in enumerate(bytes):
         yield bridge_rx.data_i.eq(byte)
 
-        if (yield bridge_rx.bus_o.valid) and (i > 0):
+        if (yield bridge_rx.valid_o) and (i > 0):
             valid_asserted = True
-            if (yield bridge_rx.bus_o.addr) != addr:
+            if (yield bridge_rx.addr_o) != addr:
                 raise ValueError("wrong addr!")
 
-            if (yield bridge_rx.bus_o.rw) != 1:
+            if (yield bridge_rx.rw_o) != 1:
                 raise ValueError("wrong rw!")
 
-            if (yield bridge_rx.bus_o.data) != data:
+            if (yield bridge_rx.data_o) != data:
                 raise ValueError("wrong data!")
 
         yield
@@ -64,7 +64,7 @@ def verify_write_decoding(bytes, addr, data):
     yield bridge_rx.valid_i.eq(0)
     yield bridge_rx.data_i.eq(0)
 
-    if not valid_asserted and not (yield bridge_rx.bus_o.valid):
+    if not valid_asserted and not (yield bridge_rx.valid_o):
         raise ValueError("Bridge failed to output valid message.")
 
 
@@ -78,7 +78,7 @@ def verify_bad_bytes(bytes):
     for byte in bytes:
         yield bridge_rx.data_i.eq(byte)
 
-        if (yield bridge_rx.bus_o.valid):
+        if (yield bridge_rx.valid_o):
             raise ValueError("Bridge decoded invalid message.")
 
         yield
