@@ -1,6 +1,15 @@
 from amaranth.sim import Simulator
+from amaranth.lib import data, enum
 from math import ceil
 import os
+
+
+class InternalBus(data.StructLayout):
+    """Describes the layout of Manta's internal bus, such that signals of
+    the appropriate dimension can be instantiated with Signal(InternalBus())."""
+
+    def __init__(self):
+        super().__init__({"addr": 16, "data": 16, "rw": 1, "valid": 1})
 
 
 def words_to_value(data):

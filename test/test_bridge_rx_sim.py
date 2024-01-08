@@ -1,9 +1,9 @@
 from amaranth.sim import Simulator
-from manta.uart import RecieveBridge
+from manta.uart import ReceiveBridge
 from manta.utils import *
 
 
-bridge_rx = RecieveBridge()
+bridge_rx = ReceiveBridge()
 
 
 def verify_read_decoding(bytes, addr):

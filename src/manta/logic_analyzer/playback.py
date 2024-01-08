@@ -13,6 +13,7 @@ class LogicAnalyzerPlayback(Elaboratable):
     config : dict
         The configuration of the LogicAnalyzerCore that took this capture.
     """
+
     def __init__(self, data, config):
         self.data = data
         self.config = config
