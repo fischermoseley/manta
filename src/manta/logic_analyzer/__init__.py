@@ -36,17 +36,9 @@ class LogicAnalyzerCore(Elaboratable):
         self.config = config
         self.check_config(config)
 
-        # Bus Input
-        self.addr_i = Signal(16)
-        self.data_i = Signal(16)
-        self.rw_i = Signal(1)
-        self.valid_i = Signal(1)
-
-        # Bus Output
-        self.addr_o = Signal(16)
-        self.data_o = Signal(16)
-        self.rw_o = Signal(1)
-        self.valid_o = Signal(1)
+        # Bus Input/Output
+        self.bus_i = Signal(InternalBus())
+        self.bus_o = Signal(InternalBus())
 
         self.probes = [
             Signal(width, name=name) for name, width in self.config["probes"].items()
@@ -177,26 +169,15 @@ class LogicAnalyzerCore(Elaboratable):
         # Wire bus connections between internal modules
         m.d.comb += [
             # Bus Connections
-            fsm.addr_i.eq(self.addr_i),
-            fsm.data_i.eq(self.data_i),
-            fsm.rw_i.eq(self.rw_i),
-            fsm.valid_i.eq(self.valid_i),
-            trig_blk.addr_i.eq(fsm.addr_o),
-            trig_blk.data_i.eq(fsm.data_o),
-            trig_blk.rw_i.eq(fsm.rw_o),
-            trig_blk.valid_i.eq(fsm.valid_o),
-            sample_mem.addr_i.eq(trig_blk.addr_o),
-            sample_mem.data_i.eq(trig_blk.data_o),
-            sample_mem.rw_i.eq(trig_blk.rw_o),
-            sample_mem.valid_i.eq(trig_blk.valid_o),
-            self.addr_o.eq(sample_mem.addr_o),
-            self.data_o.eq(sample_mem.data_o),
-            self.rw_o.eq(sample_mem.rw_o),
-            self.valid_o.eq(sample_mem.valid_o),
+            fsm.bus_i.eq(self.bus_i),
+            trig_blk.bus_i.eq(self.fsm.bus_o),
+            sample_mem.bus_i.eq(trig_blk.bus_o),
+            self.bus_o.eq(sample_mem.bus_o),
+
             # Non-bus Connections
             fsm.trigger.eq(trig_blk.trig),
             sample_mem.user_addr.eq(fsm.r.write_pointer),
-            sample_mem.user_we.eq(fsm.write_enable),
+            sample_mem.user_we.eq(fsm.write_enable)
         ]
 
         return m

@@ -87,16 +87,9 @@ class IOCore(Elaboratable):
                         )
 
     def define_signals(self):
-        # Bus Ports
-        self.addr_i = Signal(16)
-        self.data_i = Signal(16)
-        self.rw_i = Signal()
-        self.valid_i = Signal()
-
-        self.addr_o = Signal(16)
-        self.data_o = Signal(16)
-        self.rw_o = Signal()
-        self.valid_o = Signal()
+        # Bus Input/Output
+        self.bus_i = Signal(InternalBus())
+        self.bus_o = Signal(InternalBus())
 
         # Input Probes (and buffers)
         if "inputs" in self.config:
@@ -187,10 +180,7 @@ class IOCore(Elaboratable):
         m = Module()
 
         # Shuffle bus transactions along
-        m.d.sync += self.addr_o.eq(self.addr_i)
-        m.d.sync += self.data_o.eq(self.data_i)
-        m.d.sync += self.rw_o.eq(self.rw_i)
-        m.d.sync += self.valid_o.eq(self.valid_i)
+        m.d.sync += self.bus_o.eq(self.bus_i)
 
         # Update buffers from probes
         with m.If(self.strobe):
@@ -209,17 +199,17 @@ class IOCore(Elaboratable):
                     m.d.sync += output_probe.eq(output_probe_buf)
 
         # Handle register reads and writes
-        with m.If((self.addr_i >= self.base_addr)):
-            with m.If((self.addr_o <= self.max_addr)):
+        with m.If((self.bus_i.addr >= self.base_addr)):
+            with m.If((self.bus_o.addr <= self.max_addr)):
                 for entry in self.mmap.values():
                     for addr, signal in zip(entry["addrs"], entry["signals"]):
-                        with m.If(self.rw_i):
-                            with m.If(self.addr_i == addr):
-                                m.d.sync += signal.eq(self.data_i)
+                        with m.If(self.bus_i.rw):
+                            with m.If(self.bus_i.addr == addr):
+                                m.d.sync += signal.eq(self.bus_i.data)
 
                         with m.Else():
-                            with m.If(self.addr_i == addr):
-                                m.d.sync += self.data_o.eq(signal)
+                            with m.If(self.bus_i.addr == addr):
+                                m.d.sync += self.bus_o.data.eq(signal)
 
         return m
 

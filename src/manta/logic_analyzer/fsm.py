@@ -37,17 +37,9 @@ class LogicAnalyzerFSM(Elaboratable):
 
         self.r = IOCore(register_config, base_addr, interface)
 
-        # Bus Input
-        self.addr_i = self.r.addr_i
-        self.data_i = self.r.data_i
-        self.rw_i = self.r.rw_i
-        self.valid_i = self.r.valid_i
-
-        # Bus Output
-        self.addr_o = self.r.addr_o
-        self.data_o = self.r.data_o
-        self.rw_o = self.r.rw_o
-        self.valid_o = self.r.valid_o
+        # Bus Input/Output
+        self.bus_i = self.r.bus_i
+        self.bus_o = self.r.bus_o
 
     def get_max_addr(self):
         return self.r.get_max_addr()

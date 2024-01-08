@@ -225,15 +225,8 @@ class UARTInterface(Elaboratable):
         self.rx = Signal()
         self.tx = Signal()
 
-        self.addr_o = Signal(16)
-        self.data_o = Signal(16)
-        self.rw_o = Signal()
-        self.valid_o = Signal()
-
-        self.addr_i = Signal(16)
-        self.data_i = Signal(16)
-        self.rw_i = Signal()
-        self.valid_i = Signal()
+        self.bus_o = Signal(InternalBus())
+        self.bus_i = Signal(InternalBus())
 
     def elaborate(self, platform):
         # fancy submoduling and such goes in here
@@ -249,14 +242,14 @@ class UARTInterface(Elaboratable):
             uart_rx.rx.eq(self.rx),
             bridge_rx.data_i.eq(uart_rx.data_o),
             bridge_rx.valid_i.eq(uart_rx.valid_o),
-            self.data_o.eq(bridge_rx.data_o),
-            self.addr_o.eq(bridge_rx.addr_o),
-            self.rw_o.eq(bridge_rx.rw_o),
-            self.valid_o.eq(bridge_rx.valid_o),
+            self.bus_o.data.eq(bridge_rx.data_o),
+            self.bus_o.addr.eq(bridge_rx.addr_o),
+            self.bus_o.rw.eq(bridge_rx.rw_o),
+            self.bus_o.valid.eq(bridge_rx.valid_o),
             # Internal Bus -> UART TX
-            bridge_tx.data_i.eq(self.data_i),
-            bridge_tx.rw_i.eq(self.rw_i),
-            bridge_tx.valid_i.eq(self.valid_i),
+            bridge_tx.data_i.eq(self.bus_i.data),
+            bridge_tx.rw_i.eq(self.bus_i.rw),
+            bridge_tx.valid_i.eq(self.bus_i.valid),
             uart_tx.data_i.eq(bridge_tx.data_o),
             uart_tx.start_i.eq(bridge_tx.start_o),
             bridge_tx.done_i.eq(uart_tx.done_o),
