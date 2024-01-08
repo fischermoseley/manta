@@ -1,10 +1,9 @@
 from amaranth import *
 from ..io_core import IOCore
+from ..utils import *
 
 
 class LogicAnalyzerTriggerBlock(Elaboratable):
-    """ """
-
     def __init__(self, probes, base_addr, interface):
         # Instantiate a bunch of trigger blocks
         self.probes = probes
@@ -18,17 +17,9 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
 
         self.r = IOCore({"outputs": outputs}, base_addr, interface)
 
-        # Bus Input
-        self.addr_i = self.r.addr_i
-        self.data_i = self.r.data_i
-        self.rw_i = self.r.rw_i
-        self.valid_i = self.r.valid_i
-
-        # Bus Output
-        self.addr_o = self.r.addr_o
-        self.data_o = self.r.data_o
-        self.rw_o = self.r.rw_o
-        self.valid_o = self.r.valid_o
+        # Bus Input/Output
+        self.bus_i = Signal(InternalBus())
+        self.bus_o = Signal(InternalBus())
 
         # Global trigger. High if any probe is triggered.
         self.trig = Signal(1)

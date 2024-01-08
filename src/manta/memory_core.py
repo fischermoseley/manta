@@ -47,23 +47,10 @@ class ReadOnlyMemoryCore(Elaboratable):
             raise ValueError("Width of memory core must be positive. ")
 
     def define_signals(self):
-        # Bus Input
-        self.addr_i = Signal(16)
-        self.data_i = Signal(16)
-        self.rw_i = Signal(1)
-        self.valid_i = Signal(1)
-
-        # Bus Pipelining
-        self.addr_pipe = [Signal(16) for _ in range(3)]
-        self.data_pipe = [Signal(16) for _ in range(3)]
-        self.rw_pipe = [Signal(1) for _ in range(3)]
-        self.valid_pipe = [Signal(1) for _ in range(3)]
-
-        # Bus Output
-        self.addr_o = Signal(16, reset=0)
-        self.data_o = Signal(16, reset=0)
-        self.rw_o = Signal(1, reset=0)
-        self.valid_o = Signal(1, reset=0)
+        # Bus Input/Pipelining/Output
+        self.bus_i = Signal(InternalBus())
+        self.bus_pipe = [Signal(InternalBus()) for _ in range(3)]
+        self.bus_o = Signal(InternalBus())
 
         # User Port
         self.user_addr = Signal(range(self.depth))
@@ -72,21 +59,12 @@ class ReadOnlyMemoryCore(Elaboratable):
 
     def pipeline_bus(self, m):
         # Pipelining
-        m.d.sync += self.addr_pipe[0].eq(self.addr_i)
-        m.d.sync += self.data_pipe[0].eq(self.data_i)
-        m.d.sync += self.rw_pipe[0].eq(self.rw_i)
-        m.d.sync += self.valid_pipe[0].eq(self.valid_i)
+        m.d.sync += self.bus_pipe[0].eq(self.bus_i)
 
         for i in range(1, 3):
-            m.d.sync += self.addr_pipe[i].eq(self.addr_pipe[i - 1])
-            m.d.sync += self.data_pipe[i].eq(self.data_pipe[i - 1])
-            m.d.sync += self.rw_pipe[i].eq(self.rw_pipe[i - 1])
-            m.d.sync += self.valid_pipe[i].eq(self.valid_pipe[i - 1])
+            m.d.sync += self.bus_pipe[i].eq(self.bus_pipe[i-1])
 
-        m.d.sync += self.addr_o.eq(self.addr_pipe[2])
-        m.d.sync += self.data_o.eq(self.data_pipe[2])
-        m.d.sync += self.rw_o.eq(self.rw_pipe[2])
-        m.d.sync += self.valid_o.eq(self.valid_pipe[2])
+        m.d.sync += self.bus_o.eq(self.bus_pipe[2])
 
     def define_mems(self):
         # ok there's three cases:
@@ -122,21 +100,21 @@ class ReadOnlyMemoryCore(Elaboratable):
 
             # Throw BRAM operations into the front of the pipeline
             with m.If(
-                (self.valid_i)
-                & (~self.rw_i)
-                & (self.addr_i >= start_addr)
-                & (self.addr_i <= stop_addr)
+                (self.bus_i.valid)
+                & (~self.bus_i.rw)
+                & (self.bus_i.addr >= start_addr)
+                & (self.bus_i.addr <= stop_addr)
             ):
-                m.d.sync += read_port.addr.eq(self.addr_i - start_addr)
+                m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
 
             # Pull BRAM reads from the back of the pipeline
             with m.If(
-                (self.valid_pipe[2])
-                & (~self.rw_pipe[2])
-                & (self.addr_pipe[2] >= start_addr)
-                & (self.addr_pipe[2] <= stop_addr)
+                (self.bus_pipe[2].valid)
+                & (~self.bus_pipe[2].rw)
+                & (self.bus_pipe[2].addr >= start_addr)
+                & (self.bus_pipe[2].addr <= stop_addr)
             ):
-                m.d.sync += self.data_o.eq(read_port.data)
+                m.d.sync += self.bus_o.data.eq(read_port.data)
 
     def handle_write_ports(self, m):
         # These are given to the user

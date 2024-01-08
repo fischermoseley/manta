@@ -136,28 +136,15 @@ class Manta(Elaboratable):
         core_instances = list(self.cores.values())
         first_core = core_instances[0]
         last_core = core_instances[-1]
-        m.d.comb += [
-            first_core.addr_i.eq(self.interface.addr_o),
-            first_core.data_i.eq(self.interface.data_o),
-            first_core.rw_i.eq(self.interface.rw_o),
-            first_core.valid_i.eq(self.interface.valid_o),
-            self.interface.addr_i.eq(last_core.addr_o),
-            self.interface.data_i.eq(last_core.data_o),
-            self.interface.rw_i.eq(last_core.rw_o),
-            self.interface.valid_i.eq(last_core.valid_o),
-        ]
+
+        first_core.bus_i.eq(self.interface.bus_o)
+        self.interface.bus_i.eq(self.interface.bus_o)
 
         # Connect output of ith core to input of (i+1)th core
         for i in range(len(core_instances) - 1):
             ith_core = core_instances[i]
             i_plus_oneth_core = core_instances[i + 1]
-
-            m.d.comb += [
-                i_plus_oneth_core.addr_i.eq(ith_core.addr_o),
-                i_plus_oneth_core.data_i.eq(ith_core.data_o),
-                i_plus_oneth_core.rw_i.eq(ith_core.rw_o),
-                i_plus_oneth_core.valid_i.eq(ith_core.valid_o),
-            ]
+            i_plus_oneth_core.bus_i.eq(ith_core.bus_o)
 
         return m
 

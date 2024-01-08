@@ -31,7 +31,7 @@ cores:
   my_logic_analyzer:
     type: logic_analyzer
     sample_depth: 4096
-    trigger_loc: 1000
+    trigger_location: 1000
 
     probes:
       larry: 1
