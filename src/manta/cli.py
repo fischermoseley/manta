@@ -66,7 +66,7 @@ def ports():
 
         # sometimes macOS will enumerate non-serial devices as serial ports,
         # in which case the PID/VID/serial/location/etc are all None
-        pid = f"0x{port.vid:04X}" if port.pid is not None else "None"
+        pid = f"0x{port.pid:04X}" if port.pid is not None else "None"
         vid = f"0x{port.vid:04X}" if port.vid is not None else "None"
 
         print(f" ->  pid: {pid}")
