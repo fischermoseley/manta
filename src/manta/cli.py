@@ -3,22 +3,59 @@ from warnings import warn
 from sys import argv
 from pkg_resources import get_distribution
 
-version = "v" + get_distribution("manta").version
 
 logo = f"""
-Manta {version}
+                                        .
+                                      .';
+                                     (  (
+                                 .    `. `.
+                                  `.. .'   )
+                                   ; `;   .'.--.
+                                  :'      `.' ('
+                                .;'            :
+                         ______:..._____     ./'
+                      .-"                "-.(
+(`-.__             .-' ..              ..   `-.             __......')
+ `:   `-...     .-'   :* :            :* :     `-.     ...-'       :'
+   `-.     `\"""'      `--'            `--'        `""\"'         .-'
+      `-.         .     .-.           .--.     `.            .-'
+         `-.     : .'. (   `--_____--'    )  `. ;         .-'
+            `--..`.`.`  `--...       ..--' .'.'.'    ..--'
+                 `---...      ````'''         ...---'
+                        `------........------'
 
-Usage:
-    gen     [config_file] [verilog_file]                           Generate a verilog file specifying the Manta module from a given configuration file, and save to the provided path
-    capture [config_file] [la_core_name] [vcd_file] [verilog_file] Start a capture on the specified core, and save the results to a .vcd or .v file at the provided path(s)
-    ports                                                          List all available serial ports
-    help                                                           Display this help menu
+
+\033[34;49;1m\033[34;49;3m Manta Version {get_distribution("manta").version} \033[00m
+\033[34;49;1m\033[34;49;3m An In-Situ Debugging Tool for Programmable Hardware \033[00m
+\033[34;49;1m\033[34;49;3m https://github.com/fischermoseley/manta \033[00m
 """
 
 
-def help():
-    print(logo)
+usage = """
+Usage:
+    gen [config_file] [verilog_file]
+            Generate a verilog file specifying the Manta module from a given
+            configuration file, and save to the provided path.
 
+    capture [config_file] [la_core_name] [vcd_file] [verilog_file]
+            Start a capture on the specified core, and save the results to a .vcd
+            or .v file at the provided path(s).
+
+    ports
+            List all available serial ports.
+
+    help
+            Display this help menu.
+
+    version
+            Display the currently installed version."""
+
+
+def help():
+    print(usage)
+
+def version():
+    print(logo)
 
 def wrong_args():
     print('Wrong number of arguments, run "manta help" for usage.')
@@ -107,6 +144,9 @@ def main():
 
     elif argv[1] == "ports":
         ports()
+
+    elif argv[1] == "version":
+        version()
 
     else:
         wrong_args()
