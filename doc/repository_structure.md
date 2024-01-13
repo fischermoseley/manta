@@ -6,7 +6,6 @@
 - `.github/` also contains some GitHub Actions configuration for automatically running the SystemVerilog testbenches and building the examples, in addition to automatically rebuilding the site.
 
 ## Tools Used
-- [Icarus Verilog](https://github.com/steveicarus/iverilog) is used for functional simulation.
 - The [YosysHQ](https://github.com/YosysHQ) tools and [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) are used for building bitstreams.
 - [Wavedrom](https://wavedrom.com/) is used for for waveform diagrams, and [draw.io](https://app.diagrams.net/) for block diagrams
 - [GitHub Pages](https://pages.github.com/) is used to serve the documentation site, which is built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).

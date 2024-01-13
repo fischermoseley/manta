@@ -78,20 +78,10 @@ True
 5
 ```
 
-## Caveats
+## Limitations
 
 While the IO core performs a very, very simple task, it carries a few caveats.
 
-- First, __it's not instantaneous__. Manta has designed to be as fast as possible, but setting and querying registers relies on passing messages between the host and FPGA, which is slow relative to FPGA clock speeds! If you're trying to set values in your design with cycle-accurate timing, this will not do that for you. However, the [Logic Analyzer's playback feature](./logic_analyzer.md#playback) might be helpful.
+- First, __it's not instantaneous__. Manta has designed to be as fast as possible, but setting and querying registers relies on passing messages between the host and FPGA, which is slow relative to FPGA clock speeds! If you're trying to set values in your design with cycle-accurate timing, this will not do that for you. However, the [Logic Analyzer's playback feature](./logic_analyzer_core.md#playback) might be helpful.
 
 - Second, __the API methods are blocking__, and will wait for a response from the FPGA before resuming program execution. Depending on your application, you might want to run your IO Core operations in a seperate thread, but you can also decrease the execution time by using a faster interface between the host and FPGA. This means using a higher UART baudrate, or using Ethernet.
-
-## How It Works
-
-This is done with the architecture shown below:
-
-![](assets/io_core_architecture.drawio.svg){:style="width:49%"}
-
-Each of the probes is mapped to a register of Manta's internal memory. Since Manta's internal registers are 16 bits wide, probes less than 16 bits are mapped to a single register, but probes wider than 16 bits require multiple.
-
-Whatever the number of registers required, these are read from and written to by the host machine - but the connection to the user's logic isn't direct. The value of each probe is buffered, and only once the `strobe` register has been set to one will the buffers update. When this happens, output probes provide new values to user logic, and new values for input probes are read from user logic. This provides a convenient place to perform clock domain crossing, and also mitigates the possibility of an inconsistent system state. This is explained in more detail in Chapter 3.6 of the [original thesis](thesis.pdf).

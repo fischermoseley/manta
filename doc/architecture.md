@@ -2,7 +2,7 @@
 
 The whole system looks like the following:
 
-![](assets/architecture.drawio.svg){:style="width:80%"}
+![](assets/system_architecture.drawio.svg){:style="width:80%"}
 
 Manta is operated via its Python API, which communicates with the connected FPGA over an interface API like `pySerial` or `Scapy`. These abstract away the OS device drivers, which function differently depending on the host machine's platform. The OS device drivers ultimately send out bytes to the FPGA, across either a USB or Ethernet cable.
 
@@ -57,3 +57,45 @@ An example of some bus traffic is provided below:
 | 6               | Host → FPGA: W12340000(CR)(LF)  | Write 0x0000 to 0x1234  |
 
 When UART is used, these bytes are transmitted directly across the wire, but when Ethernet is used, they're packed into the packet's payload field.
+
+# Cores
+
+## IO Core
+
+This is done with the architecture shown below:
+
+![](assets/io_core_architecture.drawio.svg){:style="width:49%"}
+
+Each of the probes is mapped to a register of Manta's internal memory. Since Manta's internal registers are 16 bits wide, probes less than 16 bits are mapped to a single register, but probes wider than 16 bits require multiple.
+
+Whatever the number of registers required, these are read from and written to by the host machine - but the connection to the user's logic isn't direct. The value of each probe is buffered, and only once the `strobe` register has been set to one will the buffers update. When this happens, output probes provide new values to user logic, and new values for input probes are read from user logic. This provides a convenient place to perform clock domain crossing, and also mitigates the possibility of an inconsistent system state. This is explained in more detail in Chapter 3.6 of the [original thesis](thesis.pdf).
+
+## Logic Analyzer
+The Logic Analyzer Core's implementation on the FPGA consists of three primary components:
+
+![](assets/logic_analyzer_architecture.drawio.svg){style="width:85%"}
+
+- The _Finite State Machine (FSM)_, which controls the operation of the core. The FSM's operation is driven by its associated registers, which are placed in a separate module. This permits simple CDC between the bus and user clock domains.
+- The _Trigger Block_, which generates the core's trigger condition. The trigger block contains a trigger for each input probe, and the registers necessary to configure them. It also contains the $N$-logic gate (either AND or OR) that generates the core's trigger from the individual probe triggers. CDC is performed in exactly the same manner as the FSM. If an external trigger is specified, the trigger block is omitted from the Logic Analyzer Core, and the external trigger is routed to the FSM's `trig` input.
+- The _Sample Memory_, which stores the states of the probes during a capture. This is implemented as a dual-port, dual-clock block memory, with the bus on one port and the probes on the other. The probe-connected port only writes to the memory, with the address and enable pins managed by the FSM. CDC is performed in the block RAM primitive itself.
+
+
+## Memory Core
+
+Each Memory core is actually a set of 16-bit wide BRAMs with their ports concatenated together, with any spare bits masked off. Here's a diagram:
+
+![](assets/memory_architecture.drawio.svg)
+
+
+Since each $n$-bit wide block memory is actually $ceil(n/16)$ BRAMs under the hood, addressing the BRAMs correctly from Manta's internal bus is important. BRAMs are organized such that each 16-bit slice of a $N$-bit word in the Block Memory core are placed next to each other in bus address space. For instance, a 34-bit wide block memory would exist on Manta's internal bus as:
+
+| Bus Address Space | BRAM Address Space   |
+| -----------       | -------------------- |
+| BASE_ADDR + 0     | address 0, bits 0-15 |
+| BASE_ADDR + 1     | address 0, bits 16-31|
+| BASE_ADDR + 2     | address 0, bits 32-33|
+| BASE_ADDR + 3     | address 1, bits 0-15 |
+| BASE_ADDR + 4     | address 1, bits 16-31|
+| BASE_ADDR + 5     | address 1, bits 32-33|
+
+...and so on.

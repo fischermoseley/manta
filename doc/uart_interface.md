@@ -1,6 +1,6 @@
 ## Overview
 
-Manta needs an interface to pass data between the host machine and FPGA, and UART is a convenient option. When configured to use UART, Manta will shuffle data back and forth using generic 8N1 serial with no flow control. This happens through a series of read and write transactions, which are specified using a messaging format described [here](../how_it_works/#message-format).
+Manta needs an interface to pass data between the host machine and FPGA, and UART is a convenient option. When configured to use UART, Manta will shuffle data back and forth using generic 8N1 serial with no flow control. This happens through a series of read and write transactions, which are specified using a messaging format described [here](architecture.md#message-format).
 
 ## Configuration
 

@@ -1,7 +1,7 @@
 
 ## Overview
 
-To use Manta, you'll need a host machine with a FPGA board connected over UART or Ethernet. You'll then:
+To use Manta, you'll need a host machine with a FPGA board connected over UART, or a FPGA board connected to the same network via Ethernet. You'll then:
 
 - _Specify a set of debug cores you wish to include in your design._ This is done by writing a configuration file, typically called `manta.yaml`. Specifying files in JSON is also supported, as long as the hierarchy in the file is equivalent. Just make sure that your YAML files end in `.yaml` or `.yml`, and that JSON files end in `.json`.
 - _Invoke Manta to generate Verilog from the configuration provided._ This is done by running `manta gen [config_file] [verilog_file]` at the command line, which generates a Verilog file (typically named `manta.v`) from the provided configuration file. This Verilog file contains a definition for a Verilog module named `manta`, and all its constituent modules.

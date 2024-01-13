@@ -57,14 +57,15 @@ markdown_extensions:
 nav:
     - Home: index.md
     - Installation: installation.md
-    - Reference:
-      - Getting Started: getting_started.md
+    - Getting Started: getting_started.md
+    - Alternatives: alternatives.md
+    - Architecture: architecture.md
+    - Usage:
       - IO Core: io_core.md
       - Logic Analyzer Core: logic_analyzer_core.md
       - Memory Core: memory_core.md
-      - UART Interace: uart_interface.md
+      - UART Interface: uart_interface.md
       - Ethernet Interface: ethernet_interface.md
     - For Developers:
       - Repository Structure: repository_structure.md
-      - How It Works: how_it_works.md
       - Roadmap: https://github.com/fischermoseley/manta/milestones
