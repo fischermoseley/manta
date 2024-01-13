@@ -25,9 +25,9 @@ logo = f"""
                         `------........------'
 
 
-\033[34;49;1m\033[34;49;3m Manta Version {get_distribution("manta").version} \033[00m
-\033[34;49;1m\033[34;49;3m An In-Situ Debugging Tool for Programmable Hardware \033[00m
-\033[34;49;1m\033[34;49;3m https://github.com/fischermoseley/manta \033[00m
+Manta - An In-Situ Debugging Tool for Programmable Hardware
+Version {get_distribution("manta").version}
+https://github.com/fischermoseley/manta
 """
 
 
