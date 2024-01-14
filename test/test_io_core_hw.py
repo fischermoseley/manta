@@ -13,7 +13,7 @@ class IOCoreLoopbackTest(Elaboratable):
         self.port = port
 
         self.config = self.platform_specific_config()
-        self.m = Manta(self.config)
+        self.manta = Manta(self.config)
 
     def platform_specific_config(self):
         return {
@@ -41,17 +41,17 @@ class IOCoreLoopbackTest(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        m.submodules["manta"] = self.m
+        m.submodules.manta = self.manta
 
         uart_pins = platform.request("uart")
 
         m.d.comb += [
-            self.m.io_core.probe0.eq(self.m.io_core.probe4),
-            self.m.io_core.probe1.eq(self.m.io_core.probe5),
-            self.m.io_core.probe2.eq(self.m.io_core.probe6),
-            self.m.io_core.probe3.eq(self.m.io_core.probe7),
-            self.m.interface.rx.eq(uart_pins.rx.i),
-            uart_pins.tx.o.eq(self.m.interface.tx),
+            self.manta.io_core.probe0.eq(self.manta.io_core.probe4),
+            self.manta.io_core.probe1.eq(self.manta.io_core.probe5),
+            self.manta.io_core.probe2.eq(self.manta.io_core.probe6),
+            self.manta.io_core.probe3.eq(self.manta.io_core.probe7),
+            self.manta.interface.rx.eq(uart_pins.rx.i),
+            uart_pins.tx.o.eq(self.manta.interface.tx),
         ]
 
         return m
@@ -71,7 +71,7 @@ class IOCoreLoopbackTest(Elaboratable):
         outputs = self.config["cores"]["io_core"]["outputs"]
 
         for name, attrs in outputs.items():
-            actual = self.m.io_core.get_probe(name)
+            actual = self.manta.io_core.get_probe(name)
 
             if isinstance(attrs, dict):
                 if "initial_value" in attrs:
@@ -100,8 +100,8 @@ class IOCoreLoopbackTest(Elaboratable):
             width = self.config["cores"]["io_core"]["inputs"][input]
             value = randint(0, 2**width - 1)
 
-            self.m.io_core.set_probe(output, value)
-            readback = self.m.io_core.get_probe(input)
+            self.manta.io_core.set_probe(output, value)
+            readback = self.manta.io_core.get_probe(input)
 
             if readback != value:
                 raise ValueError(

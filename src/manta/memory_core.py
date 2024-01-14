@@ -61,7 +61,7 @@ class ReadOnlyMemoryCore(Elaboratable):
         m.d.sync += self.bus_pipe[0].eq(self.bus_i)
 
         for i in range(1, 3):
-            m.d.sync += self.bus_pipe[i].eq(self.bus_pipe[i-1])
+            m.d.sync += self.bus_pipe[i].eq(self.bus_pipe[i - 1])
 
         m.d.sync += self.bus_o.eq(self.bus_pipe[2])
 

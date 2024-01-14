@@ -232,10 +232,10 @@ class UARTInterface(Elaboratable):
         # fancy submoduling and such goes in here
         m = Module()
 
-        m.submodules["uart_rx"] = uart_rx = UARTReceiver(self.clocks_per_baud)
-        m.submodules["bridge_rx"] = bridge_rx = ReceiveBridge()
-        m.submodules["bridge_tx"] = bridge_tx = TransmitBridge()
-        m.submodules["uart_tx"] = uart_tx = UARTTransmitter(self.clocks_per_baud)
+        m.submodules.uart_rx = uart_rx = UARTReceiver(self.clocks_per_baud)
+        m.submodules.bridge_rx = bridge_rx = ReceiveBridge()
+        m.submodules.bridge_tx = bridge_tx = TransmitBridge()
+        m.submodules.uart_tx = uart_tx = UARTTransmitter(self.clocks_per_baud)
 
         m.d.comb += [
             # UART RX -> Internal Bus

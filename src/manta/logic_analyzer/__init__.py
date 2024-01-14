@@ -68,98 +68,102 @@ class LogicAnalyzerCore(Elaboratable):
                 warn(f"Ignoring unrecognized option '{option}' in Logic Analyzer.")
 
         # Check sample depth is provided and positive
-        if "sample_depth" not in config:
+        sample_depth = config.get("sample_depth")
+        if not sample_depth:
             raise ValueError("Logic Analyzer must have sample_depth specified.")
 
-        if not isinstance(config["sample_depth"], int):
-            raise ValueError("Logic Analyzer sample_depth must be an integer.")
-
-        if config["sample_depth"] <= 0:
-            raise ValueError("Logic Analyzer sample_depth must be positive.")
+        if not isinstance(sample_depth, int) or sample_depth <= 0:
+            raise ValueError("Logic Analyzer sample_depth must be a positive integer.")
 
         # Check probes
-        if "probes" not in config:
-            raise ValueError("Logic Analyzer must have at least one probe specified.")
-
-        if len(config["probes"]) == 0:
+        if "probes" not in config or len(config["probes"]) == 0:
             raise ValueError("Logic Analyzer must have at least one probe specified.")
 
         for name, width in config["probes"].items():
             if width < 0:
                 raise ValueError(f"Width of probe {name} must be positive.")
 
-        # Check triggers
-        if "triggers" not in config:
-            raise ValueError("Logic Analyzer must have at least one trigger specified.")
-
-        if len(config["triggers"]) == 0:
-            raise ValueError("Logic Analyzer must have at least one trigger specified.")
-
-        # Check trigger location
-        if "trigger_location" in config:
-            if not isinstance(config["trigger_location"], int):
-                raise ValueError("Trigger location must be an integer.")
-
-            if config["trigger_location"] < 0:
-                raise ValueError("Trigger location must be positive.")
-
-            if config["trigger_location"] > config["sample_depth"]:
-                raise ValueError("Trigger location cannot exceed sample depth.")
-
         # Check trigger mode, if provided
-        if "trigger_mode" in config:
-            valid_modes = ["single_shot", "incremental", "immediate"]
-            if config["trigger_mode"] not in valid_modes:
+        trigger_mode = config.get("trigger_mode")
+        valid_modes = ["single_shot", "incremental", "immediate"]
+        if trigger_mode and trigger_mode not in valid_modes:
+            raise ValueError(
+                f"Unrecognized trigger mode {config['trigger_mode']} provided."
+            )
+
+        # Check triggers
+        if (trigger_mode) and (trigger_mode != "immediate"):
+            if ("triggers" not in config) or (config["triggers"] == 0):
                 raise ValueError(
-                    f"Unrecognized trigger mode {config['trigger_mode']} provided."
+                    "Logic Analyzer must have at least one trigger specified."
                 )
 
-            if config["trigger_mode"] == "incremental":
-                if "trigger_location" in config:
-                    warn(
-                        "Ignoring option 'trigger_location', as 'trigger_mode' is set to immediate, and there is no trigger condition to wait for."
-                    )
+        # Check trigger location
+        trigger_location = config.get("trigger_location")
+        if trigger_location:
+            if not isinstance(trigger_location, int) or trigger_location < 0:
+                raise ValueError("Trigger location must be a positive integer.")
+
+            if trigger_location > config["sample_depth"]:
+                raise ValueError("Trigger location cannot exceed sample depth.")
+
+            if trigger_mode == "immediate":
+                warn(
+                    "Ignoring option 'trigger_location', as 'trigger_mode' is set to immediate, and there is no trigger condition to wait for."
+                )
 
         # Check triggers themselves
-        for trigger in config["triggers"]:
-            if not isinstance(trigger, str):
-                raise ValueError("Trigger must be specified with a string.")
+        if trigger_mode == "immediate":
+            if "triggers" in config:
+                warn(
+                    "Ignoring triggers as 'trigger_mode' is set to immediate, and there are no triggers to specify."
+                )
 
-            # Trigger conditions may be composed of either two or three components,
-            # depending on the operation specified. In the case of operations that
-            # don't need an argument (like DISABLE, RISING, FALLING, CHANGING) or
-            # three statements in
+        else:
+            if ("triggers" not in config) or (len(config["triggers"]) == 0):
+                raise ValueError("At least one trigger must be specified.")
 
-            # Check the trigger operations
-            components = trigger.strip().split(" ")
-            if len(components) == 2:
-                name, op = components
-                if op not in ["DISABLE", "RISING", "FALLING", "CHANGING"]:
+            for trigger in config.get("triggers"):
+                if not isinstance(trigger, str):
+                    raise ValueError("Trigger must be specified with a string.")
+
+                # Trigger conditions may be composed of either two or three components,
+                # depending on the operation specified. In the case of operations that
+                # don't need an argument (like DISABLE, RISING, FALLING, CHANGING) or
+                # three statements in
+
+                # Check the trigger operations
+                components = trigger.strip().split(" ")
+                if len(components) == 2:
+                    name, op = components
+                    if op not in ["DISABLE", "RISING", "FALLING", "CHANGING"]:
+                        raise ValueError(
+                            f"Unable to interpret trigger condition '{trigger}'."
+                        )
+
+                elif len(components) == 3:
+                    name, op, arg = components
+                    if op not in ["GT", "LT", "GEQ", "LEQ", "EQ", "NEQ"]:
+                        raise ValueError(
+                            f"Unable to interpret trigger condition '{trigger}'."
+                        )
+
+                else:
                     raise ValueError(
                         f"Unable to interpret trigger condition '{trigger}'."
                     )
 
-            elif len(components) == 3:
-                name, op, arg = components
-                if op not in ["GT", "LT", "GEQ", "LEQ", "EQ", "NEQ"]:
-                    raise ValueError(
-                        f"Unable to interpret trigger condition '{trigger}'."
-                    )
-
-            else:
-                raise ValueError(f"Unable to interpret trigger condition '{trigger}'.")
-
-            # Check probe names
-            if components[0] not in config["probes"]:
-                raise ValueError(f"Unknown probe name '{components[0]}' specified.")
+                # Check probe names
+                if components[0] not in config["probes"]:
+                    raise ValueError(f"Unknown probe name '{components[0]}' specified.")
 
     def elaborate(self, platform):
         m = Module()
 
         # Add submodules
-        m.submodules["fsm"] = fsm = self.fsm
-        m.submodules["sample_mem"] = sample_mem = self.sample_mem
-        m.submodules["trig_blk"] = trig_blk = self.trig_blk
+        m.submodules.fsm = fsm = self.fsm
+        m.submodules.sample_mem = sample_mem = self.sample_mem
+        m.submodules.trig_blk = trig_blk = self.trig_blk
 
         # Concat all the probes together, and feed to input of sample memory
         # (it is necessary to reverse the order such that first probe occupies
@@ -173,11 +177,10 @@ class LogicAnalyzerCore(Elaboratable):
             trig_blk.bus_i.eq(self.fsm.bus_o),
             sample_mem.bus_i.eq(trig_blk.bus_o),
             self.bus_o.eq(sample_mem.bus_o),
-
             # Non-bus Connections
             fsm.trigger.eq(trig_blk.trig),
             sample_mem.user_addr.eq(fsm.r.write_pointer),
-            sample_mem.user_we.eq(fsm.write_enable)
+            sample_mem.user_we.eq(fsm.write_enable),
         ]
 
         return m
@@ -215,6 +218,7 @@ class LogicAnalyzerCore(Elaboratable):
         print_if_verbose(" -> Resetting core...")
         state = self.fsm.r.get_probe("state")
         if state != self.fsm.states["IDLE"]:
+            self.fsm.r.set_probe("request_start", 0)
             self.fsm.r.set_probe("request_stop", 0)
             self.fsm.r.set_probe("request_stop", 1)
             self.fsm.r.set_probe("request_stop", 0)
@@ -224,12 +228,16 @@ class LogicAnalyzerCore(Elaboratable):
 
         # Set triggers
         print_if_verbose(" -> Setting triggers...")
-        self.trig_blk.set_triggers(self.config)
+        self.trig_blk.clear_triggers()
+
+        if self.config["trigger_mode"] != "immediate":
+            self.trig_blk.set_triggers(self.config)
 
         # Set trigger mode, default to single-shot if user didn't specify a mode
         print_if_verbose(" -> Setting trigger mode...")
         if "trigger_mode" in self.config:
-            self.fsm.r.set_probe("trigger_mode", self.config["trigger_mode"])
+            mode = self.config["trigger_mode"].upper()
+            self.fsm.r.set_probe("trigger_mode", self.fsm.trigger_modes[mode])
 
         else:
             self.fsm.r.set_probe("trigger_mode", self.fsm.trigger_modes["SINGLE_SHOT"])
@@ -244,6 +252,7 @@ class LogicAnalyzerCore(Elaboratable):
 
         # Send a start request to the state machine
         print_if_verbose(" -> Starting capture...")
+        self.fsm.r.set_probe("request_start", 0)
         self.fsm.r.set_probe("request_start", 1)
         self.fsm.r.set_probe("request_start", 0)
 
@@ -362,16 +371,20 @@ class LogicAnalyzerCapture:
                 signals.append(signal)
 
             clock = writer.register_var("manta", "clk", "wire", size=1)
-            trigger = writer.register_var("manta", "trigger", "wire", size=1)
+
+            # include a trigger signal such would be meaningful (ie, we didn't trigger immediately)
+            if self.config["trigger_mode"] != "immediate":
+                trigger = writer.register_var("manta", "trigger", "wire", size=1)
 
             # add the data to each probe in the vcd file
             for timestamp in range(0, 2 * len(self.data)):
                 # run the clock
                 writer.change(clock, timestamp, timestamp % 2 == 0)
 
-                # set the trigger
-                triggered = (timestamp // 2) >= self.get_trigger_location()
-                writer.change(trigger, timestamp, triggered)
+                # set the trigger (if there is one)
+                if self.config["trigger_mode"] != "immediate":
+                    triggered = (timestamp // 2) >= self.get_trigger_location()
+                    writer.change(trigger, timestamp, triggered)
 
                 # add other signals
                 for signal in signals:

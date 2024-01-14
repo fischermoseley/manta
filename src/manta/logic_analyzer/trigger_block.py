@@ -28,12 +28,13 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
     def get_max_addr(self):
         return self.r.get_max_addr()
 
-    def set_triggers(self, config):
-        # reset all triggers to zero
+    def clear_triggers(self):
+        # reset all triggers to disabled with no argument
         for p in self.probes:
             self.r.set_probe(p.name + "_op", 0)
             self.r.set_probe(p.name + "_arg", 0)
 
+    def set_triggers(self, config):
         # set triggers
         for trigger in config["triggers"]:
             components = trigger.strip().split(" ")
@@ -53,7 +54,7 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         m = Module()
 
         # Add IO Core as submodule
-        m.submodules["registers"] = self.r
+        m.submodules.registers = self.r
 
         # Add triggers as submodules
         for t in self.triggers:

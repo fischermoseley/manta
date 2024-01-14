@@ -12,7 +12,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
         self.port = port
 
         self.config = self.platform_specific_config()
-        self.m = Manta(self.config)
+        self.manta = Manta(self.config)
 
     def platform_specific_config(self):
         return {
@@ -20,9 +20,8 @@ class LogicAnalyzerCounterTest(Elaboratable):
                 "la": {
                     "type": "logic_analyzer",
                     "sample_depth": 1024,
-                    "trigger_location": 500,
+                    "trigger_mode": "immediate",
                     "probes": {"larry": 1, "curly": 3, "moe": 9},
-                    "triggers": ["moe RISING"],
                 },
             },
             "uart": {
@@ -34,20 +33,20 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        m.submodules["manta"] = self.m
+        m.submodules.manta = self.manta
         uart_pins = platform.request("uart")
 
-        larry = self.m.la.probes[0]
-        curly = self.m.la.probes[1]
-        moe = self.m.la.probes[2]
+        larry = self.manta.la.probes[0]
+        curly = self.manta.la.probes[1]
+        moe = self.manta.la.probes[2]
 
         m.d.sync += larry.eq(larry + 1)
         m.d.sync += curly.eq(curly + 1)
         m.d.sync += moe.eq(moe + 1)
 
         m.d.comb += [
-            self.m.interface.rx.eq(uart_pins.rx.i),
-            uart_pins.tx.o.eq(self.m.interface.tx),
+            self.manta.interface.rx.eq(uart_pins.rx.i),
+            uart_pins.tx.o.eq(self.manta.interface.tx),
         ]
 
         return m
@@ -57,7 +56,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
     def verify(self):
         self.build_and_program()
-        cap = self.m.la.capture()
+        cap = self.manta.la.capture()
 
         # check that VCD export works
         cap.export_vcd("out.vcd")
@@ -66,7 +65,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
         cap.export_playback_verilog("out.v")
 
         # verify that each signal is just a counter modulo the width of the signal
-        for name, width in self.m.la.config["probes"].items():
+        for name, width in self.manta.la.config["probes"].items():
             trace = cap.get_trace(name)
 
             for i in range(len(trace) - 1):

@@ -54,8 +54,10 @@ Usage:
 def help():
     print(usage)
 
+
 def version():
     print(logo)
+
 
 def wrong_args():
     print('Wrong number of arguments, run "manta help" for usage.')

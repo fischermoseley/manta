@@ -56,7 +56,7 @@ class LogicAnalyzerFSM(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules["registers"] = self.r
+        m.submodules.registers = self.r
 
         prev_request_start = Signal(1)
         prev_request_stop = Signal(1)
@@ -74,6 +74,7 @@ class LogicAnalyzerFSM(Elaboratable):
                 m.d.sync += self.write_enable.eq(1)
                 with m.If(self.r.trigger_mode == self.trigger_modes["IMMEDIATE"]):
                     m.d.sync += self.r.state.eq(self.states["CAPTURING"])
+                    m.d.sync += self.r.write_pointer.eq(self.r.write_pointer + 1)
 
                 with m.Else():
                     with m.If(self.r.trigger_location == 0):
@@ -82,7 +83,7 @@ class LogicAnalyzerFSM(Elaboratable):
                     with m.Else():
                         m.d.sync += self.r.state.eq(self.states["MOVE_TO_POSITION"])
 
-                m.d.sync += self.r.state.eq(self.states["MOVE_TO_POSITION"])
+                # m.d.sync += self.r.state.eq(self.states["MOVE_TO_POSITION"])
 
         with m.Elif(self.r.state == self.states["MOVE_TO_POSITION"]):
             m.d.sync += self.r.write_pointer.eq(self.r.write_pointer + 1)

@@ -126,7 +126,7 @@ class Manta(Elaboratable):
         m = Module()
 
         # Add interface as submodule
-        m.submodules["interface"] = self.interface
+        m.submodules.interface = self.interface
 
         # Add all cores as submodules
         for name, instance in self.cores.items():

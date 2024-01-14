@@ -22,7 +22,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
         self.port = port
 
         self.config = self.platform_specific_config()
-        self.m = Manta(self.config)
+        self.manta = Manta(self.config)
 
     def platform_specific_config(self):
         return {
@@ -50,16 +50,16 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        m.submodules["manta"] = self.m
+        m.submodules.manta = self.manta
 
         uart_pins = platform.request("uart")
 
         m.d.comb += [
-            self.m.mem_core.user_addr.eq(self.m.io_core.addr),
-            self.m.mem_core.user_data.eq(self.m.io_core.data),
-            self.m.mem_core.user_we.eq(self.m.io_core.we),
-            self.m.interface.rx.eq(uart_pins.rx.i),
-            uart_pins.tx.o.eq(self.m.interface.tx),
+            self.manta.mem_core.user_addr.eq(self.manta.io_core.addr),
+            self.manta.mem_core.user_data.eq(self.manta.io_core.data),
+            self.manta.mem_core.user_we.eq(self.manta.io_core.we),
+            self.manta.interface.rx.eq(uart_pins.rx.i),
+            uart_pins.tx.o.eq(self.manta.interface.tx),
         ]
 
         return m
@@ -68,14 +68,14 @@ class MemoryCoreLoopbackTest(Elaboratable):
         self.platform.build(self, do_program=True)
 
     def write_user_side(self, addr, data):
-        self.m.io_core.set_probe("we", 0)
-        self.m.io_core.set_probe("addr", addr)
-        self.m.io_core.set_probe("data", data)
-        self.m.io_core.set_probe("we", 1)
-        self.m.io_core.set_probe("we", 0)
+        self.manta.io_core.set_probe("we", 0)
+        self.manta.io_core.set_probe("addr", addr)
+        self.manta.io_core.set_probe("data", data)
+        self.manta.io_core.set_probe("we", 1)
+        self.manta.io_core.set_probe("we", 0)
 
     def verify_register(self, addr, expected_data):
-        data = self.m.mem_core.read_from_user_addr(addr)
+        data = self.manta.mem_core.read_from_user_addr(addr)
 
         if data != expected_data:
             raise ValueError(

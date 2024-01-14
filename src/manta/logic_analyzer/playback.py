@@ -38,7 +38,7 @@ class LogicAnalyzerPlayback(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        m.submodules["mem"] = self.mem
+        m.submodules.mem = self.mem
 
         m.d.comb += self.read_port.en.eq(1)
 
