@@ -92,10 +92,10 @@ class LogicAnalyzerCore(Elaboratable):
             )
 
         # Check triggers
-        if (trigger_mode) and (trigger_mode != "immediate"):
-            if ("triggers" not in config) or (config["triggers"] == 0):
+        if trigger_mode and trigger_mode != "immediate":
+            if "triggers" not in config or config["triggers"] == 0:
                 raise ValueError(
-                    "Logic Analyzer must have at least one trigger specified."
+                    "Logic Analyzer must have at least one trigger specified if not running in immediate mode."
                 )
 
         # Check trigger location

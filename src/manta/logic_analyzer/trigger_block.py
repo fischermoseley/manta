@@ -101,10 +101,10 @@ class LogicAnalyzerTrigger(Elaboratable):
             m.d.comb += self.triggered.eq(0)
 
         with m.Elif(self.op == self.operations["RISING"]):
-            m.d.comb += self.triggered.eq((self.signal) & (~prev))
+            m.d.comb += self.triggered.eq(self.signal > prev)
 
         with m.Elif(self.op == self.operations["FALLING"]):
-            m.d.comb += self.triggered.eq((~self.signal) & (prev))
+            m.d.comb += self.triggered.eq(self.signal < prev)
 
         with m.Elif(self.op == self.operations["CHANGING"]):
             m.d.comb += self.triggered.eq(self.signal != prev)
