@@ -1,5 +1,4 @@
 from amaranth import *
-from warnings import warn
 from .uart import UARTInterface
 
 # from .ethernet import EthernetInterface
@@ -70,7 +69,7 @@ class Manta(Elaboratable):
             return EthernetInterface(self.config["ethernet"])
 
         else:
-            raise ValueError("Unrecognized interface specified.")
+            raise ValueError("No recognized interface specified.")
 
     def get_cores(self):
         """ """

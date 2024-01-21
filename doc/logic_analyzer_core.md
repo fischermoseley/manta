@@ -116,7 +116,7 @@ If the file `manta.yaml` contained the configuration above, then running:
 manta capture manta.yaml my_logic_analyzer capture.v
 ```
 
-Generates a Verilog module at `capture.v` which can then be instantiated in the testbench or FPGA design in which it is needed. An example instantiation is provided at the top of the output verilog, so a simple copy-paste into the testbench is all that's necessary to use the module.
+Generates a Verilog module at `capture.v` which can then be instantiated in the testbench or FPGA design in which it is needed.
 
 This is useful for two situations in particular:
 

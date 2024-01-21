@@ -1,5 +1,5 @@
 from .manta import Manta
-from warnings import warn
+from .utils import *
 from sys import argv
 from pkg_resources import get_distribution
 
@@ -37,6 +37,10 @@ Usage:
             Generate a verilog file specifying the Manta module from a given
             configuration file, and save to the provided path.
 
+    inst [config_file]
+            Generate a copy-pasteable Verilog snippet to instantiate Manta
+            in your design.
+
     capture [config_file] [la_core_name] [vcd_file] [verilog_file]
             Start a capture on the specified core, and save the results to a .vcd
             or .v file at the provided path(s).
@@ -61,6 +65,7 @@ def version():
 
 def wrong_args():
     print('Wrong number of arguments, run "manta help" for usage.')
+    exit(1)
 
 
 def gen(config_path, output_path):
@@ -79,9 +84,23 @@ def gen(config_path, output_path):
         )
 
 
+def inst(config_path):
+    m = Manta(config_path)
+    ports = m.get_top_level_ports()
+    hdl = ",\n    ".join([f".{p.name}({p.name})" for p in ports])
+
+    foo = """
+manta manta_inst(
+    .clk(clk),
+    .rst(rst),
+    """
+
+    print(foo + hdl + ");\n")
+
+
 def capture(config_path, logic_analyzer_name, export_paths):
     m = Manta(config_path)
-    la = getattr(s, logic_analyzer_name)
+    la = getattr(m, logic_analyzer_name)
     cap = la.capture()
 
     for path in export_paths:
@@ -129,20 +148,16 @@ def main():
             wrong_args()
         gen(argv[2], argv[3])
 
+    elif argv[1] == "inst":
+        if len(argv) != 3:
+            wrong_args()
+
+        inst(argv[2])
+
     elif argv[1] == "capture":
         if len(argv) < 5:
             wrong_args()
-        capture(argv[2], argv[3], argv[4])
-
-    elif argv[1] == "playback":
-        if len(argv) != 5:
-            wrong_args()
-        playback(argv[2], argv[3], argv[4])
-
-    elif argv[1] == "mmap":
-        if len(argv) != 3:
-            wrong_args()
-        mmap(argv[2])
+        capture(argv[2], argv[3], argv[4:])
 
     elif argv[1] == "ports":
         ports()

@@ -1,5 +1,4 @@
 from amaranth import *
-from warnings import warn
 from ..utils import *
 from .receiver import UARTReceiver
 from .receive_bridge import ReceiveBridge

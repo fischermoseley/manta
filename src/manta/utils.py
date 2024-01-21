@@ -5,11 +5,23 @@ import os
 
 
 class InternalBus(data.StructLayout):
-    """Describes the layout of Manta's internal bus, such that signals of
-    the appropriate dimension can be instantiated with Signal(InternalBus())."""
+    """
+    Describes the layout of Manta's internal bus, such that signals of
+    the appropriate dimension can be instantiated with Signal(InternalBus()).
+    """
 
     def __init__(self):
         super().__init__({"addr": 16, "data": 16, "rw": 1, "valid": 1})
+
+
+def warn(message):
+    """
+    Prints a warning to the user's terminal. Originally the warn() method
+    from the builtin warnings module was used for this, but I don't think the
+    way it outputs on the command line is the most helpful for the users.
+    (They don't care about the stacktrace or the filename/line number, for example.)
+    """
+    print("Warning: " + message)
 
 
 def words_to_value(data):

@@ -1,5 +1,4 @@
 from amaranth import *
-from warnings import warn
 from ..utils import *
 from .trigger_block import LogicAnalyzerTriggerBlock
 from .fsm import LogicAnalyzerFSM, States, TriggerModes
@@ -306,7 +305,11 @@ class LogicAnalyzerCapture:
         ----------
         The trigger location as an `int`.
         """
-        return self.config["trigger_location"]
+        if "trigger_location" in self.config:
+            return self.config["trigger_location"]
+
+        else:
+            return self.config["sample_depth"] // 2
 
     def get_trace(self, probe_name):
         """Gets the value of a single probe over the capture.
@@ -373,7 +376,10 @@ class LogicAnalyzerCapture:
             clock = writer.register_var("manta", "clk", "wire", size=1)
 
             # include a trigger signal such would be meaningful (ie, we didn't trigger immediately)
-            if self.config["trigger_mode"] != "immediate":
+            if (
+                "trigger_mode" not in self.config
+                or self.config["trigger_mode"] == "single_shot"
+            ):
                 trigger = writer.register_var("manta", "trigger", "wire", size=1)
 
             # add the data to each probe in the vcd file
@@ -382,7 +388,10 @@ class LogicAnalyzerCapture:
                 writer.change(clock, timestamp, timestamp % 2 == 0)
 
                 # set the trigger (if there is one)
-                if self.config["trigger_mode"] != "immediate":
+                if (
+                    "trigger_mode" not in self.config
+                    or self.config["trigger_mode"] == "single_shot"
+                ):
                     triggered = (timestamp // 2) >= self.get_trigger_location()
                     writer.change(trigger, timestamp, triggered)
 
