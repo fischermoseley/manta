@@ -34,4 +34,6 @@ jobs:
           export ICEPACK=/tools/oss-cad-suite/bin/icepack
           export ICEPROG=/tools/oss-cad-suite/bin/iceprog
 
+          source venv/bin/activate
+
           make test
