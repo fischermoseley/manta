@@ -2,7 +2,7 @@ from amaranth import *
 from warnings import warn
 from ..utils import *
 from .trigger_block import LogicAnalyzerTriggerBlock
-from .fsm import LogicAnalyzerFSM
+from .fsm import LogicAnalyzerFSM, States, TriggerModes
 from .sample_mem import LogicAnalyzerSampleMemory
 from .playback import LogicAnalyzerPlayback
 
@@ -217,13 +217,13 @@ class LogicAnalyzerCore(Elaboratable):
         # If core is not in IDLE state, request that it return to IDLE
         print_if_verbose(" -> Resetting core...")
         state = self.fsm.r.get_probe("state")
-        if state != self.fsm.states["IDLE"]:
+        if state != States.IDLE:
             self.fsm.r.set_probe("request_start", 0)
             self.fsm.r.set_probe("request_stop", 0)
             self.fsm.r.set_probe("request_stop", 1)
             self.fsm.r.set_probe("request_stop", 0)
 
-            if self.fsm.r.get_probe("state") != self.fsm.states["IDLE"]:
+            if self.fsm.r.get_probe("state") != States.IDLE:
                 raise ValueError("Logic analyzer did not reset to IDLE state.")
 
         # Set triggers
@@ -237,10 +237,10 @@ class LogicAnalyzerCore(Elaboratable):
         print_if_verbose(" -> Setting trigger mode...")
         if "trigger_mode" in self.config:
             mode = self.config["trigger_mode"].upper()
-            self.fsm.r.set_probe("trigger_mode", self.fsm.trigger_modes[mode])
+            self.fsm.r.set_probe("trigger_mode", TriggerModes[mode])
 
         else:
-            self.fsm.r.set_probe("trigger_mode", self.fsm.trigger_modes["SINGLE_SHOT"])
+            self.fsm.r.set_probe("trigger_mode", TriggerModes.SINGLE_SHOT)
 
         # Set trigger location
         print_if_verbose(" -> Setting trigger location...")
@@ -258,7 +258,7 @@ class LogicAnalyzerCore(Elaboratable):
 
         # Poll the state machine's state, and wait for the capture to complete
         print_if_verbose(" -> Waiting for capture to complete...")
-        while self.fsm.r.get_probe("state") != self.fsm.states["CAPTURED"]:
+        while self.fsm.r.get_probe("state") != States.CAPTURED:
             pass
 
         # Read out the entirety of the sample memory

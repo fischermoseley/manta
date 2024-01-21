@@ -1,5 +1,5 @@
 from amaranth.sim import Simulator
-from manta.logic_analyzer import LogicAnalyzerFSM
+from manta.logic_analyzer import *
 from manta.utils import *
 
 """
@@ -25,49 +25,252 @@ config = {"sample_depth": 8}
 fsm = LogicAnalyzerFSM(config, base_addr=0, interface=None)
 
 
-def set_fsm_register(name, data):
-    addr = fsm.r.mmap[f"{name}_buf"]["addrs"][0]
-    strobe_addr = fsm.r.base_addr
-
-    yield from write_register(fsm, strobe_addr, 0)
-    yield from write_register(fsm, addr, data)
-    yield from write_register(fsm, strobe_addr, 1)
-    yield from write_register(fsm, strobe_addr, 0)
-
-
-def test_single_shot_always_trigger():
+def test_signals_reset_correctly():
     def testbench():
-        if (yield fsm.r.state != fsm.states["IDLE"]):
+        # Make sure pointers and write enable reset to zero
+        for sig in [fsm.r.write_pointer, fsm.r.read_pointer, fsm.write_enable]:
+            if (yield sig) != 0:
+                raise ValueError
+
+        # Make sure state resets to IDLE
+        if (yield fsm.r.state != States.IDLE):
             raise ValueError
 
-        yield fsm.trigger.eq(1)
-        yield from set_fsm_register("trigger_mode", fsm.trigger_modes["SINGLE_SHOT"])
-        yield from set_fsm_register("trigger_location", 4)
-        yield from set_fsm_register("request_start", 1)
-        yield from set_fsm_register("request_start", 0)
+    simulate(fsm, testbench)
 
-        for _ in range(100):
+
+def test_single_shot_no_wait_for_trigger():
+    def testbench():
+        # Configure and start FSM
+        yield fsm.trigger.eq(1)
+        yield fsm.r.trigger_mode.eq(TriggerModes.SINGLE_SHOT)
+        yield fsm.r.trigger_location.eq(4)
+        yield fsm.r.request_start.eq(1)
+
+        # Wait until write_enable is asserted
+        while not (yield fsm.write_enable):
             yield
 
-    simulate(fsm, testbench, "single_shot_always_trigger.vcd")
+        # Wait 8 clock cycles for capture to complete
+        for i in range(8):
+            # Make sure that read_pointer does not increase
+            if (yield fsm.r.read_pointer) != 0:
+                raise ValueError
 
+            # Make sure that write_pointer increases by one each cycle
+            if (yield fsm.r.write_pointer) != i:
+                raise ValueError
 
-def test_single_shot_wait_to_trigger():
-    def testbench():
-        if (yield fsm.r.state != fsm.states["IDLE"]):
+            yield
+
+        # Wait one clock cycle (to let BRAM contents cycle in)
+        yield
+
+        # Check that write_pointer points to the end of memory
+        if (yield fsm.r.write_pointer) != 7:
             raise ValueError
 
-        yield from set_fsm_register("trigger_mode", fsm.trigger_modes["SINGLE_SHOT"])
-        yield from set_fsm_register("trigger_location", 4)
-        yield from set_fsm_register("request_start", 1)
-        yield from set_fsm_register("request_start", 0)
+        # Check that state is CAPTURED
+        if (yield fsm.r.state) != States.CAPTURED:
+            raise ValueError
 
-        for _ in range(8):
+    simulate(fsm, testbench, "single_shot_no_wait_for_trigger.vcd")
+
+
+def test_single_shot_wait_for_trigger():
+    def testbench():
+        # Configure and start FSM
+        yield fsm.r.trigger_mode.eq(TriggerModes.SINGLE_SHOT)
+        yield fsm.r.trigger_location.eq(4)
+        yield fsm.r.request_start.eq(1)
+        yield
+
+        # Check that write_enable is asserted on the same edge as request_start
+        if not (yield fsm.write_enable):
+            raise ValueError
+
+        # Wait 4 clock cycles to get to IN_POSITION
+        for i in range(4):
+            rp = yield fsm.r.read_pointer
+            wp = yield fsm.r.write_pointer
+
+            # Make sure that read_pointer does not increase
+            if rp != 0:
+                raise ValueError
+
+            # Make sure that write_pointer increases by one each cycle
+            if wp != i:
+                raise ValueError
+
+            yield
+
+        # Wait a few cycles before triggering:
+        for _ in range(10):
+            if (rp + 3) % fsm.config["sample_depth"] != wp:
+                raise ValueError
+
+            yield
+
+        # Provide the trigger, and check that the capture completes 4 cycles later
+        yield fsm.trigger.eq(1)
+        yield
+
+        rp_start = yield fsm.r.read_pointer
+        for i in range(4):
+            rp = yield fsm.r.read_pointer
+            wp = yield fsm.r.write_pointer
+
+            if rp != rp_start:
+                raise ValueError
+
+            if (rp_start + 4 + i) % fsm.config["sample_depth"] != wp:
+                raise ValueError
+
+            yield
+
+        # Wait one clock cycle (to let BRAM contents cycle in)
+        yield
+
+        # Check that write_pointer points to the end of memory
+        rp = yield fsm.r.read_pointer
+        wp = yield fsm.r.write_pointer
+        if (wp + 1) % fsm.config["sample_depth"] != rp:
+            raise ValueError
+
+        # Check that state is CAPTURED
+        if (yield fsm.r.state) != States.CAPTURED:
+            raise ValueError
+
+    simulate(fsm, testbench, "single_shot_wait_for_trigger.vcd")
+
+
+def test_immediate():
+    def testbench():
+        # Configure and start FSM
+        yield fsm.r.trigger_mode.eq(TriggerModes.IMMEDIATE)
+        yield fsm.r.request_start.eq(1)
+        yield
+
+        # Check that write_enable is asserted on the same edge as request_start
+        if not (yield fsm.write_enable):
+            raise ValueError
+
+        for i in range(fsm.config["sample_depth"]):
+            rp = yield fsm.r.read_pointer
+            wp = yield fsm.r.write_pointer
+
+            if rp != 0:
+                raise ValueError
+
+            if wp != i:
+                raise ValueError
+
+            yield
+
+        # Wait one clock cycle (to let BRAM contents cycle in)
+        yield
+
+        # Check that write_pointer points to the end of memory
+        rp = yield fsm.r.read_pointer
+        wp = yield fsm.r.write_pointer
+        if rp != 0:
+            raise ValueError
+        if wp != 7:
+            raise ValueError
+
+        # Check that state is CAPTURED
+        if (yield fsm.r.state) != States.CAPTURED:
+            raise ValueError
+
+    simulate(fsm, testbench, "immediate.vcd")
+
+
+def test_incremental():
+    def testbench():
+        # Configure and start FSM
+        yield fsm.r.trigger_mode.eq(TriggerModes.INCREMENTAL)
+        yield fsm.r.request_start.eq(1)
+        yield
+
+        # Check that write_enable is asserted on the same edge as request_start
+        # if not (yield fsm.write_enable):
+        #     raise ValueError
+
+        for _ in range(10):
+            for _ in range(3):
+                yield
+
+            yield fsm.trigger.eq(1)
+            yield
+            yield fsm.trigger.eq(0)
+            yield
+
+        # # Check that state is CAPTURED
+        # if (yield fsm.r.state) != States.CAPTURED:
+        #     raise ValueError
+
+    simulate(fsm, testbench, "incremental.vcd")
+
+
+def test_single_shot_write_enable():
+    def testbench():
+        # Configure FSM
+        yield fsm.r.trigger_mode.eq(TriggerModes.SINGLE_SHOT)
+        yield fsm.r.trigger_location.eq(4)
+        yield
+
+        # Make sure write is not enabled before starting the FSM
+        if (yield fsm.write_enable):
+            raise ValueError
+
+        # Start the FSM, ensure write enable is asserted throughout the capture
+        yield fsm.r.request_start.eq(1)
+        yield
+
+        for _ in range(fsm.config["sample_depth"]):
+            if not (yield fsm.write_enable):
+                raise ValueError
+
             yield
 
         yield fsm.trigger.eq(1)
+        yield
 
-        for _ in range(100):
+        for _ in range(4):
+            if not (yield fsm.write_enable):
+                raise ValueError
+
             yield
 
-    simulate(fsm, testbench, "single_shot_wait_to_trigger.vcd")
+        # Make sure write_enable is deasserted after
+        if (yield fsm.write_enable):
+            raise ValueError
+
+    simulate(fsm, testbench, "single_shot_write_enable.vcd")
+
+
+def test_immediate_write_enable():
+    def testbench():
+        # Configure FSM
+        yield fsm.r.trigger_mode.eq(TriggerModes.IMMEDIATE)
+        yield
+
+        # Make sure write is not enabled before starting the FSM
+        if (yield fsm.write_enable):
+            raise ValueError
+
+        # Start the FSM, ensure write enable is asserted throughout the capture
+        yield fsm.r.request_start.eq(1)
+        yield
+
+        for _ in range(fsm.config["sample_depth"]):
+            if not (yield fsm.write_enable):
+                raise ValueError
+
+            yield
+
+        # Make sure write_enable is deasserted after
+        if (yield fsm.write_enable):
+            raise ValueError
+
+    simulate(fsm, testbench, "immediate_write_enable.vcd")
