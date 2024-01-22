@@ -76,154 +76,85 @@ class LogicAnalyzerFSM(Elaboratable):
         prev_request_start = Signal(1)
         prev_request_stop = Signal(1)
 
-        next_state = Signal().like(state)
-        next_read_pointer = Signal().like(read_pointer)
-        latch_read_pointer = Signal().like(read_pointer)
-        latch_write_pointer = Signal().like(write_pointer)
-        latch_write_enable = Signal().like(write_enable)
         next_write_pointer = Signal().like(write_pointer)
 
-        # --- Sequential Logic ---
+        m.d.comb += next_write_pointer.eq((write_pointer + 1) % sample_depth)
+
         # Rising edge detection for start/stop requests
         m.d.sync += prev_request_start.eq(request_start)
         m.d.sync += prev_request_stop.eq(request_stop)
 
-        # Copy next into current
-        m.d.sync += state.eq(next_state)
-        m.d.sync += next_write_pointer.eq((write_pointer + 1) % sample_depth)
-        m.d.sync += next_read_pointer.eq((read_pointer + 1) % sample_depth)
-        m.d.sync += latch_read_pointer.eq(read_pointer)
-        m.d.sync += latch_write_pointer.eq(write_pointer)
-        m.d.sync += latch_write_enable.eq(write_enable)
+        with m.If(state == States.IDLE):
+            m.d.sync += write_pointer.eq(0)
+            m.d.sync += read_pointer.eq(0)
+            m.d.sync += write_enable.eq(0)
 
-        # --- Combinational Logic ---
+            with m.If((request_start) & (~prev_request_start)):
+                with m.If(trigger_mode == TriggerModes.IMMEDIATE):
+                    m.d.sync += state.eq(States.CAPTURING)
+                    m.d.sync += write_enable.eq(1)
 
-        # --- Single Shot Trigger Mode ---
-        with m.If(trigger_mode == TriggerModes.SINGLE_SHOT):
-            with m.If(state == States.IDLE):
-                m.d.comb += write_enable.eq(0)
-                m.d.comb += write_pointer.eq(0)
-                m.d.comb += read_pointer.eq(0)
-                m.d.comb += next_state.eq(States.IDLE)
+                with m.Elif(trigger_mode == TriggerModes.INCREMENTAL):
+                    m.d.sync += state.eq(States.CAPTURING)
+                    m.d.sync += write_enable.eq(1)
 
-                # Rising edge of request_start beings the capture:
-                with m.If((request_start) & (~prev_request_start)):
-                    m.d.comb += write_enable.eq(1)
-                    # Go straight to IN_POSITION if trigger_location == 0
+                with m.Elif(trigger_mode == TriggerModes.SINGLE_SHOT):
                     with m.If(trigger_location == 0):
-                        m.d.comb += next_state.eq(States.IN_POSITION)
-
-                    # Otherwise go to MOVE_TO_POSITION
-                    with m.Else():
-                        m.d.comb += next_state.eq(States.MOVE_TO_POSITION)
-
-            with m.Elif(state == States.MOVE_TO_POSITION):
-                m.d.comb += write_enable.eq(1)
-                m.d.comb += write_pointer.eq(next_write_pointer)
-                m.d.comb += read_pointer.eq(0)
-                m.d.comb += next_state.eq(States.MOVE_TO_POSITION)
-
-                with m.If(write_pointer == trigger_location - 1):
-                    with m.If(self.trigger):
-                        m.d.comb += next_state.eq(States.CAPTURING)
+                        m.d.sync += state.eq(States.IN_POSITION)
 
                     with m.Else():
-                        m.d.comb += next_state.eq(States.IN_POSITION)
+                        m.d.sync += state.eq(States.MOVE_TO_POSITION)
 
-            with m.Elif(state == States.IN_POSITION):
-                m.d.comb += write_enable.eq(1)
-                m.d.comb += write_pointer.eq(next_write_pointer)
-                m.d.comb += next_state.eq(States.IN_POSITION)
+                    m.d.sync += write_enable.eq(1)
 
+        with m.Elif(state == States.MOVE_TO_POSITION):
+            m.d.sync += write_pointer.eq(next_write_pointer)
+
+            with m.If(write_pointer == trigger_location - 1):
                 with m.If(self.trigger):
-                    m.d.comb += next_state.eq(States.CAPTURING)
-                    m.d.comb += read_pointer.eq(latch_read_pointer)
+                    m.d.sync += state.eq(States.CAPTURING)
 
                 with m.Else():
-                    m.d.comb += read_pointer.eq(next_read_pointer)
+                    m.d.sync += state.eq(States.IN_POSITION)
 
-            with m.Elif(state == States.CAPTURING):
-                m.d.comb += write_enable.eq(1)
-                m.d.comb += read_pointer.eq(latch_read_pointer)
-                m.d.comb += next_state.eq(States.CAPTURING)
+        with m.Elif(state == States.IN_POSITION):
+            m.d.sync += write_pointer.eq(next_write_pointer)
 
+            with m.If(self.trigger):
+                m.d.sync += state.eq(States.CAPTURING)
+
+                # kind of horrible, i'll get rid of this later...
+                with m.If(write_pointer > trigger_location):
+                    m.d.sync += read_pointer.eq(write_pointer - trigger_location)
+                with m.Else():
+                    m.d.sync += read_pointer.eq(
+                        write_pointer - trigger_location + sample_depth
+                    )
+
+                # ok that's all for horrible
+
+        with m.If(state == States.CAPTURING):
+            # Non- incremental modes
+            with m.If(trigger_mode != TriggerModes.INCREMENTAL):
                 with m.If(next_write_pointer == read_pointer):
-                    m.d.comb += write_enable.eq(0)
-                    m.d.comb += write_pointer.eq(latch_write_pointer)
-                    m.d.comb += next_state.eq(States.CAPTURED)
+                    m.d.sync += write_enable.eq(0)
+                    m.d.sync += state.eq(States.CAPTURED)
 
                 with m.Else():
-                    m.d.comb += write_pointer.eq(next_write_pointer)
+                    m.d.sync += write_pointer.eq(next_write_pointer)
 
-            with m.Elif(state == States.CAPTURED):
-                m.d.comb += next_state.eq(States.CAPTURED)
-                m.d.comb += read_pointer.eq(latch_read_pointer)
-                m.d.comb += write_pointer.eq(latch_write_pointer)
-                m.d.comb += write_enable.eq(0)
+            # Incremental mode
+            with m.Else():
+                with m.If(self.trigger):
+                    with m.If(next_write_pointer == read_pointer):
+                        m.d.sync += write_enable.eq(0)
+                        m.d.sync += state.eq(States.CAPTURED)
 
-        # --- Immediate Trigger Mode ---
-        with m.If(self.r.trigger_mode == TriggerModes.IMMEDIATE):
-            m.d.comb += read_pointer.eq(0)
-            with m.If(self.r.state == States.IDLE):
-                m.d.comb += write_enable.eq(0)
-                m.d.comb += write_pointer.eq(0)
-                m.d.comb += next_state.eq(States.IDLE)
-
-                # Rising edge of request_start beings the capture:
-                with m.If((request_start) & (~prev_request_start)):
-                    m.d.comb += write_enable.eq(1)
-                    m.d.comb += next_state.eq(States.CAPTURING)
-
-            with m.Elif(state == States.CAPTURING):
-                m.d.comb += write_enable.eq(1)
-                m.d.comb += next_state.eq(States.CAPTURING)
-                m.d.comb += write_pointer.eq(next_write_pointer)
-
-                with m.If(next_write_pointer == read_pointer):
-                    m.d.comb += write_enable.eq(0)
-                    m.d.comb += write_pointer.eq(latch_write_pointer)
-                    m.d.comb += next_state.eq(States.CAPTURED)
-
-            with m.Elif(state == States.CAPTURED):
-                m.d.comb += write_enable.eq(0)
-                m.d.comb += write_pointer.eq(latch_write_pointer)
-                m.d.comb += next_state.eq(States.CAPTURED)
-
-        # --- Incremental Trigger Mode ---
-        with m.If(self.r.trigger_mode == TriggerModes.INCREMENTAL):
-            with m.If(state == States.IDLE):
-                m.d.comb += write_enable.eq(0)
-                m.d.comb += write_pointer.eq(0)
-                m.d.comb += read_pointer.eq(0)
-                m.d.comb += next_state.eq(States.IDLE)
-
-                # Rising edge of request_start beings the capture:
-                with m.If((request_start) & (~prev_request_start)):
-                    m.d.comb += write_enable.eq(self.trigger)
-                    m.d.comb += next_state.eq(States.CAPTURING)
-
-            with m.Elif(state == States.CAPTURING):
-                m.d.comb += read_pointer.eq(0)
-                m.d.comb += next_state.eq(States.CAPTURING)
-                m.d.comb += write_enable.eq(self.trigger)
-
-                with m.If(latch_write_enable):
-                    m.d.comb += write_pointer.eq(next_write_pointer)
-                with m.Else():
-                    m.d.comb += write_pointer.eq(latch_write_pointer)
-
-                with m.If((self.trigger) & (next_write_pointer == read_pointer)):
-                    m.d.comb += write_pointer.eq(latch_write_pointer)
-                    m.d.comb += next_state.eq(States.CAPTURED)
-
-            with m.Elif(state == States.CAPTURED):
-                m.d.comb += next_state.eq(States.CAPTURED)
-                m.d.comb += read_pointer.eq(latch_read_pointer)
-                m.d.comb += write_pointer.eq(latch_write_pointer)
-                m.d.comb += write_enable.eq(0)
+                    with m.Else():
+                        m.d.sync += write_pointer.eq(next_write_pointer)
 
         # Regardless of trigger mode, go back to IDLE if request_stop is pulsed
         with m.If((request_stop) & (~prev_request_stop)):
-            m.d.comb += next_state.eq(States.IDLE)
+            m.d.sync += state.eq(States.IDLE)
 
         return m

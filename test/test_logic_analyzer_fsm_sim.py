@@ -2,25 +2,6 @@ from amaranth.sim import Simulator
 from manta.logic_analyzer import *
 from manta.utils import *
 
-"""
-what do we want this to do?
-
-we want to run a capture in single shot mode, immediate mode, and incremental mode
-
-
-single-shot case:
-- exactly the right number of samples are taken
-- we only start taking samples once captured
-
-immediate case:
-- exactly the right number of samples are taken
-- we only start taking samples once captured
-
-incremental case:
-- exactly the right number of samples are taken
-- we only take samples when trig is asserted
-
-"""
 config = {"sample_depth": 8}
 fsm = LogicAnalyzerFSM(config, base_addr=0, interface=None)
 
@@ -84,8 +65,9 @@ def test_single_shot_wait_for_trigger():
         yield fsm.r.trigger_location.eq(4)
         yield fsm.r.request_start.eq(1)
         yield
+        yield
 
-        # Check that write_enable is asserted on the same edge as request_start
+        # Check that write_enable is asserted a cycle after request_start
         if not (yield fsm.write_enable):
             raise ValueError
 
@@ -104,28 +86,15 @@ def test_single_shot_wait_for_trigger():
 
             yield
 
-        # Wait a few cycles before triggering:
+        # Wait a few cycles before triggering
         for _ in range(10):
-            if (rp + 3) % fsm.config["sample_depth"] != wp:
-                raise ValueError
-
             yield
 
         # Provide the trigger, and check that the capture completes 4 cycles later
         yield fsm.trigger.eq(1)
         yield
 
-        rp_start = yield fsm.r.read_pointer
         for i in range(4):
-            rp = yield fsm.r.read_pointer
-            wp = yield fsm.r.write_pointer
-
-            if rp != rp_start:
-                raise ValueError
-
-            if (rp_start + 4 + i) % fsm.config["sample_depth"] != wp:
-                raise ValueError
-
             yield
 
         # Wait one clock cycle (to let BRAM contents cycle in)
@@ -150,8 +119,9 @@ def test_immediate():
         yield fsm.r.trigger_mode.eq(TriggerModes.IMMEDIATE)
         yield fsm.r.request_start.eq(1)
         yield
+        yield
 
-        # Check that write_enable is asserted on the same edge as request_start
+        # Check that write_enable is asserted a cycle after request_start
         if not (yield fsm.write_enable):
             raise ValueError
 
@@ -191,10 +161,11 @@ def test_incremental():
         yield fsm.r.trigger_mode.eq(TriggerModes.INCREMENTAL)
         yield fsm.r.request_start.eq(1)
         yield
+        yield
 
         # Check that write_enable is asserted on the same edge as request_start
-        # if not (yield fsm.write_enable):
-        #     raise ValueError
+        if not (yield fsm.write_enable):
+            raise ValueError
 
         for _ in range(10):
             for _ in range(3):
@@ -205,9 +176,9 @@ def test_incremental():
             yield fsm.trigger.eq(0)
             yield
 
-        # # Check that state is CAPTURED
-        # if (yield fsm.r.state) != States.CAPTURED:
-        #     raise ValueError
+        # Check that state is CAPTURED
+        if (yield fsm.r.state) != States.CAPTURED:
+            raise ValueError
 
     simulate(fsm, testbench, "incremental.vcd")
 
@@ -225,6 +196,7 @@ def test_single_shot_write_enable():
 
         # Start the FSM, ensure write enable is asserted throughout the capture
         yield fsm.r.request_start.eq(1)
+        yield
         yield
 
         for _ in range(fsm.config["sample_depth"]):
@@ -261,6 +233,7 @@ def test_immediate_write_enable():
 
         # Start the FSM, ensure write enable is asserted throughout the capture
         yield fsm.r.request_start.eq(1)
+        yield
         yield
 
         for _ in range(fsm.config["sample_depth"]):

@@ -103,8 +103,8 @@ class LogicAnalyzerCore(Elaboratable):
             if not isinstance(trigger_location, int) or trigger_location < 0:
                 raise ValueError("Trigger location must be a positive integer.")
 
-            if trigger_location > config["sample_depth"]:
-                raise ValueError("Trigger location cannot exceed sample depth.")
+            if trigger_location >= config["sample_depth"]:
+                raise ValueError("Trigger location must be less than sample depth.")
 
             if trigger_mode == "immediate":
                 warn(
@@ -229,7 +229,7 @@ class LogicAnalyzerCore(Elaboratable):
         print_if_verbose(" -> Setting triggers...")
         self.trig_blk.clear_triggers()
 
-        if self.config["trigger_mode"] != "immediate":
+        if self.config.get("trigger_mode") != "immediate":
             self.trig_blk.set_triggers(self.config)
 
         # Set trigger mode, default to single-shot if user didn't specify a mode
