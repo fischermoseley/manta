@@ -59,3 +59,10 @@ Unlike other entries in this list, Opal Kelly's FrontPanel SDK is not marketed a
 
 - [Documentation](https://docs.opalkelly.com/fpsdk/)
 - [User's Guide](https://assets00.opalkelly.com/library/FrontPanel-UM.pdf)
+
+
+### MATLAB FPGA Data Capture
+
+An embedded logic analyzer for Xilinx and Altera FPGAs, provided as part of MATLAB. Communication between the host and FPGA is accomplished with JTAG, but Ethernet is supported for Xilinx FPGAs. Notably, this tool allows for data to be captured and used directly inside MATLAB, which also includes a framework for FPGA-in-the-loop testing. It also provides an AXI manager IP block that allows for reads and writes to an AXI memory map from MATLAB. This IP supports PCI Express on Xilinx FPGAs, in addition to JTAG and Ethernet.
+
+- [Documentation](https://www.mathworks.com/help/hdlverifier/fpga-data-capture-xilinx.html)
