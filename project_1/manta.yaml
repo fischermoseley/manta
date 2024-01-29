@@ -1,0 +1,15 @@
+---
+cores:
+  io_core:
+    type: io
+
+    inputs:
+      sw: 16
+
+    outputs:
+      led: 16
+
+ethernet:
+  desired_fpga_ip: "192.168.0.110"
+  host_ip: "192.168.0.107"
+  udp_port: 42069

@@ -11,7 +11,14 @@ class InternalBus(data.StructLayout):
     """
 
     def __init__(self):
-        super().__init__({"addr": 16, "data": 16, "rw": 1, "valid": 1})
+        super().__init__(
+            {
+                "addr": 16,
+                "data": 16,
+                "rw": 1,
+                "valid": 1,
+            }
+        )
 
 
 def warn(message):

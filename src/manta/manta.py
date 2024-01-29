@@ -1,7 +1,7 @@
 from amaranth import *
 from .uart import UARTInterface
 
-# from .ethernet import EthernetInterface
+from .ethernet import EthernetInterface
 from .io_core import IOCore
 from .memory_core import ReadOnlyMemoryCore
 from .logic_analyzer import LogicAnalyzerCore

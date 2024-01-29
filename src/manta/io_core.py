@@ -214,11 +214,13 @@ class IOCore(Elaboratable):
 
     def get_top_level_ports(self):
         ports = []
-        for name in self.config["inputs"].keys():
-            ports.append(getattr(self, name))
+        if "inputs" in self.config:
+            for name in self.config["inputs"].keys():
+                ports.append(getattr(self, name))
 
-        for name in self.config["outputs"].keys():
-            ports.append(getattr(self, name))
+        if "outputs" in self.config:
+            for name in self.config["outputs"].keys():
+                ports.append(getattr(self, name))
 
         return ports
 
