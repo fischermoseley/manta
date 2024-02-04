@@ -1,11 +1,12 @@
 from amaranth import *
 from manta.utils import *
+import socket
 
 
 class EthernetInterface(Elaboratable):
     def __init__(self, config):
-        self.desired_fpga_ip = config["desired_fpga_ip"]
-        self.host_ip = config["host_ip"]
+        self.fpga_ip_addr = config["fpga_ip_addr"]
+        self.host_ip_addr = config["host_ip_addr"]
         self.udp_port = config["udp_port"]
 
         self.bus_i = Signal(InternalBus())
@@ -76,7 +77,7 @@ class EthernetInterface(Elaboratable):
             # ("o", "dhcp_ip_address", 1),
             ("i", "dhcp_start", self.dhcp_start),
             # ("o", "dhcp_timeout", 1),
-            ("i", "ip_address", self.binarize_ip_addr(self.desired_fpga_ip)),
+            ("i", "ip_address", self.binarize_ip_addr(self.fpga_ip_addr)),
             # UDP Port
             ("i", "udp0_udp_port", self.udp_port),
             # UDP from host
@@ -86,7 +87,7 @@ class EthernetInterface(Elaboratable):
             ("i", "udp0_source_ready", self.source_ready),
             ("o", "udp0_source_valid", self.source_valid),
             # UDP back to host
-            ("i", "udp0_ip_address", self.binarize_ip_addr(self.host_ip)),
+            ("i", "udp0_ip_address", self.binarize_ip_addr(self.host_ip_addr)),
             ("i", "udp0_sink_data", self.sink_data),
             ("i", "udp0_sink_last", self.sink_last),
             ("o", "udp0_sink_ready", self.sink_ready),
@@ -110,6 +111,78 @@ class EthernetInterface(Elaboratable):
         m.d.comb += self.bus_o.eq(source_bridge.bus_o)
 
         return m
+
+    def read(self, addrs):
+        """
+        Read the data stored in a set of address on Manta's internal memory. Addresses
+        must be specified as either integers or a list of integers.
+        """
+
+        # Handle a single integer address
+        if isinstance(addrs, int):
+            return self.read([addrs])[0]
+
+        # Make sure all list elements are integers
+        if not all(isinstance(a, int) for a in addrs):
+            raise ValueError("Read address must be an integer or list of integers.")
+
+        # Send read requests, and get responses
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind((self.host_ip_addr, self.udp_port))
+        chunk_size = 128
+        addr_chunks = split_into_chunks(addrs, chunk_size)
+        datas = []
+
+        for addr_chunk in addr_chunks:
+            bytes_out = b""
+            for addr in addr_chunk:
+                bytes_out += int(0).to_bytes(4, byteorder="little")
+                bytes_out += int(addr).to_bytes(2, byteorder="little")
+                bytes_out += int(0).to_bytes(2, byteorder="little")
+
+            sock.sendto(bytes_out, (self.fpga_ip_addr, self.udp_port))
+            data, addr = sock.recvfrom(4 * chunk_size)
+
+            # Split into groups of four bytes
+            datas += [int.from_bytes(d, "little") for d in split_into_chunks(data, 4)]
+
+        return datas
+
+    def write(self, addrs, datas):
+        """
+        Write the provided data into the provided addresses in Manta's internal memory.
+        Addresses and data must be specified as either integers or a list of integers.
+        """
+
+        # Handle a single integer address and data
+        if isinstance(addrs, int) and isinstance(datas, int):
+            return self.write([addrs], [datas])
+
+        # Make sure address and datas are all integers
+        if not isinstance(addrs, list) or not isinstance(datas, list):
+            raise ValueError(
+                "Write addresses and data must be an integer or list of integers."
+            )
+
+        if not all(isinstance(a, int) for a in addrs):
+            raise ValueError("Write addresses must be all be integers.")
+
+        if not all(isinstance(d, int) for d in datas):
+            raise ValueError("Write data must all be integers.")
+
+        # Since the FPGA doesn't issue any responses to write requests, we
+        # the host's input buffer isn't written to, and we don't need to
+        # send the data as chunks as the to avoid overflowing the input buffer.
+
+        # Encode addrs and datas into write requests
+        bytes_out = b""
+        for addr, data in zip(addrs, datas):
+            bytes_out += int(1).to_bytes(4, byteorder="little")
+            bytes_out += int(addr).to_bytes(2, byteorder="little")
+            bytes_out += int(data).to_bytes(2, byteorder="little")
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(bytes_out, (self.fpga_ip_addr, self.udp_port))
 
 
 class UDPSourceBridge(Elaboratable):
@@ -142,7 +215,7 @@ class UDPSourceBridge(Elaboratable):
                 m.d.sync += self.bus_o.data.eq(self.data_i[16:])
                 m.d.sync += self.bus_o.rw.eq(rw_buf)
                 m.d.sync += self.bus_o.valid.eq(1)
-                # m.d.sync += self.bus_o.last.eq(self.last_i)
+                m.d.sync += self.bus_o.last.eq(self.last_i)
 
         return m
 
@@ -163,9 +236,9 @@ class UDPSinkBridge(Elaboratable):
         m.d.sync += self.last_o.eq(0)
         m.d.sync += self.valid_o.eq(0)
 
-        with m.If(self.bus_i.valid):
+        with m.If( (self.bus_i.valid) & (~self.bus_i.rw)):
             m.d.sync += self.data_o.eq(self.bus_i.data)
-            # m.d.sync += self.last_o.eq(self.bus_i.last)
+            m.d.sync += self.last_o.eq(self.bus_i.last)
             m.d.sync += self.valid_o.eq(1)
 
         return m

@@ -17,6 +17,7 @@ class InternalBus(data.StructLayout):
                 "data": 16,
                 "rw": 1,
                 "valid": 1,
+                "last": 1,
             }
         )
 

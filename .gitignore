@@ -14,3 +14,13 @@ build/
 *.sv
 *.vcd
 *.out
+
+# Vivado files from the occasional debugging sesh
+*.log
+*.jou
+*.rpt
+*.bin
+*.bit
+*.out
+*.xdc
+.Xil/*

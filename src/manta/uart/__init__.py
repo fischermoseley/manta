@@ -179,8 +179,9 @@ class UARTInterface(Elaboratable):
         if not all(isinstance(d, int) for d in datas):
             raise ValueError("Write data must all be integers.")
 
-        # I'm not sure if it's necessary to split outputs into chunks
-        # I think the output buffer doesn't really drop stuff, just the input buffer
+        # Since the FPGA doesn't issue any responses to write requests, we
+        # the host's input buffer isn't written to, and we don't need to
+        # send the data as chunks as the to avoid overflowing the input buffer.
 
         # Encode addrs and datas into write requests
         bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, datas)])

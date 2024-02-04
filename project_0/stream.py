@@ -65,4 +65,4 @@ if __name__ == "__main__":
     # for _ in range(64):
     #     send_to_host_test("192.168.0.107", 42069)
     # leds_test(ip_address, udp_port)
-    send_variable_length_test()
+    # send_variable_length_test()
