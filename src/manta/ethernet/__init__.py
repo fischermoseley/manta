@@ -1,10 +1,14 @@
 from amaranth import *
-from manta.utils import *
+from ..utils import *
+from .source_bridge import UDPSourceBridge
+from .sink_bridge import UDPSinkBridge
+from random import randint
 import socket
 
 
 class EthernetInterface(Elaboratable):
     def __init__(self, config):
+        self.config = config
         self.fpga_ip_addr = config["fpga_ip_addr"]
         self.host_ip_addr = config["host_ip_addr"]
         self.udp_port = config["udp_port"]
@@ -54,10 +58,10 @@ class EthernetInterface(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(self.dhcp_timer < 15):
+        with m.If(self.dhcp_timer < int(50e6)):
             m.d.sync += self.dhcp_timer.eq(self.dhcp_timer + 1)
 
-        m.d.sync += self.dhcp_start.eq(self.dhcp_timer == 14)
+        m.d.sync += self.dhcp_start.eq(self.dhcp_timer == (int(50e6) - 2))
 
         m.submodules.liteeth = Instance(
             "liteeth_core",
@@ -129,7 +133,7 @@ class EthernetInterface(Elaboratable):
         # Send read requests, and get responses
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind((self.host_ip_addr, self.udp_port))
-        chunk_size = 128
+        chunk_size = 64  # 128
         addr_chunks = split_into_chunks(addrs, chunk_size)
         datas = []
 
@@ -145,6 +149,9 @@ class EthernetInterface(Elaboratable):
 
             # Split into groups of four bytes
             datas += [int.from_bytes(d, "little") for d in split_into_chunks(data, 4)]
+
+        if len(datas) != len(addrs):
+            raise ValueError("Got less data than expected from FPGA.")
 
         return datas
 
@@ -184,61 +191,39 @@ class EthernetInterface(Elaboratable):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.sendto(bytes_out, (self.fpga_ip_addr, self.udp_port))
 
+    def generate_liteeth_core(self):
+        # Randomly assign a MAC address if one is not specified in the configuration.
+        # This will choose a MAC address in the Locally Administered, Administratively Assigned group.
+        # For more information, see:
+        # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
 
-class UDPSourceBridge(Elaboratable):
-    def __init__(self):
-        self.bus_o = Signal(InternalBus())
+        if "mac_address" not in self.config:
+            mac_address = list(f"{randint(0, (2**48) - 1):012x}")
+            mac_address[1] = "2"
+            mac_address = int("".join(mac_address), 16)
 
-        self.data_i = Signal(32)
-        self.last_i = Signal()
-        self.ready_o = Signal()
-        self.valid_i = Signal()
+        else:
+            mac_address = self.config["mac_address"]
 
-    def elaborate(self, platform):
-        m = Module()
+        liteeth_config = {
+            "phy": self.config["phy"],
+            "vendor": self.config["vendor"],
+            "toolchain": self.config["toolchain"],
+            "refclk_freq": self.config["refclk_freq"],
+            "clk_freq": self.config["clk_freq"],
+            "mac_address": mac_address,
+            "dhcp": True,
+            "data_width": 32,
+            "udp_ports": {
+                "udp0": {
+                    "udp_port": self.udp_port,
+                    "data_width": 32,
+                    "tx_fifo_depth": 64,
+                    "rx_fifo_depth": 64,
+                }
+            },
+        }
 
-        state = Signal()  # can either be 0, for read/write, or 1, for data
-        rw_buf = Signal().like(self.bus_o.rw)
-
-        # Can always take more data
-        m.d.sync += self.ready_o.eq(1)
-
-        m.d.sync += self.bus_o.eq(0)
-        with m.If(self.valid_i):
-            m.d.sync += state.eq(~state)
-
-            with m.If(state == 0):
-                m.d.sync += rw_buf.eq(self.data_i)
-
-            with m.Else():
-                m.d.sync += self.bus_o.addr.eq(self.data_i[:16])
-                m.d.sync += self.bus_o.data.eq(self.data_i[16:])
-                m.d.sync += self.bus_o.rw.eq(rw_buf)
-                m.d.sync += self.bus_o.valid.eq(1)
-                m.d.sync += self.bus_o.last.eq(self.last_i)
-
-        return m
-
-
-class UDPSinkBridge(Elaboratable):
-    def __init__(self):
-        self.bus_i = Signal(InternalBus())
-
-        self.data_o = Signal(32)
-        self.last_o = Signal()
-        self.ready_i = Signal()
-        self.valid_o = Signal()
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.d.sync += self.data_o.eq(0)
-        m.d.sync += self.last_o.eq(0)
-        m.d.sync += self.valid_o.eq(0)
-
-        with m.If( (self.bus_i.valid) & (~self.bus_i.rw)):
-            m.d.sync += self.data_o.eq(self.bus_i.data)
-            m.d.sync += self.last_o.eq(self.bus_i.last)
-            m.d.sync += self.valid_o.eq(1)
-
-        return m
+        # Generate the core
+        from .liteeth_gen import main
+        return main(liteeth_config)

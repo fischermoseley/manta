@@ -10,6 +10,7 @@ dependencies = [
   "amaranth[builtin-yosys]",
   "PyYAML",
   "pyserial",
+  "liteeth@git+https://github.com/enjoy-digital/liteeth@2023.12",
   "pyvcd",
 ]
 

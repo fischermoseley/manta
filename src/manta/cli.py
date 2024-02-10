@@ -71,17 +71,8 @@ def wrong_args():
 def gen(config_path, output_path):
     m = Manta(config_path)
 
-    from amaranth.back import verilog
-
     with open(output_path, "w") as f:
-        f.write(
-            verilog.convert(
-                m,
-                name="manta",
-                ports=m.get_top_level_ports(),
-                strip_internal_attrs=True,
-            )
-        )
+        f.write(m.generate_verilog())
 
 
 def inst(config_path):
