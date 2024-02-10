@@ -230,6 +230,8 @@ def get_udp_raw_port_ios(name, data_width):
 
 
 # PHY Core -----------------------------------------------------------------------------------------
+
+
 class PHYCore(SoCMini):
     SoCMini.csr_map = {
         "ctrl": 0,
@@ -322,8 +324,14 @@ class PHYCore(SoCMini):
 
                 qpll_settings = QPLLSettings(
                     refclksel=0b001,
-                    fbdiv=4,
-                    fbdiv_45={125e6: 5, 156.25e6: 4}[refclk_freq],
+                    fbdiv={
+                        liteeth_phys.A7_1000BASEX: 4,
+                        liteeth_phys.A7_2500BASEX: 5,
+                    }[phy],
+                    fbdiv_45={
+                        125e6: 5,
+                        156.25e6: 4,
+                    }[refclk_freq],
                     refclk_div=1,
                 )
                 qpll = QPLL(ethphy_pads.refclk, qpll_settings)
@@ -371,7 +379,73 @@ class PHYCore(SoCMini):
             )
 
 
+# MAC Core -----------------------------------------------------------------------------------------
+
+
+class MACCore(PHYCore):
+    def __init__(self, platform, core_config):
+        # Parameters -------------------------------------------------------------------------------
+        nrxslots = core_config.get("nrxslots", 2)
+        ntxslots = core_config.get("ntxslots", 2)
+        bus_standard = core_config["core"]
+        tx_cdc_depth = core_config.get("tx_cdc_depth", 32)
+        tx_cdc_buffered = core_config.get("tx_cdc_buffered", False)
+        rx_cdc_depth = core_config.get("rx_cdc_depth", 32)
+        rx_cdc_buffered = core_config.get("rx_cdc_buffered", False)
+        assert bus_standard in ["wishbone", "axi-lite"]
+
+        # PHY --------------------------------------------------------------------------------------
+        PHYCore.__init__(self, platform, core_config)
+
+        # MAC --------------------------------------------------------------------------------------
+        self.ethmac = ethmac = LiteEthMAC(
+            phy=self.ethphy,
+            dw=32,
+            interface="wishbone",
+            endianness=core_config["endianness"],
+            nrxslots=nrxslots,
+            ntxslots=ntxslots,
+            full_memory_we=core_config.get("full_memory_we", False),
+            tx_cdc_depth=tx_cdc_depth,
+            tx_cdc_buffered=tx_cdc_buffered,
+            rx_cdc_depth=rx_cdc_depth,
+            rx_cdc_buffered=rx_cdc_buffered,
+        )
+
+        if bus_standard == "wishbone":
+            # Wishbone Interface -----------------------------------------------------------------------
+            wb_bus = wishbone.Interface()
+            platform.add_extension(wb_bus.get_ios("wishbone"))
+            self.comb += wb_bus.connect_to_pads(
+                self.platform.request("wishbone"), mode="slave"
+            )
+            self.bus.add_master(master=wb_bus)
+
+        if bus_standard == "axi-lite":
+            # AXI-Lite Interface -----------------------------------------------------------------------
+            axil_bus = axi.AXILiteInterface(address_width=32, data_width=32)
+            platform.add_extension(axil_bus.get_ios("bus"))
+            self.submodules += axi.Wishbone2AXILite(ethmac.bus, axil_bus)
+            self.comb += axil_bus.connect_to_pads(
+                self.platform.request("bus"), mode="slave"
+            )
+            self.bus.add_master(master=axil_bus)
+
+        ethmac_region_size = (nrxslots + ntxslots) * buffer_depth
+        ethmac_region = SoCRegion(
+            origin=self.mem_map.get("ethmac", None),
+            size=ethmac_region_size,
+            cached=False,
+        )
+        self.bus.add_slave(name="ethmac", slave=ethmac.bus, region=ethmac_region)
+
+        # Interrupt Interface ----------------------------------------------------------------------
+        self.comb += self.platform.request("interrupt").eq(self.ethmac.ev.irq)
+
+
 # UDP Core -----------------------------------------------------------------------------------------
+
+
 class UDPCore(PHYCore):
     def add_streamer_port(self, platform, name, port_cfg):
         # Use default Data-Width of 8-bit when not specified.
@@ -571,6 +645,8 @@ class UDPCore(PHYCore):
 
 
 # Build --------------------------------------------------------------------------------------------
+
+
 def main(core_config):
     # Convert YAML elements to Python/LiteX --------------------------------------------------------
     for k, v in core_config.items():
@@ -598,7 +674,12 @@ def main(core_config):
         raise ValueError("Unsupported vendor: {}".format(core_config["vendor"]))
     platform.add_extension(_io)
 
-    soc = UDPCore(platform, core_config)
+    if core_config["core"] in ["wishbone", "axi-lite"]:
+        soc = MACCore(platform, core_config)
+    elif core_config["core"] == "udp":
+        soc = UDPCore(platform, core_config)
+    else:
+        raise ValueError("Unknown core: {}".format(core_config["core"]))
 
     with TemporaryDirectory() as path:
         builder = Builder(soc, compile_gateware=False, output_dir=path)

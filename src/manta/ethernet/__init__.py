@@ -192,38 +192,45 @@ class EthernetInterface(Elaboratable):
         sock.sendto(bytes_out, (self.fpga_ip_addr, self.udp_port))
 
     def generate_liteeth_core(self):
+        """
+        Generate a LiteEth core by calling a slightly modified form of the LiteEth
+        standalone core generator. This passes the contents of the 'ethernet' section
+        of the Manta configuration file to LiteEth, after modifying it slightly to
+        include the UDP ports and set a MAC address if the user didn't specify one.
+        """
+        liteeth_config = self.config.copy()
+
         # Randomly assign a MAC address if one is not specified in the configuration.
         # This will choose a MAC address in the Locally Administered, Administratively Assigned group.
         # For more information, see:
         # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
 
-        if "mac_address" not in self.config:
-            mac_address = list(f"{randint(0, (2**48) - 1):012x}")
-            mac_address[1] = "2"
-            mac_address = int("".join(mac_address), 16)
+        if "mac_address" not in liteeth_config:
+            addr = list(f"{randint(0, (2**48) - 1):012x}")
+            addr[1] = "2"
+            liteeth_config["mac_address"] = int("".join(addr), 16)
 
-        else:
-            mac_address = self.config["mac_address"]
+        # Force use of DHCP
+        liteeth_config["dhcp"] = True
 
-        liteeth_config = {
-            "phy": self.config["phy"],
-            "vendor": self.config["vendor"],
-            "toolchain": self.config["toolchain"],
-            "refclk_freq": self.config["refclk_freq"],
-            "clk_freq": self.config["clk_freq"],
-            "mac_address": mac_address,
-            "dhcp": True,
-            "data_width": 32,
-            "udp_ports": {
-                "udp0": {
-                    "udp_port": self.udp_port,
-                    "data_width": 32,
-                    "tx_fifo_depth": 64,
-                    "rx_fifo_depth": 64,
-                }
-            },
+        # Use UDP
+        liteeth_config["core"] = "udp"
+
+        # Use 32-bit words. Might be redundant, as I think using DHCP forces
+        # LiteEth to use 32-bit words
+        liteeth_config["data_width"] = 32
+
+        # Add UDP port
+        liteeth_config["udp_ports"] = {
+            "udp0": {
+                "udp_port": self.udp_port,
+                "data_width": 32,
+                "tx_fifo_depth": 64,
+                "rx_fifo_depth": 64,
+            }
         }
 
         # Generate the core
         from .liteeth_gen import main
+
         return main(liteeth_config)
