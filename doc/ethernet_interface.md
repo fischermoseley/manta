@@ -1,7 +1,7 @@
 ## Overview
 For scenarios where UART is not available or higher bandwidth is desired, Manta provides an Ethernet interface for communicating between the host and FPGA. This interface uses UDP for communication, and leverages the builtin Python `sockets` module on the host side, and the open-source [LiteEth](https://github.com/enjoy-digital/liteeth) Ethernet core on the FPGA side.
 
-!!! warning "Not every device is supported!"
+!!! info "Not every device is supported!"
 
     Although Manta aims to be as platform-agnostic as possible, Ethernet PHYs and FPGA clock primitives are very particular devices. As a result, the supported devices are loosely restricted to those on [this list](https://github.com/enjoy-digital/liteeth?tab=readme-ov-file#-features). If a device you'd like to use isn't on the list, the community would love your help!
 
@@ -30,10 +30,16 @@ This snippet at the end of the configuration file defines the interface. The fol
 
 - `toolchain` _(required)_: The toolchain being used. Currently only values of `vivado` and `diamond` are supported.
 
-- `clk_freq` _(required)_: The frequency of the clock provided to the Manta instance. Used to configure a PLL in the FPGA fabric for generating the PHY's `refclk`.
+- `clk_freq` _(required)_: The frequency of the clock provided to the Manta instance.
 
-- `refclk_freq` _(required)_: The frequency of the reference clock to be provided to the Ethernet PHY. This clock is generated from Manta's main clock using a PLL inside the FPGA. This frequency must match the MII variant supported by the PHY, as well as speed that the PHY is being operated at. For instance, a RGMII PHY may be operated at either 125MHz in Gigabit mode, or 25MHz in 100Mbps mode.
+- `refclk_freq` _(required)_: The frequency of the reference clock to be provided to the Ethernet PHY. This frequency must match the MII variant supported by the PHY, as well as speed that the PHY is being operated at. For instance, a RGMII PHY may be operated at either 125MHz in Gigabit mode, or 25MHz in 100Mbps mode.
 
 - `fpga_ip_addr` _(required)_: The IP address the FPGA will attempt to claim. Upon power-on, the FPGA will issue a DHCP request for this IP address. The easiest way to check if this was successful is by pinging the FPGA's IP, but if you have access to your network's router it may report a list of connected devices.
 
 - `host_ip_addr` _(required)_: The IP address of the host machine, which the FPGA will send packets back to.
+
+Lastly, any additonal arguments provided in the `ethernet` section of the config file will be passed to the LiteEth standalone core generator. As a result, the [examples](https://github.com/enjoy-digital/liteeth/tree/master/examples) provided by LiteEth may be of some service to you if you're bringing up a different FPGA!
+
+!!! warning "LiteEth doesn't always generate its own `refclk`!"
+
+    Although LitEth is built on Migen and LiteX which support PLLs and other clock generation primitives, I haven't seen it instantiate one to synthesize a suitable `refclk` at the appropriate frequency from the input clock. As a result, for now it's recommended to generate your `refclk` outside Manta, and then use it to clock your Manta instance.
