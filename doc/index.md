@@ -49,7 +49,7 @@ You may find this core useful for:
 ## About
 Manta and its source code are released under a [GPLv3 license](https://github.com/fischermoseley/manta/blob/main/LICENSE.txt), and it was originally developed as part of my [Master's Thesis at MIT](https://hdl.handle.net/1721.1/151223) in 2023, done under the supervision of [Dr. Joe Steinmeyer](https://www.jodalyst.com/). The thesis itself is copyrighted by Fischer Moseley (me!), but feel free to use the following Bibtex if you'd like to cite it:
 
-```
+```bibtex
 @misc{manta2023,
     author={Fischer Moseley},
     title={Manta: An In-Situ Debugging Tool for Programmable Hardware},

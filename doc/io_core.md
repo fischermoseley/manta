@@ -32,7 +32,7 @@ Inside this configuration, the following parameters may be configured:
 - `name` _(required)_: The name of the IO core. This name is used to reference the core when working with the API, and can be whatever you'd like.
 - `type` _(required)_: This denotes that this is an IO core. All cores contain a `type` field, which must be set to `io` to be recognized as an IO core.
 - `inputs` _(optional)_: This lists all inputs from from the FPGA fabric to the host machine. Signals in this list may be read by the host, but ___cannot___ be written to. Technically specifying input probes is totally optional - it's perfectly fine to have an IO core with only output probes.
-- `outputs` _(optional)_: This lists all outputs from the host machine to the FPGA fabric. Signals in this list are usually written to by the host, but they can also be read from. Doing so returns the value last written to the register. Just like the `inputs` parameter, this list is techically optional, and it's perfectly valid to have an IO core with input probes only.
+- `outputs` _(optional)_: This lists all outputs from the host machine to the FPGA fabric. Signals in this list are usually written to by the host, but they can also be read from. Doing so returns the value last written to the register. Just like the `inputs` parameter, this list is technically optional, and it's perfectly valid to have an IO core with input probes only.
     - `initial_value` _(optional)_: This sets an initial value for an output probe to take after the FPGA powers on. This is done with an `initial` statement in Manta's Verilog, and is independent of the input clock or resets elsewhere in the FPGA. This parameter is optional, and if it isn't provided the probe will initialize to zero.
 - `user_clock` _(optional)_: If set to True, an extra input port will be added to the `manta` module for an clock input to run the IO core on. This lets the IO Core handle clock domain crossing through its internal buffers. If set to False, Manta will run the IO core from its internal clock (the one provided through `manta`'s `clk` port). More information on this is available in the [diagram](#how-it-works) below. This parameter is optional, and defaults to False.
 
@@ -50,7 +50,7 @@ The IO core functionality is stored in the `Manta.IOCore`, `Manta.InputProbe`, a
 - [`int`, `bool`] _data_: The value to write to an output probe. May be signed or unsigned, but will raise an exception if the value is too large for the width of the port.
 - _returns_: None
 
-This method is blocking. When called it will dispatch a request to the FPGA, and wait until a response has been receieved.
+This method is blocking. When called it will dispatch a request to the FPGA, and wait until a response has been received.
 
 ---
 
@@ -58,7 +58,7 @@ This method is blocking. When called it will dispatch a request to the FPGA, and
 
 - _returns_: The value of an input or output probe. In the case of an output probe, the value returned will be the last value written to the probe.
 
-This method is blocking. When called it will dispatch a request to the FPGA, and wait until a response has been receieved.
+This method is blocking. When called it will dispatch a request to the FPGA, and wait until a response has been received.
 
 ---
 
@@ -84,4 +84,4 @@ While the IO core performs a very, very simple task, it carries a few caveats.
 
 - First, __it's not instantaneous__. Manta has designed to be as fast as possible, but setting and querying registers relies on passing messages between the host and FPGA, which is slow relative to FPGA clock speeds! If you're trying to set values in your design with cycle-accurate timing, this will not do that for you. However, the [Logic Analyzer's playback feature](./logic_analyzer_core.md#playback) might be helpful.
 
-- Second, __the API methods are blocking__, and will wait for a response from the FPGA before resuming program execution. Depending on your application, you might want to run your IO Core operations in a seperate thread, but you can also decrease the execution time by using a faster interface between the host and FPGA. This means using a higher UART baudrate, or using Ethernet.
+- Second, __the API methods are blocking__, and will wait for a response from the FPGA before resuming program execution. Depending on your application, you might want to run your IO Core operations in a separate thread, but you can also decrease the execution time by using a faster interface between the host and FPGA. This means using a higher UART baudrate, or using Ethernet.

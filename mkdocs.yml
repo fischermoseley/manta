@@ -17,18 +17,24 @@ theme:
     - navigation.expand
 
   palette:
-    - scheme: default
-      primary: custom
-      accent: light blue
+    - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - scheme: slate
-      primary: custom
-      accent: light blue
-      toggle:
-        icon: material/brightness-4
+        icon: material/link
         name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: custom
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: custom
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
 
 extra_css:
   - stylesheets/extra.css

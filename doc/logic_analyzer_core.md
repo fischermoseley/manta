@@ -60,14 +60,14 @@ Each individual trigger is specified with the following structure:
     - `EQ`, for equal to.
     - `NEQ`, for not equal to.
 
-    These operations require a constant to compare against, referred to as an _argument_, which is descirbed below:
+    These operations require a constant to compare against, referred to as an _argument_, which is described below:
 
 - __argument__: A constant to compare against, if the operation specified requires one. On the FPGA, the argument will have just as many bits as the probe width.
 
-Lastly, if you're not able to express your desired trigger condition in terms of the operators above, fear not! You can also specifiy an `external_trigger: true` entry in the config file, which exposes an input on Manta's top level for your own trigger.
+Lastly, if you're not able to express your desired trigger condition in terms of the operators above, fear not! You can also specify an `external_trigger: true` entry in the config file, which exposes an input on Manta's top level for your own trigger.
 
 ### Trigger Position (optional)
-Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accomodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occuring. This is best explained with a picture:
+Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accommodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occurring. This is best explained with a picture:
 
 ![](assets/trigger_positions.png){style="width:90%"}
 

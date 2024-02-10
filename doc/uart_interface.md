@@ -12,7 +12,7 @@ uart:
   baudrate: 3000000
   clock_freq: 100000000
 ```
-This snippet defines the interface, and lives at the bottom of a Manta configuration file. Three parameters must be set:
+This snippet at the end of the configuration file defines the interface. The following parameters must be set:
 
 - `port` _(required)_: The name of the serial port on the host machine that's connected to the FPGA. Depending on your platform, this could be `/dev/ttyUSBXX`, `/dev/tty.usbserialXXX`, or `COMX`. If set to `auto`, then Manta will try to find the right serial port by looking for a USB device with the same VID and PID as a FT2232 - a USB/UART converter chip that's super popular on FPGA dev boards. This doesn't always work, but it's super convenient when it does. If your port isn't automatically detected, then just specify the port manually.
 
