@@ -63,7 +63,7 @@ class Manta(Elaboratable):
 
     def get_interface(self):
         if "uart" in self.config:
-            return UARTInterface(self.config["uart"])
+            return UARTInterface.from_config(self.config["uart"])
 
         elif "ethernet" in self.config:
             return EthernetInterface(self.config["ethernet"])
