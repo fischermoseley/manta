@@ -3,11 +3,13 @@ from manta.utils import *
 
 
 class UDPSourceBridge(Elaboratable):
-    """A module for bridging the AXI-stream of incoming UDP packet data to
+    """
+    A module for bridging the AXI-stream of incoming UDP packet data to
     Manta's internal bus.
 
     Connects to the LiteEth core's "source" port.
     """
+
     def __init__(self):
         self.bus_o = Signal(InternalBus())
 

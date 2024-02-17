@@ -8,6 +8,13 @@ from serial import Serial
 
 
 class UARTInterface(Elaboratable):
+    """
+    A module for communicating with Manta over UART.
+
+    Provides methods for generating synthesizable logic for the FPGA,
+    as well as methods for reading and writing to memory by the host.
+    """
+
     def __init__(self, port, baudrate, clock_freq, chunk_size=256):
         self._port = port
         self._baudrate = baudrate
@@ -73,7 +80,7 @@ class UARTInterface(Elaboratable):
 
     def _get_serial_device(self):
         """
-        Return an open PySerial serial device if one exists, otherwise, open one.
+        Return an open PySerial serial device if one exists, otherwise, open one and return it.
         """
 
         # Check if we've already opened a device
@@ -121,6 +128,10 @@ class UARTInterface(Elaboratable):
         return self._serial_device
 
     def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the top-level
+        Manta module.
+        """
         return [self.rx, self.tx]
 
     def read(self, addrs):
@@ -201,7 +212,7 @@ class UARTInterface(Elaboratable):
 
     def _decode_read_response(self, response_bytes):
         """
-        Check that read response is formatted properly, and extract the encoded data if so.
+        Check that read response is formatted properly, and return the encoded data if so.
         """
 
         # Make sure response is not empty
@@ -232,7 +243,6 @@ class UARTInterface(Elaboratable):
         return int(response_ascii[1:5], 16)
 
     def elaborate(self, platform):
-        # fancy submoduling and such goes in here
         m = Module()
 
         m.submodules.uart_rx = uart_rx = UARTReceiver(self._clocks_per_baud)

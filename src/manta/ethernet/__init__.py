@@ -7,7 +7,8 @@ import socket
 
 
 class EthernetInterface(Elaboratable):
-    """A module for communicating with Manta over Ethernet, using UDP.
+    """
+    A module for communicating with Manta over Ethernet, using UDP.
 
     Provides methods for generating synthesizable logic for the FPGA,
     as well as methods for reading and writing to memory by the host.
@@ -48,14 +49,18 @@ class EthernetInterface(Elaboratable):
     def _check_config(self):
         # Make sure UDP port is an integer in the range 0-65535
         if not isinstance(self._udp_port, int):
-            raise TypeError("UDP Port must be specified as an integer between 0 and 65535.")
+            raise TypeError(
+                "UDP Port must be specified as an integer between 0 and 65535."
+            )
 
         if not 0 <= self._udp_port <= 65535:
             raise ValueError("UDP Port must be between 0 and 65535.")
 
         # Make sure Host IP address is four bytes separated by a period
         if not isinstance(self._host_ip_addr, str):
-            raise TypeError("Host IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'.")
+            raise TypeError(
+                "Host IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'."
+            )
 
         if len(self._host_ip_addr.split(".")) != 4:
             raise ValueError("Host IP must be specified in the form 'xxx.xxx.xxx.xxx'.")
@@ -66,7 +71,9 @@ class EthernetInterface(Elaboratable):
 
         # Make sure FPGA IP is four bytes separated by a period
         if not isinstance(self._fpga_ip_addr, str):
-            raise TypeError("FPGA IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'.")
+            raise TypeError(
+                "FPGA IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'."
+            )
 
         if len(self._fpga_ip_addr.split(".")) != 4:
             raise ValueError("FPGA IP must be specified in the form 'xxx.xxx.xxx.xxx'.")
@@ -75,8 +82,11 @@ class EthernetInterface(Elaboratable):
             if not 0 <= int(byte) <= 255:
                 raise ValueError(f"Invalid byte in FPGA IP: {byte}")
 
-
     def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the top-level
+        Manta module.
+        """
         ports = [
             self.rmii_clocks_ref_clk,
             self.rmii_crs_dv,
@@ -125,7 +135,7 @@ class EthernetInterface(Elaboratable):
             # UDP from host
             ("o", "udp0_source_data", self._source_data),
             # ("o", "udp0_source_error", 1),
-            ("o", "udp0_source_last",  self._source_last),
+            ("o", "udp0_source_last", self._source_last),
             ("i", "udp0_source_ready", self._source_ready),
             ("o", "udp0_source_valid", self._source_valid),
             # UDP back to host
@@ -166,7 +176,7 @@ class EthernetInterface(Elaboratable):
 
         # Make sure all list elements are integers
         if not all(isinstance(a, int) for a in addrs):
-            raise ValueError("Read address must be an integer or list of integers.")
+            raise TypeError("Read address must be an integer or list of integers.")
 
         # Send read requests, and get responses
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -205,15 +215,15 @@ class EthernetInterface(Elaboratable):
 
         # Make sure address and datas are all integers
         if not isinstance(addrs, list) or not isinstance(datas, list):
-            raise ValueError(
+            raise TypeError(
                 "Write addresses and data must be an integer or list of integers."
             )
 
         if not all(isinstance(a, int) for a in addrs):
-            raise ValueError("Write addresses must be all be integers.")
+            raise TypeError("Write addresses must be all be integers.")
 
         if not all(isinstance(d, int) for d in datas):
-            raise ValueError("Write data must all be integers.")
+            raise TypeError("Write data must all be integers.")
 
         # Since the FPGA doesn't issue any responses to write requests, we
         # the host's input buffer isn't written to, and we don't need to
