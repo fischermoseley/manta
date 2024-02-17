@@ -11,8 +11,8 @@ class UARTInterface(Elaboratable):
     """
     A module for communicating with Manta over UART.
 
-    Provides methods for generating synthesizable logic for the FPGA,
-    as well as methods for reading and writing to memory by the host.
+    Provides methods for generating synthesizable logic for the FPGA, as well
+    as methods for reading and writing to memory by the host.
     """
 
     def __init__(self, port, baudrate, clock_freq, chunk_size=256):
@@ -80,7 +80,8 @@ class UARTInterface(Elaboratable):
 
     def _get_serial_device(self):
         """
-        Return an open PySerial serial device if one exists, otherwise, open one and return it.
+        Return an open PySerial serial device if one exists, otherwise, open
+        one and return it.
         """
 
         # Check if we've already opened a device
@@ -129,15 +130,15 @@ class UARTInterface(Elaboratable):
 
     def get_top_level_ports(self):
         """
-        Return the Amaranth signals that should be included as ports in the top-level
-        Manta module.
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
         """
         return [self.rx, self.tx]
 
     def read(self, addrs):
         """
-        Read the data stored in a set of address on Manta's internal memory. Addresses
-        must be specified as either integers or a list of integers.
+        Read the data stored in a set of address on Manta's internal memory.
+        Addresses must be specified as either integers or a list of integers.
         """
 
         # Handle a single integer address
@@ -180,8 +181,9 @@ class UARTInterface(Elaboratable):
 
     def write(self, addrs, datas):
         """
-        Write the provided data into the provided addresses in Manta's internal memory.
-        Addresses and data must be specified as either integers or a list of integers.
+        Write the provided data into the provided addresses in Manta's internal
+        memory. Addresses and data must be specified as either integers or a
+        list of integers.
         """
 
         # Handle a single integer address and data
@@ -212,7 +214,8 @@ class UARTInterface(Elaboratable):
 
     def _decode_read_response(self, response_bytes):
         """
-        Check that read response is formatted properly, and return the encoded data if so.
+        Check that read response is formatted properly, and return the encoded
+        data if so.
         """
 
         # Make sure response is not empty

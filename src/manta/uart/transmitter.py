@@ -3,8 +3,8 @@ from amaranth import *
 
 class UARTTransmitter(Elaboratable):
     """
-    A module for transmitting bytes on a 8N1 UART at a configurable
-    baudrate. Accepts bytes as a stream.
+    A module for transmitting bytes on a 8N1 UART at a configurable baudrate.
+    Accepts bytes as a stream.
     """
 
     def __init__(self, clocks_per_baud):

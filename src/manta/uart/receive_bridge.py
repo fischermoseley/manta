@@ -11,8 +11,8 @@ class States(IntEnum):
 
 class ReceiveBridge(Elaboratable):
     """
-    A module for bridging the stream of bytes from the UARTReceiver
-    module to Manta's internal bus.
+    A module for bridging the stream of bytes from the UARTReceiver module to
+    Manta's internal bus.
     """
 
     def __init__(self):

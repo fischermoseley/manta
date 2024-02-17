@@ -7,7 +7,8 @@ from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 
 class LogicAnalyzerCore(Elaboratable):
-    """A logic analzyer, implemented in the FPGA fabric. Connects to the rest of the cores
+    """
+    A logic analzyer, implemented in the FPGA fabric. Connects to the rest of the cores
     over Manta's internal bus, and may be operated from a user's machine through the Python API.
 
     Parameters:

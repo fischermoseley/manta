@@ -3,8 +3,8 @@ from amaranth import *
 
 class TransmitBridge(Elaboratable):
     """
-    A module for bridging Manta's internal bus to the stream of bytes
-    expected by the UARTTransmitter module.
+    A module for bridging Manta's internal bus to the stream of bytes expected
+    by the UARTTransmitter module.
     """
 
     def __init__(self):
