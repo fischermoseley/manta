@@ -1,7 +1,7 @@
 from amaranth import *
 from amaranth.lib.enum import IntEnum
 from math import ceil, log2
-from ..io_core import IOCore
+from manta.io_core import IOCore
 
 
 class States(IntEnum):

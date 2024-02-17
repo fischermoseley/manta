@@ -1,5 +1,5 @@
-from .manta import Manta
-from .utils import *
+from manta.manta import Manta
+from manta.utils import *
 from sys import argv
 from pkg_resources import get_distribution
 

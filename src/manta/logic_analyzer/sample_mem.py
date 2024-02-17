@@ -1,5 +1,5 @@
 from amaranth import *
-from ..memory_core import ReadOnlyMemoryCore
+from manta.memory_core import ReadOnlyMemoryCore
 
 
 class LogicAnalyzerSampleMemory(ReadOnlyMemoryCore):

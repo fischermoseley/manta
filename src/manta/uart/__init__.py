@@ -1,9 +1,9 @@
 from amaranth import *
-from ..utils import *
-from .receiver import UARTReceiver
-from .receive_bridge import ReceiveBridge
-from .transmitter import UARTTransmitter
-from .transmit_bridge import TransmitBridge
+from manta.utils import *
+from manta.uart.receiver import UARTReceiver
+from manta.uart.receive_bridge import ReceiveBridge
+from manta.uart.transmitter import UARTTransmitter
+from manta.uart.transmit_bridge import TransmitBridge
 from serial import Serial
 
 
@@ -16,11 +16,7 @@ class UARTInterface(Elaboratable):
         self._clocks_per_baud = int(self._clock_freq // self._baudrate)
         self._check_config()
 
-        # Set chunk_size, which is the max amount of bytes that the core will
-        # dump to the OS driver at a time. Since the FPGA will return bytes
-        # almost instantaneously, this prevents the OS's input buffer from
-        # overflowing, and dropping bytes.
-
+        # Top-Level Ports
         self.rx = Signal()
         self.tx = Signal()
 
@@ -139,9 +135,14 @@ class UARTInterface(Elaboratable):
 
         # Make sure all list elements are integers
         if not all(isinstance(a, int) for a in addrs):
-            raise ValueError("Read address must be an integer or list of integers.")
+            raise TypeError("Read address must be an integer or list of integers.")
 
-        # Send read requests, and get responses
+        # Send read requests in chunks, and read bytes after each.
+        # The input buffer exposed by the OS on most hosts isn't terribly deep,
+        # so sending in chunks (instead of all at once) prevents the OS's input
+        # buffer from overflowing and dropping bytes, as the FPGA will send
+        # responses instantly after it's received a request.
+
         ser = self._get_serial_device()
         addr_chunks = split_into_chunks(addrs, self._chunk_size)
         datas = []
@@ -178,15 +179,15 @@ class UARTInterface(Elaboratable):
 
         # Make sure address and datas are all integers
         if not isinstance(addrs, list) or not isinstance(datas, list):
-            raise ValueError(
+            raise TypeError(
                 "Write addresses and data must be an integer or list of integers."
             )
 
         if not all(isinstance(a, int) for a in addrs):
-            raise ValueError("Write addresses must be all be integers.")
+            raise TypeError("Write addresses must be all be integers.")
 
         if not all(isinstance(d, int) for d in datas):
-            raise ValueError("Write data must all be integers.")
+            raise TypeError("Write data must all be integers.")
 
         # Since the FPGA doesn't issue any responses to write requests, we
         # the host's input buffer isn't written to, and we don't need to

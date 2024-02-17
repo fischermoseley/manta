@@ -1,10 +1,10 @@
 from amaranth import *
-from .uart import UARTInterface
+from manta.uart import UARTInterface
 
-from .ethernet import EthernetInterface
-from .io_core import IOCore
-from .memory_core import ReadOnlyMemoryCore
-from .logic_analyzer import LogicAnalyzerCore
+from manta.ethernet import EthernetInterface
+from manta.io_core import IOCore
+from manta.memory_core import ReadOnlyMemoryCore
+from manta.logic_analyzer import LogicAnalyzerCore
 
 
 class Manta(Elaboratable):

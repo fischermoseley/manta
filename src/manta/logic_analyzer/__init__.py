@@ -1,9 +1,9 @@
 from amaranth import *
-from ..utils import *
-from .trigger_block import LogicAnalyzerTriggerBlock
-from .fsm import LogicAnalyzerFSM, States, TriggerModes
-from .sample_mem import LogicAnalyzerSampleMemory
-from .playback import LogicAnalyzerPlayback
+from manta.utils import *
+from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
+from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States, TriggerModes
+from manta.logic_analyzer.sample_mem import LogicAnalyzerSampleMemory
+from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 
 class LogicAnalyzerCore(Elaboratable):

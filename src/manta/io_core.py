@@ -1,5 +1,5 @@
 from amaranth import *
-from .utils import *
+from manta.utils import *
 from math import ceil
 
 

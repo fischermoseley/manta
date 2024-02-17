@@ -1,7 +1,7 @@
 from amaranth import *
-from ..utils import *
-from .source_bridge import UDPSourceBridge
-from .sink_bridge import UDPSinkBridge
+from manta.utils import *
+from manta.ethernet.source_bridge import UDPSourceBridge
+from manta.ethernet.sink_bridge import UDPSinkBridge
 from random import randint
 import socket
 
@@ -195,10 +195,9 @@ class EthernetInterface(Elaboratable):
         """
         Generate a LiteEth core by calling a slightly modified form of the LiteEth
         standalone core generator. This passes the contents of the 'ethernet' section
-        of the Manta configuration file to LiteEth, after modifying it slightly to
-        include the UDP ports and set a MAC address if the user didn't specify one.
+        of the Manta configuration file to LiteEth, after modifying it slightly.
         """
-        liteeth_config = self.config.copy()
+        liteeth_config = self._config.copy()
 
         # Randomly assign a MAC address if one is not specified in the configuration.
         # This will choose a MAC address in the Locally Administered, Administratively Assigned group.
@@ -231,6 +230,6 @@ class EthernetInterface(Elaboratable):
         }
 
         # Generate the core
-        from .liteeth_gen import main
+        from manta.ethernet.liteeth_gen import main
 
         return main(liteeth_config)

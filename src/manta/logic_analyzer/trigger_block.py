@@ -1,5 +1,5 @@
 from amaranth import *
-from ..io_core import IOCore
+from manta.io_core import IOCore
 
 
 class LogicAnalyzerTriggerBlock(Elaboratable):
