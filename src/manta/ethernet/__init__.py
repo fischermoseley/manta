@@ -7,11 +7,18 @@ import socket
 
 
 class EthernetInterface(Elaboratable):
+    """A module for communicating with Manta over Ethernet, using UDP.
+
+    Provides methods for generating synthesizable logic for the FPGA,
+    as well as methods for reading and writing to memory by the host.
+    """
+
     def __init__(self, config):
-        self.config = config
-        self.fpga_ip_addr = config["fpga_ip_addr"]
-        self.host_ip_addr = config["host_ip_addr"]
-        self.udp_port = config["udp_port"]
+        self._config = config
+        self._fpga_ip_addr = config.get("fpga_ip_addr")
+        self._host_ip_addr = config.get("host_ip_addr")
+        self._udp_port = config.get("udp_port")
+        self._check_config()
 
         self.bus_i = Signal(InternalBus())
         self.bus_o = Signal(InternalBus())
@@ -25,18 +32,49 @@ class EthernetInterface(Elaboratable):
         self.rmii_tx_data = Signal(2)
         self.rmii_tx_en = Signal()
 
-        self.dhcp_start = Signal()
-        self.dhcp_timer = Signal(range(int(100e6)))
+        self._dhcp_start = Signal()
+        self._dhcp_timer = Signal(range(int(100e6)))
 
-        self.source_data = Signal(32)
-        self.source_last = Signal()
-        self.source_ready = Signal()
-        self.source_valid = Signal()
+        self._source_data = Signal(32)
+        self._source_last = Signal()
+        self._source_ready = Signal()
+        self._source_valid = Signal()
 
-        self.sink_data = Signal(32)
-        self.sink_last = Signal()
-        self.sink_ready = Signal()
-        self.sink_valid = Signal()
+        self._sink_data = Signal(32)
+        self._sink_last = Signal()
+        self._sink_ready = Signal()
+        self._sink_valid = Signal()
+
+    def _check_config(self):
+        # Make sure UDP port is an integer in the range 0-65535
+        if not isinstance(self._udp_port, int):
+            raise TypeError("UDP Port must be specified as an integer between 0 and 65535.")
+
+        if not 0 <= self._udp_port <= 65535:
+            raise ValueError("UDP Port must be between 0 and 65535.")
+
+        # Make sure Host IP address is four bytes separated by a period
+        if not isinstance(self._host_ip_addr, str):
+            raise TypeError("Host IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'.")
+
+        if len(self._host_ip_addr.split(".")) != 4:
+            raise ValueError("Host IP must be specified in the form 'xxx.xxx.xxx.xxx'.")
+
+        for byte in self._host_ip_addr.split("."):
+            if not 0 <= int(byte) <= 255:
+                raise ValueError(f"Invalid byte in Host IP: {byte}")
+
+        # Make sure FPGA IP is four bytes separated by a period
+        if not isinstance(self._fpga_ip_addr, str):
+            raise TypeError("FPGA IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'.")
+
+        if len(self._fpga_ip_addr.split(".")) != 4:
+            raise ValueError("FPGA IP must be specified in the form 'xxx.xxx.xxx.xxx'.")
+
+        for byte in self._fpga_ip_addr.split("."):
+            if not 0 <= int(byte) <= 255:
+                raise ValueError(f"Invalid byte in FPGA IP: {byte}")
+
 
     def get_top_level_ports(self):
         ports = [
@@ -51,17 +89,17 @@ class EthernetInterface(Elaboratable):
         ]
         return ports
 
-    def binarize_ip_addr(self, ip_addr):
+    def _binarize_ip_addr(self, ip_addr):
         octets = [bin(int(o))[2:].zfill(8) for o in ip_addr.split(".")]
         return int("".join(octets), 2)
 
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(self.dhcp_timer < int(50e6)):
-            m.d.sync += self.dhcp_timer.eq(self.dhcp_timer + 1)
+        with m.If(self._dhcp_timer < int(50e6)):
+            m.d.sync += self._dhcp_timer.eq(self._dhcp_timer + 1)
 
-        m.d.sync += self.dhcp_start.eq(self.dhcp_timer == (int(50e6) - 2))
+        m.d.sync += self._dhcp_start.eq(self._dhcp_timer == (int(50e6) - 2))
 
         m.submodules.liteeth = Instance(
             "liteeth_core",
@@ -79,37 +117,37 @@ class EthernetInterface(Elaboratable):
             # DHCP
             # ("o", "dhcp_done", 1),
             # ("o", "dhcp_ip_address", 1),
-            ("i", "dhcp_start", self.dhcp_start),
+            ("i", "dhcp_start", self._dhcp_start),
             # ("o", "dhcp_timeout", 1),
-            ("i", "ip_address", self.binarize_ip_addr(self.fpga_ip_addr)),
+            ("i", "ip_address", self._binarize_ip_addr(self._fpga_ip_addr)),
             # UDP Port
-            ("i", "udp0_udp_port", self.udp_port),
+            ("i", "udp0_udp_port", self._udp_port),
             # UDP from host
-            ("o", "udp0_source_data", self.source_data),
+            ("o", "udp0_source_data", self._source_data),
             # ("o", "udp0_source_error", 1),
-            ("o", "udp0_source_last", self.source_last),
-            ("i", "udp0_source_ready", self.source_ready),
-            ("o", "udp0_source_valid", self.source_valid),
+            ("o", "udp0_source_last",  self._source_last),
+            ("i", "udp0_source_ready", self._source_ready),
+            ("o", "udp0_source_valid", self._source_valid),
             # UDP back to host
-            ("i", "udp0_ip_address", self.binarize_ip_addr(self.host_ip_addr)),
-            ("i", "udp0_sink_data", self.sink_data),
-            ("i", "udp0_sink_last", self.sink_last),
-            ("o", "udp0_sink_ready", self.sink_ready),
-            ("i", "udp0_sink_valid", self.sink_valid),
+            ("i", "udp0_ip_address", self._binarize_ip_addr(self._host_ip_addr)),
+            ("i", "udp0_sink_data", self._sink_data),
+            ("i", "udp0_sink_last", self._sink_last),
+            ("o", "udp0_sink_ready", self._sink_ready),
+            ("i", "udp0_sink_valid", self._sink_valid),
         )
 
         m.submodules.source_bridge = source_bridge = UDPSourceBridge()
         m.submodules.sink_bridge = sink_bridge = UDPSinkBridge()
 
-        m.d.comb += source_bridge.data_i.eq(self.source_data)
-        m.d.comb += source_bridge.last_i.eq(self.source_last)
-        m.d.comb += self.source_ready.eq(source_bridge.ready_o)
-        m.d.comb += source_bridge.valid_i.eq(self.source_valid)
+        m.d.comb += source_bridge.data_i.eq(self._source_data)
+        m.d.comb += source_bridge.last_i.eq(self._source_last)
+        m.d.comb += self._source_ready.eq(source_bridge.ready_o)
+        m.d.comb += source_bridge.valid_i.eq(self._source_valid)
 
-        m.d.comb += self.sink_data.eq(sink_bridge.data_o)
-        m.d.comb += self.sink_last.eq(sink_bridge.last_o)
-        m.d.comb += sink_bridge.ready_i.eq(self.sink_ready)
-        m.d.comb += self.sink_valid.eq(sink_bridge.valid_o)
+        m.d.comb += self._sink_data.eq(sink_bridge.data_o)
+        m.d.comb += self._sink_last.eq(sink_bridge.last_o)
+        m.d.comb += sink_bridge.ready_i.eq(self._sink_ready)
+        m.d.comb += self._sink_valid.eq(sink_bridge.valid_o)
 
         m.d.comb += sink_bridge.bus_i.eq(self.bus_i)
         m.d.comb += self.bus_o.eq(source_bridge.bus_o)
@@ -132,7 +170,7 @@ class EthernetInterface(Elaboratable):
 
         # Send read requests, and get responses
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((self.host_ip_addr, self.udp_port))
+        sock.bind((self._host_ip_addr, self._udp_port))
         chunk_size = 64  # 128
         addr_chunks = split_into_chunks(addrs, chunk_size)
         datas = []
@@ -144,7 +182,7 @@ class EthernetInterface(Elaboratable):
                 bytes_out += int(addr).to_bytes(2, byteorder="little")
                 bytes_out += int(0).to_bytes(2, byteorder="little")
 
-            sock.sendto(bytes_out, (self.fpga_ip_addr, self.udp_port))
+            sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
             data, addr = sock.recvfrom(4 * chunk_size)
 
             # Split into groups of four bytes
@@ -189,7 +227,7 @@ class EthernetInterface(Elaboratable):
             bytes_out += int(data).to_bytes(2, byteorder="little")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes_out, (self.fpga_ip_addr, self.udp_port))
+        sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
 
     def generate_liteeth_core(self):
         """
@@ -222,7 +260,7 @@ class EthernetInterface(Elaboratable):
         # Add UDP port
         liteeth_config["udp_ports"] = {
             "udp0": {
-                "udp_port": self.udp_port,
+                "udp_port": self._udp_port,
                 "data_width": 32,
                 "tx_fifo_depth": 64,
                 "rx_fifo_depth": 64,

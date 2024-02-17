@@ -3,6 +3,11 @@ from manta.utils import *
 
 
 class UDPSinkBridge(Elaboratable):
+    """A module for bridging Manta's internal bus to an AXI stream of UDP
+    packet data.
+
+    Connects to the LiteEth core's "sink" port.
+    """
     def __init__(self):
         self.bus_i = Signal(InternalBus())
 
