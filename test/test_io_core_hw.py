@@ -39,17 +39,39 @@ class IOCoreLoopbackTest(Elaboratable):
             },
         }
 
+    def get_probe(self, name):
+        # This is a hack! And should be removed once the full Amaranth-native
+        # API is built out
+        for i in self.manta.io_core._inputs:
+            if i.name == name:
+                return i
+
+        for o in self.manta.io_core._outputs:
+            if o.name == name:
+                return o
+
+        return None
+
     def elaborate(self, platform):
         m = Module()
         m.submodules.manta = self.manta
 
         uart_pins = platform.request("uart")
 
+        probe0 = self.get_probe("probe0")
+        probe1 = self.get_probe("probe1")
+        probe2 = self.get_probe("probe2")
+        probe3 = self.get_probe("probe3")
+        probe4 = self.get_probe("probe4")
+        probe5 = self.get_probe("probe5")
+        probe6 = self.get_probe("probe6")
+        probe7 = self.get_probe("probe7")
+
         m.d.comb += [
-            self.manta.io_core.probe0.eq(self.manta.io_core.probe4),
-            self.manta.io_core.probe1.eq(self.manta.io_core.probe5),
-            self.manta.io_core.probe2.eq(self.manta.io_core.probe6),
-            self.manta.io_core.probe3.eq(self.manta.io_core.probe7),
+            probe0.eq(probe4),
+            probe1.eq(probe5),
+            probe2.eq(probe6),
+            probe3.eq(probe7),
             self.manta.interface.rx.eq(uart_pins.rx.i),
             uart_pins.tx.o.eq(self.manta.interface.tx),
         ]
@@ -126,4 +148,4 @@ def test_output_probe_initial_values_xilinx():
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_ice40():
-    IOCoreLoopbackTest(ICEStickPlatform(), "/dev/ttyUSB2").verify()
+    IOCoreLoopbackTest(ICEStickPlatform(), "/dev/ttyUSB3").verify()

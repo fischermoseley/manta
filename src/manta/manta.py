@@ -78,7 +78,7 @@ class Manta(Elaboratable):
         base_addr = 0
         for name, attrs in self.config["cores"].items():
             if attrs["type"] == "io":
-                core = IOCore(attrs, base_addr, self.interface)
+                core = IOCore.from_config(attrs, base_addr, self.interface)
 
             elif attrs["type"] == "logic_analyzer":
                 core = LogicAnalyzerCore(attrs, base_addr, self.interface)
