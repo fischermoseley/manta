@@ -5,20 +5,26 @@ from math import ceil
 
 class IOCore(Elaboratable):
     """
-    Contains the HDL to instantiate an IO core on a FPGA, and the functions to interact with it. For
-    more information on the core itself, check out the IO core documentation.
+    A module for setting and getting the values of registers of arbitrary size
+    on a FPGA.
+
+    Provides methods for generating synthesizable logic for the FPGA, as well
+    as methods for reading and writing the value of a register.
+
+    More information available in the online documentation at:
+    https://fischermoseley.github.io/manta/io_core/
     """
 
     def __init__(self, config, base_addr, interface):
-        self.config = config
+        self._config = config
         self.base_addr = base_addr
         self.interface = interface
+        self._check_config(self._config)
 
-        self.check_config(self.config)
         self.define_signals()
         self.mmap, self.max_addr = self.assign_memory()
 
-    def check_config(self, config):
+    def _check_config(self, config):
         # make sure ports are defined
         if "inputs" not in config and "outputs" not in config:
             raise ValueError("No input or output ports specified.")
@@ -91,14 +97,14 @@ class IOCore(Elaboratable):
         self.bus_o = Signal(InternalBus())
 
         # Input Probes (and buffers)
-        if "inputs" in self.config:
-            for name, width in self.config["inputs"].items():
+        if "inputs" in self._config:
+            for name, width in self._config["inputs"].items():
                 setattr(self, name, Signal(width, name=name))
                 setattr(self, name + "_buf", Signal(width, name=name + "_buf"))
 
         # Output Probes (and buffers)
-        if "outputs" in self.config:
-            for name, attrs in self.config["outputs"].items():
+        if "outputs" in self._config:
+            for name, attrs in self._config["outputs"].items():
                 if isinstance(attrs, dict):
                     width = attrs["width"]
                     initial_value = attrs["initial_value"]
@@ -148,11 +154,11 @@ class IOCore(Elaboratable):
 
         # Add all input and output probes
         all_probes = {}
-        if "inputs" in self.config:
-            all_probes = {**all_probes, **self.config["inputs"]}
+        if "inputs" in self._config:
+            all_probes = {**all_probes, **self._config["inputs"]}
 
-        if "outputs" in self.config:
-            all_probes = {**all_probes, **self.config["outputs"]}
+        if "outputs" in self._config:
+            all_probes = {**all_probes, **self._config["outputs"]}
 
         for name, attrs in all_probes.items():
             # Handle output probes that might have initial value specified in addition to width
@@ -184,15 +190,15 @@ class IOCore(Elaboratable):
         # Update buffers from probes
         with m.If(self.strobe):
             # Input buffers
-            if "inputs" in self.config:
-                for name in self.config["inputs"]:
+            if "inputs" in self._config:
+                for name in self._config["inputs"]:
                     input_probe = getattr(self, name)
                     input_probe_buf = getattr(self, name + "_buf")
                     m.d.sync += input_probe_buf.eq(input_probe)
 
             # Output buffers
-            if "outputs" in self.config:
-                for name in self.config["outputs"]:
+            if "outputs" in self._config:
+                for name in self._config["outputs"]:
                     output_probe = getattr(self, name)
                     output_probe_buf = getattr(self, name + "_buf")
                     m.d.sync += output_probe.eq(output_probe_buf)
@@ -213,23 +219,31 @@ class IOCore(Elaboratable):
         return m
 
     def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
+        """
         ports = []
-        if "inputs" in self.config:
-            for name in self.config["inputs"].keys():
+        if "inputs" in self._config:
+            for name in self._config["inputs"].keys():
                 ports.append(getattr(self, name))
 
-        if "outputs" in self.config:
-            for name in self.config["outputs"].keys():
+        if "outputs" in self._config:
+            for name in self._config["outputs"].keys():
                 ports.append(getattr(self, name))
 
         return ports
 
     def get_max_addr(self):
+        """
+        Return the maximum addresses in memory used by the core. The address space used
+        by the core extends from `base_addr` to the number returned by this function.
+        """
         return self.max_addr
 
     def set_probe(self, probe_name, value):
         # check that probe is an output probe
-        if probe_name not in self.config["outputs"]:
+        if probe_name not in self._config["outputs"]:
             raise ValueError(f"Output probe '{probe_name}' not found.")
 
         # check that value is an integer
@@ -237,7 +251,7 @@ class IOCore(Elaboratable):
             raise ValueError("Value must be an integer.")
 
         # get the width of the probe, make sure value isn't too large for the probe
-        attrs = self.config["outputs"][probe_name]
+        attrs = self._config["outputs"][probe_name]
         if isinstance(attrs, int):
             width = attrs
 

@@ -72,4 +72,8 @@ class LogicAnalyzerPlayback(Elaboratable):
         return m
 
     def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        exported Verilog module.
+        """
         return [self.start, self.valid] + list(self.top_level_probes.values())

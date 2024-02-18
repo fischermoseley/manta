@@ -13,6 +13,9 @@ class UARTInterface(Elaboratable):
 
     Provides methods for generating synthesizable logic for the FPGA, as well
     as methods for reading and writing to memory by the host.
+
+    More information available in the online documentation at:
+    https://fischermoseley.github.io/manta/uart_interface/
     """
 
     def __init__(self, port, baudrate, clock_freq, chunk_size=256):

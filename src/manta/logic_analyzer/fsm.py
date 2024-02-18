@@ -19,7 +19,11 @@ class TriggerModes(IntEnum):
 
 
 class LogicAnalyzerFSM(Elaboratable):
-    """ """
+    """
+    A module containing the state machine for a LogicAnalyzerCore. Primarily
+    responsible for controlling the write port of the Logic Analyzer's sample
+    memory in each trigger mode (immediate, incremental, single-shot).
+    """
 
     def __init__(self, config, base_addr, interface):
         self.config = config
@@ -47,6 +51,10 @@ class LogicAnalyzerFSM(Elaboratable):
         self.bus_o = self.r.bus_o
 
     def get_max_addr(self):
+        """
+        Return the maximum addresses in memory used by the core. The address space used
+        by the core extends from `base_addr` to the number returned by this function.
+        """
         return self.r.get_max_addr()
 
     def increment_mod_sample_depth(self, m, signal):

@@ -149,6 +149,10 @@ class Manta(Elaboratable):
         return m
 
     def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
+        """
         ports = self.interface.get_top_level_ports()
 
         for name, instance in self.cores.items():

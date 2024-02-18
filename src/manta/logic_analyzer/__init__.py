@@ -8,28 +8,14 @@ from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 class LogicAnalyzerCore(Elaboratable):
     """
-    A logic analzyer, implemented in the FPGA fabric. Connects to the rest of the cores
-    over Manta's internal bus, and may be operated from a user's machine through the Python API.
+    A module for generating a logic analyzer on the FPGA, with configurable
+    triggers, trigger position, and trigger modes.
 
-    Parameters:
-    ----------
-    config : dict
-        Configuration options. This is taken from the section of Manta's configuration YAML that
-        describes the core.
+    Provides methods for generating synthesizable logic for the FPGA, as well
+    as methods for reading and writing the value of a register.
 
-    base_addr : int
-        Where to place the core in Manta's internal memory map. This determines the beginning of
-        the core's address space. The end of the core's address space may be obtained by calling
-        the get_max_addr() method.
-
-    interface : UARTInterface or EthernetInterface
-        The interface used to communicate with the core.
-
-    Attributes:
-    ----------
-    None
-
-
+    More information available in the online documentation at:
+    https://fischermoseley.github.io/manta/logic_analyzer_core/
     """
 
     def __init__(self, config, base_addr, interface):
@@ -186,6 +172,10 @@ class LogicAnalyzerCore(Elaboratable):
         return m
 
     def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
+        """
         return self.probes
 
     def get_probe(self, name):
@@ -196,6 +186,10 @@ class LogicAnalyzerCore(Elaboratable):
         raise ValueError(f"Probe '{name}' not found in Logic Analyzer core.")
 
     def get_max_addr(self):
+        """
+        Return the maximum addresses in memory used by the core. The address space used
+        by the core extends from `base_addr` to the number returned by this function.
+        """
         return self.sample_mem.get_max_addr()
 
     def capture(self, verbose=False):

@@ -3,7 +3,12 @@ from manta.io_core import IOCore
 
 
 class LogicAnalyzerTriggerBlock(Elaboratable):
-    """ """
+    """
+    A module containing an instance of a LogicAnalyzerTrigger for each input
+    probe. The operations and arguments of these LogicAnalyzerTriggers are set
+    with an internal IOCore, which is connected to the internal bus, and allows
+    the triggers to be reprogrammed without reflashing the FPGA.
+    """
 
     def __init__(self, probes, base_addr, interface):
         # Instantiate a bunch of trigger blocks
@@ -26,6 +31,10 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         self.trig = Signal(1)
 
     def get_max_addr(self):
+        """
+        Return the maximum addresses in memory used by the core. The address space used
+        by the core extends from `base_addr` to the number returned by this function.
+        """
         return self.r.get_max_addr()
 
     def clear_triggers(self):
@@ -71,6 +80,12 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
 
 
 class LogicAnalyzerTrigger(Elaboratable):
+    """
+    A module containing a programmable "trigger" for a given input signal,
+    which asserts its output when the programmed "trigger condition" is met.
+    This condition is programmed through the `op` and `arg` inputs.
+    """
+
     def __init__(self, signal):
         self.operations = {
             "DISABLE": 0,
