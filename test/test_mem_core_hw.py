@@ -48,16 +48,33 @@ class MemoryCoreLoopbackTest(Elaboratable):
             },
         }
 
+    def get_probe(self, name):
+        # This is a hack! And should be removed once the full Amaranth-native
+        # API is built out
+        for i in self.manta.io_core._inputs:
+            if i.name == name:
+                return i
+
+        for o in self.manta.io_core._outputs:
+            if o.name == name:
+                return o
+
+        return None
+
     def elaborate(self, platform):
         m = Module()
         m.submodules.manta = self.manta
 
         uart_pins = platform.request("uart")
 
+        addr = self.get_probe("addr")
+        data = self.get_probe("data")
+        we = self.get_probe("we")
+
         m.d.comb += [
-            self.manta.mem_core.user_addr.eq(self.manta.io_core.addr),
-            self.manta.mem_core.user_data.eq(self.manta.io_core.data),
-            self.manta.mem_core.user_we.eq(self.manta.io_core.we),
+            self.manta.mem_core.user_addr.eq(addr),
+            self.manta.mem_core.user_data.eq(data),
+            self.manta.mem_core.user_we.eq(we),
             self.manta.interface.rx.eq(uart_pins.rx.i),
             uart_pins.tx.o.eq(self.manta.interface.tx),
         ]

@@ -165,7 +165,7 @@ class LogicAnalyzerCore(Elaboratable):
             self.bus_o.eq(sample_mem.bus_o),
             # Non-bus Connections
             fsm.trigger.eq(trig_blk.trig),
-            sample_mem.user_addr.eq(fsm.r.write_pointer),
+            sample_mem.user_addr.eq(fsm.write_pointer),
             sample_mem.user_we.eq(fsm.write_enable),
         ]
 
@@ -211,14 +211,14 @@ class LogicAnalyzerCore(Elaboratable):
 
         # If core is not in IDLE state, request that it return to IDLE
         print_if_verbose(" -> Resetting core...")
-        state = self.fsm.r.get_probe("state")
+        state = self.fsm.registers.get_probe("state")
         if state != States.IDLE:
-            self.fsm.r.set_probe("request_start", 0)
-            self.fsm.r.set_probe("request_stop", 0)
-            self.fsm.r.set_probe("request_stop", 1)
-            self.fsm.r.set_probe("request_stop", 0)
+            self.fsm.registers.set_probe("request_start", 0)
+            self.fsm.registers.set_probe("request_stop", 0)
+            self.fsm.registers.set_probe("request_stop", 1)
+            self.fsm.registers.set_probe("request_stop", 0)
 
-            if self.fsm.r.get_probe("state") != States.IDLE:
+            if self.fsm.registers.get_probe("state") != States.IDLE:
                 raise ValueError("Logic analyzer did not reset to IDLE state.")
 
         # Set triggers
@@ -232,28 +232,32 @@ class LogicAnalyzerCore(Elaboratable):
         print_if_verbose(" -> Setting trigger mode...")
         if "trigger_mode" in self.config:
             mode = self.config["trigger_mode"].upper()
-            self.fsm.r.set_probe("trigger_mode", TriggerModes[mode])
+            self.fsm.registers.set_probe("trigger_mode", TriggerModes[mode])
 
         else:
-            self.fsm.r.set_probe("trigger_mode", TriggerModes.SINGLE_SHOT)
+            self.fsm.registers.set_probe("trigger_mode", TriggerModes.SINGLE_SHOT)
 
         # Set trigger location
         print_if_verbose(" -> Setting trigger location...")
         if "trigger_location" in self.config:
-            self.fsm.r.set_probe("trigger_location", self.config["trigger_location"])
+            self.fsm.registers.set_probe(
+                "trigger_location", self.config["trigger_location"]
+            )
 
         else:
-            self.fsm.r.set_probe("trigger_location", self.config["sample_depth"] // 2)
+            self.fsm.registers.set_probe(
+                "trigger_location", self.config["sample_depth"] // 2
+            )
 
         # Send a start request to the state machine
         print_if_verbose(" -> Starting capture...")
-        self.fsm.r.set_probe("request_start", 0)
-        self.fsm.r.set_probe("request_start", 1)
-        self.fsm.r.set_probe("request_start", 0)
+        self.fsm.registers.set_probe("request_start", 0)
+        self.fsm.registers.set_probe("request_start", 1)
+        self.fsm.registers.set_probe("request_start", 0)
 
         # Poll the state machine's state, and wait for the capture to complete
         print_if_verbose(" -> Waiting for capture to complete...")
-        while self.fsm.r.get_probe("state") != States.CAPTURED:
+        while self.fsm.registers.get_probe("state") != States.CAPTURED:
             pass
 
         # Read out the entirety of the sample memory
@@ -264,7 +268,7 @@ class LogicAnalyzerCore(Elaboratable):
         # Revolve the memory around the read_pointer, such that all the beginning
         # of the caputure is at the first element
         print_if_verbose(" -> Checking read pointer and revolving memory...")
-        read_pointer = self.fsm.r.get_probe("read_pointer")
+        read_pointer = self.fsm.registers.get_probe("read_pointer")
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]
         return LogicAnalyzerCapture(data, self.config)

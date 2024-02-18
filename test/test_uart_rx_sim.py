@@ -14,8 +14,8 @@ def verify_receive(data):
 
     valid_asserted_before = False
 
-    for i in range(10 * uart_rx.clocks_per_baud):
-        bit_index = i // uart_rx.clocks_per_baud
+    for i in range(10 * uart_rx._clocks_per_baud):
+        bit_index = i // uart_rx._clocks_per_baud
 
         # Every cycle, run checks on uart_rx:
         if (yield uart_rx.valid_o):

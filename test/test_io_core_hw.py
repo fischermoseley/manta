@@ -148,4 +148,4 @@ def test_output_probe_initial_values_xilinx():
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_ice40():
-    IOCoreLoopbackTest(ICEStickPlatform(), "/dev/ttyUSB3").verify()
+    IOCoreLoopbackTest(ICEStickPlatform(), "/dev/ttyUSB2").verify()

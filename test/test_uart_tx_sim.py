@@ -26,8 +26,8 @@ def verify_bit_sequence(byte):
     data_bits = "0" + f"{byte:08b}"[::-1] + "1"
     data_bits = [int(bit) for bit in data_bits]
 
-    for i in range(10 * uart_tx.clocks_per_baud):
-        bit_index = i // uart_tx.clocks_per_baud
+    for i in range(10 * uart_tx._clocks_per_baud):
+        bit_index = i // uart_tx._clocks_per_baud
 
         if (yield uart_tx.tx) != data_bits[bit_index]:
             raise ValueError("Wrong bit in sequence!")

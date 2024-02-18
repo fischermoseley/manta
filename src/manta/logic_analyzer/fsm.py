@@ -26,29 +26,39 @@ class LogicAnalyzerFSM(Elaboratable):
     """
 
     def __init__(self, config, base_addr, interface):
-        self.config = config
+        self._sample_depth = config["sample_depth"]
+
+        # Outputs to rest of Logic Analyzer
         self.trigger = Signal(1)
         self.write_enable = Signal(1)
 
-        register_config = {
-            "inputs": {
-                "state": 4,
-                "read_pointer": ceil(log2(self.config["sample_depth"])),
-                "write_pointer": ceil(log2(self.config["sample_depth"])),
-            },
-            "outputs": {
-                "trigger_location": ceil(log2(self.config["sample_depth"])),
-                "trigger_mode": 2,
-                "request_start": 1,
-                "request_stop": 1,
-            },
-        }
+        # Outputs from FSM, inputs from IOCore
+        self.state = Signal(States)
+        self.read_pointer = Signal(range(self._sample_depth))
+        self.write_pointer = Signal(range(self._sample_depth))
+        inputs = [
+            self.state,
+            self.read_pointer,
+            self.write_pointer,
+        ]
 
-        self.r = IOCore(register_config, base_addr, interface)
+        # Inputs to FSM, outputs from IOCore
+        self.trigger_location = Signal(range(self._sample_depth))
+        self.trigger_mode = Signal(TriggerModes)
+        self.request_start = Signal()
+        self.request_stop = Signal()
+        outputs = [
+            self.trigger_location,
+            self.trigger_mode,
+            self.request_start,
+            self.request_stop,
+        ]
+
+        self.registers = IOCore(base_addr, interface, inputs, outputs)
 
         # Bus Input/Output
-        self.bus_i = self.r.bus_i
-        self.bus_o = self.r.bus_o
+        self.bus_i = self.registers.bus_i
+        self.bus_o = self.registers.bus_o
 
     def get_max_addr(self):
         """
@@ -56,38 +66,33 @@ class LogicAnalyzerFSM(Elaboratable):
         space used by the core extends from `base_addr` to the number returned
         by this function.
         """
-        return self.r.get_max_addr()
-
-    def increment_mod_sample_depth(self, m, signal):
-        # m.d.sync += signal.eq((signal + 1) % self.config["sample_depth"])
-
-        with m.If(signal == self.config["sample_depth"] - 1):
-            m.d.sync += signal.eq(0)
-
-        with m.Else():
-            m.d.sync += signal.eq(signal + 1)
+        return self.registers.get_max_addr()
 
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.registers = self.r
+        m.submodules.registers = self.registers
 
-        sample_depth = self.config["sample_depth"]
-        request_start = self.r.request_start
-        request_stop = self.r.request_stop
-        trigger_mode = self.r.trigger_mode
-        trigger_location = self.r.trigger_location
-        state = self.r.state
+        sample_depth = self._sample_depth
+        request_start = self.request_start
+        request_stop = self.request_stop
+        trigger_mode = self.trigger_mode
+        trigger_location = self.trigger_location
+        state = self.state
         write_enable = self.write_enable
-        write_pointer = self.r.write_pointer
-        read_pointer = self.r.read_pointer
+        write_pointer = self.write_pointer
+        read_pointer = self.read_pointer
 
-        prev_request_start = Signal(1)
-        prev_request_stop = Signal(1)
+        prev_request_start = Signal().like(request_start)
+        prev_request_stop = Signal().like(request_stop)
 
+        # Compute next_write_pointer as write_pointer + 1 % sample_depth
         next_write_pointer = Signal().like(write_pointer)
+        with m.If(write_pointer == self._sample_depth - 1):
+            m.d.comb += next_write_pointer.eq(0)
 
-        m.d.comb += next_write_pointer.eq((write_pointer + 1) % sample_depth)
+        with m.Else():
+            m.d.comb += next_write_pointer.eq(write_pointer + 1)
 
         # Rising edge detection for start/stop requests
         m.d.sync += prev_request_start.eq(request_start)

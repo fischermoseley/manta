@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib.enum import IntEnum
 from manta.io_core import IOCore
 
 
@@ -12,23 +13,20 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
 
     def __init__(self, probes, base_addr, interface):
         # Instantiate a bunch of trigger blocks
-        self.probes = probes
-        self.triggers = [LogicAnalyzerTrigger(p) for p in self.probes]
+        self._probes = probes
+        self._triggers = [LogicAnalyzerTrigger(p) for p in self._probes]
 
         # Make IO core for everything
-        outputs = {}
-        for p in self.probes:
-            outputs[p.name + "_arg"] = p.width
-            outputs[p.name + "_op"] = 4
-
-        self.r = IOCore({"outputs": outputs}, base_addr, interface)
+        ops = [t.op for t in self._triggers]
+        args = [t.arg for t in self._triggers]
+        self.registers = IOCore(base_addr, interface, outputs=ops + args)
 
         # Bus Input/Output
-        self.bus_i = self.r.bus_i
-        self.bus_o = self.r.bus_o
+        self.bus_i = self.registers.bus_i
+        self.bus_o = self.registers.bus_o
 
         # Global trigger. High if any probe is triggered.
-        self.trig = Signal(1)
+        self.trig = Signal()
 
     def get_max_addr(self):
         """
@@ -36,13 +34,13 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         space used by the core extends from `base_addr` to the number returned
         by this function.
         """
-        return self.r.get_max_addr()
+        return self.registers.get_max_addr()
 
     def clear_triggers(self):
         # reset all triggers to disabled with no argument
-        for p in self.probes:
-            self.r.set_probe(p.name + "_op", 0)
-            self.r.set_probe(p.name + "_arg", 0)
+        for p in self._probes:
+            self.registers.set_probe(p.name + "_op", Operations.DISABLE)
+            self.registers.set_probe(p.name + "_arg", 0)
 
     def set_triggers(self, config):
         # set triggers
@@ -52,32 +50,40 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
             # Handle triggers that don't need an argument
             if len(components) == 2:
                 name, op = components
-                self.r.set_probe(name + "_op", self.triggers[0].operations[op])
+                self.registers.set_probe(name + "_op", Operations[op].value)
 
             # Handle triggers that do need an argument
             elif len(components) == 3:
                 name, op, arg = components
-                self.r.set_probe(name + "_op", self.triggers[0].operations[op])
-                self.r.set_probe(name + "_arg", int(arg))
+                self.registers.set_probe(name + "_op", Operations[op].value)
+                self.registers.set_probe(name + "_arg", int(arg))
 
     def elaborate(self, platform):
         m = Module()
 
         # Add IO Core as submodule
-        m.submodules.registers = self.r
+        m.submodules.registers = self.registers
 
         # Add triggers as submodules
-        for t in self.triggers:
+        for t in self._triggers:
             m.submodules[t.signal.name + "_trigger"] = t
 
-        # Connect IO core registers to triggers
-        for probe, trigger in zip(self.probes, self.triggers):
-            m.d.comb += trigger.arg.eq(getattr(self.r, probe.name + "_arg"))
-            m.d.comb += trigger.op.eq(getattr(self.r, probe.name + "_op"))
-
-        m.d.comb += self.trig.eq(Cat([t.triggered for t in self.triggers]).any())
+        m.d.comb += self.trig.eq(Cat([t.triggered for t in self._triggers]).any())
 
         return m
+
+
+class Operations(IntEnum):
+    DISABLE = 0
+    RISING = 1
+    FALLING = 2
+    CHANGING = 3
+    GT = 4
+    LT = 5
+    GEQ = 6
+    LEQ = 7
+    EQ = 8
+    NEQ = 9
 
 
 class LogicAnalyzerTrigger(Elaboratable):
@@ -88,23 +94,10 @@ class LogicAnalyzerTrigger(Elaboratable):
     """
 
     def __init__(self, signal):
-        self.operations = {
-            "DISABLE": 0,
-            "RISING": 1,
-            "FALLING": 2,
-            "CHANGING": 3,
-            "GT": 4,
-            "LT": 5,
-            "GEQ": 6,
-            "LEQ": 7,
-            "EQ": 8,
-            "NEQ": 9,
-        }
-
         self.signal = signal
-        self.op = Signal(range(len(self.operations)))
-        self.arg = Signal().like(signal)
-        self.triggered = Signal(1)
+        self.op = Signal(Operations, name=signal.name + "_op")
+        self.arg = Signal(signal.width, name=signal.name + "_arg")
+        self.triggered = Signal()
 
     def elaborate(self, platform):
         m = Module()
@@ -113,34 +106,34 @@ class LogicAnalyzerTrigger(Elaboratable):
         prev = Signal().like(self.signal)
         m.d.sync += prev.eq(self.signal)
 
-        with m.If(self.op == self.operations["DISABLE"]):
+        with m.If(self.op == Operations.DISABLE):
             m.d.comb += self.triggered.eq(0)
 
-        with m.Elif(self.op == self.operations["RISING"]):
+        with m.Elif(self.op == Operations.RISING):
             m.d.comb += self.triggered.eq(self.signal > prev)
 
-        with m.Elif(self.op == self.operations["FALLING"]):
+        with m.Elif(self.op == Operations.FALLING):
             m.d.comb += self.triggered.eq(self.signal < prev)
 
-        with m.Elif(self.op == self.operations["CHANGING"]):
+        with m.Elif(self.op == Operations.CHANGING):
             m.d.comb += self.triggered.eq(self.signal != prev)
 
-        with m.Elif(self.op == self.operations["GT"]):
+        with m.Elif(self.op == Operations.GT):
             m.d.comb += self.triggered.eq(self.signal > self.arg)
 
-        with m.Elif(self.op == self.operations["LT"]):
+        with m.Elif(self.op == Operations.LT):
             m.d.comb += self.triggered.eq(self.signal < self.arg)
 
-        with m.Elif(self.op == self.operations["GEQ"]):
+        with m.Elif(self.op == Operations.GEQ):
             m.d.comb += self.triggered.eq(self.signal >= self.arg)
 
-        with m.Elif(self.op == self.operations["LEQ"]):
+        with m.Elif(self.op == Operations.LEQ):
             m.d.comb += self.triggered.eq(self.signal <= self.arg)
 
-        with m.Elif(self.op == self.operations["EQ"]):
+        with m.Elif(self.op == Operations.EQ):
             m.d.comb += self.triggered.eq(self.signal == self.arg)
 
-        with m.Elif(self.op == self.operations["NEQ"]):
+        with m.Elif(self.op == Operations.NEQ):
             m.d.comb += self.triggered.eq(self.signal != self.arg)
 
         with m.Else():

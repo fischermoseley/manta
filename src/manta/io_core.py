@@ -36,8 +36,8 @@ class IOCore(Elaboratable):
 
     @classmethod
     def from_config(cls, config, base_addr, interface):
-        inputs = config.get("inputs", [])
-        outputs = config.get("outputs", [])
+        inputs = config.get("inputs", {})
+        outputs = config.get("outputs", {})
 
         # Make sure IO core has at least one input or output
         if not inputs and not outputs:
@@ -178,7 +178,7 @@ class IOCore(Elaboratable):
         Return the Amaranth signals that should be included as ports in the
         top-level Manta module.
         """
-        return [self._inputs + self._outputs]
+        return self._inputs + self._outputs
 
     def get_max_addr(self):
         """

@@ -1,5 +1,6 @@
 from amaranth.sim import Simulator
 from manta.logic_analyzer import LogicAnalyzerCore
+from manta.logic_analyzer.trigger_block import Operations
 from manta.utils import *
 from random import sample
 
@@ -32,8 +33,8 @@ def print_data_at_addr(addr):
 
 
 def set_fsm_register(name, data):
-    addr = la.fsm.r.mmap[f"{name}_buf"]["addrs"][0]
-    strobe_addr = la.fsm.r.base_addr
+    addr = la.fsm.registers._memory_map[name]["addrs"][0]
+    strobe_addr = la.fsm.registers._base_addr
 
     yield from write_register(la, strobe_addr, 0)
     yield from write_register(la, addr, data)
@@ -42,8 +43,8 @@ def set_fsm_register(name, data):
 
 
 def set_trig_blk_register(name, data):
-    addr = la.trig_blk.r.mmap[f"{name}_buf"]["addrs"][0]
-    strobe_addr = la.trig_blk.r.base_addr
+    addr = la.trig_blk.registers._memory_map[name]["addrs"][0]
+    strobe_addr = la.trig_blk.registers._base_addr
 
     yield from write_register(la, strobe_addr, 0)
     yield from write_register(la, addr, data)
@@ -67,9 +68,7 @@ def test_single_shot_capture():
         yield from set_fsm_register("request_stop", 0)
 
         # setting triggers
-        yield from set_trig_blk_register(
-            "curly_op", la.trig_blk.triggers[0].operations["EQ"]
-        )
+        yield from set_trig_blk_register("curly_op", Operations.EQ)
         yield from set_trig_blk_register("curly_arg", 4)
 
         # setting trigger mode
