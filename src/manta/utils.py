@@ -38,14 +38,25 @@ def words_to_value(data):
     concatenates them together in little-endian order.
     """
 
-    for d in data:
-        if d > 0 and d > 2**16 - 1:
-            raise ValueError("Unsigned integer too large.")
-
-        if d < 0 and d < -(2**15):
-            raise ValueError("Signed integer too large.")
+    [check_value_fits_in_bits(d, 16) for d in data]
 
     return int("".join([f"{i:016b}" for i in data[::-1]]), 2)
+
+
+def check_value_fits_in_bits(value, n_bits):
+    """
+    Rasies an exception if the provided value isn't an integer that cannot
+    be expressed with the provided number of bits.
+    """
+
+    if not isinstance(value, int):
+        raise TypeError("Value must be an integer.")
+
+    if value > 0 and value > 2**n_bits - 1:
+        raise ValueError("Unsigned integer too large.")
+
+    if value < 0 and value < -(2 ** (n_bits - 1)):
+        raise ValueError("Signed integer too large.")
 
 
 def value_to_words(data, n_words):

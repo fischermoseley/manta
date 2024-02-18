@@ -32,8 +32,9 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
 
     def get_max_addr(self):
         """
-        Return the maximum addresses in memory used by the core. The address space used
-        by the core extends from `base_addr` to the number returned by this function.
+        Return the maximum addresses in memory used by the core. The address
+        space used by the core extends from `base_addr` to the number returned
+        by this function.
         """
         return self.r.get_max_addr()
 
