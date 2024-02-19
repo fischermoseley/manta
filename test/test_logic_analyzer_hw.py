@@ -36,9 +36,9 @@ class LogicAnalyzerCounterTest(Elaboratable):
         m.submodules.manta = self.manta
         uart_pins = platform.request("uart")
 
-        larry = self.manta.la.probes[0]
-        curly = self.manta.la.probes[1]
-        moe = self.manta.la.probes[2]
+        larry = self.manta.la._probes[0]
+        curly = self.manta.la._probes[1]
+        moe = self.manta.la._probes[2]
 
         m.d.sync += larry.eq(larry + 1)
         m.d.sync += curly.eq(curly + 1)
@@ -61,11 +61,14 @@ class LogicAnalyzerCounterTest(Elaboratable):
         # check that VCD export works
         cap.export_vcd("out.vcd")
 
+        # check that CSV export works
+        cap.export_csv("out.csv")
+
         # check that Verilog export works
         cap.export_playback_verilog("out.v")
 
         # verify that each signal is just a counter modulo the width of the signal
-        for name, width in self.manta.la.config["probes"].items():
+        for name, width in self.manta.la._config["probes"].items():
             trace = cap.get_trace(name)
 
             for i in range(len(trace) - 1):

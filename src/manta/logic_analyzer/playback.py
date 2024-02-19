@@ -3,10 +3,9 @@ from amaranth import *
 
 class LogicAnalyzerPlayback(Elaboratable):
     """
-    A synthesizable module that plays back data captured by a LogicAnalyzerCore.
-
-    Takes a list of all the samples captured by a core, along with the config
-    of the core used to take it.
+    A synthesizable module that plays back data captured by a
+    LogicAnalyzerCore. Takes a list of all the samples captured by a core,
+    along with the config of the core used to take it.
     """
 
     def __init__(self, data, config):
@@ -73,7 +72,7 @@ class LogicAnalyzerPlayback(Elaboratable):
 
     def get_top_level_ports(self):
         """
-        Return the Amaranth signals that should be included as ports in the
+        Returns the Amaranth signals that should be included as ports in the
         exported Verilog module.
         """
         return [self.start, self.valid] + list(self.top_level_probes.values())
