@@ -15,8 +15,7 @@ def fill_mem_from_user_port(mem_core, depth):
 
 
 def verify_mem_core(width, depth, base_addr):
-    config = {"type": "memory", "width": width, "depth": depth}
-    mem_core = ReadOnlyMemoryCore(config, base_addr, interface=None)
+    mem_core = ReadOnlyMemoryCore(width, depth, base_addr, interface=None)
 
     def testbench():
         yield from fill_mem_from_user_port(mem_core, depth)

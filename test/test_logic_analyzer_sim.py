@@ -33,8 +33,8 @@ def print_data_at_addr(addr):
 
 
 def set_fsm_register(name, data):
-    addr = la.fsm.registers._memory_map[name]["addrs"][0]
-    strobe_addr = la.fsm.registers._base_addr
+    addr = la._fsm.registers._memory_map[name]["addrs"][0]
+    strobe_addr = la._fsm.registers._base_addr
 
     yield from write_register(la, strobe_addr, 0)
     yield from write_register(la, addr, data)
@@ -43,8 +43,8 @@ def set_fsm_register(name, data):
 
 
 def set_trig_blk_register(name, data):
-    addr = la.trig_blk.registers._memory_map[name]["addrs"][0]
-    strobe_addr = la.trig_blk.registers._base_addr
+    addr = la._trig_blk.registers._memory_map[name]["addrs"][0]
+    strobe_addr = la._trig_blk.registers._base_addr
 
     yield from write_register(la, strobe_addr, 0)
     yield from write_register(la, addr, data)
@@ -54,7 +54,7 @@ def set_trig_blk_register(name, data):
 
 def set_probe(name, value):
     probe = None
-    for p in la.probes:
+    for p in la._probes:
         if p.name == name:
             probe = p
 

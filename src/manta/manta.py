@@ -84,7 +84,7 @@ class Manta(Elaboratable):
                 core = LogicAnalyzerCore(attrs, base_addr, self.interface)
 
             elif attrs["type"] == "memory_read_only":
-                core = ReadOnlyMemoryCore(attrs, base_addr, self.interface)
+                core = ReadOnlyMemoryCore.from_config(attrs, base_addr, self.interface)
 
             # make sure we're not out of address space
             if core.get_max_addr() > (2**16) - 1:

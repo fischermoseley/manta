@@ -15,14 +15,12 @@ class ReadOnlyMemoryCore(Elaboratable):
     https://fischermoseley.github.io/manta/memory_core/
     """
 
-    def __init__(self, config, base_addr, interface):
-        self._config = config
+    def __init__(self, width, depth, base_addr, interface):
+        self._width = width
+        self._depth = depth
         self._base_addr = base_addr
         self._interface = interface
-        self._check_config(config)
 
-        self._depth = self._config["depth"]
-        self._width = self._config["width"]
         self._max_addr = self._base_addr + (self._depth * ceil(self._width / 16))
 
         # Bus Connections
@@ -36,7 +34,8 @@ class ReadOnlyMemoryCore(Elaboratable):
 
         self._define_mems()
 
-    def _check_config(self, config):
+    @classmethod
+    def from_config(cls, config, base_addr, interface):
         # Check for unrecognized options
         valid_options = ["type", "depth", "width"]
         for option in config:
@@ -44,24 +43,28 @@ class ReadOnlyMemoryCore(Elaboratable):
                 warn(f"Ignoring unrecognized option '{option}' in memory core.")
 
         # Check depth is provided and positive
-        if "depth" not in config:
+        depth = config.get("depth")
+        if not depth:
             raise ValueError("Depth of memory core must be specified.")
 
-        if not isinstance(config["depth"], int):
+        if not isinstance(depth, int):
             raise ValueError("Depth of memory core must be an integer.")
 
-        if config["depth"] <= 0:
+        if not depth > 0:
             raise ValueError("Depth of memory core must be positive. ")
 
         # Check width is provided and positive
-        if "width" not in config:
+        width = config.get("width")
+        if not width:
             raise ValueError("Width of memory core must be specified.")
 
-        if not isinstance(config["width"], int):
+        if not isinstance(width, int):
             raise ValueError("Width of memory core must be an integer.")
 
-        if config["width"] <= 0:
+        if not width > 0:
             raise ValueError("Width of memory core must be positive. ")
+
+        cls(width, depth, base_addr, interface)
 
     def _pipeline_bus(self, m):
         self._bus_pipe = [Signal(InternalBus()) for _ in range(3)]
@@ -160,7 +163,8 @@ class ReadOnlyMemoryCore(Elaboratable):
 
     def read_from_user_addr(self, addrs):
         """
-        Read the memory stored at the provided address, as seen from the user side.
+        Read the memory stored at the provided address, as seen from the user
+        side.
         """
 
         # Convert user address space to bus address space
@@ -180,20 +184,3 @@ class ReadOnlyMemoryCore(Elaboratable):
         datas = self._interface.read(bus_addrs)
         data_chunks = split_into_chunks(datas, len(self._mems))
         return [words_to_value(chunk) for chunk in data_chunks]
-
-    # def write_to_user_addr(self, addrs, datas):
-    #     """
-    #     Read from the address
-    #     """
-
-    #     bus_addrs = []
-    #     for addr in addrs:
-    #         bus_addrs += [
-    #             addr + self._base_addr + i * self._depth for i in range(len(self._mems))
-    #         ]
-
-    #     bus_datas = []
-    #     for data in datas:
-    #         bus_datas += value_to_words(data)
-
-    #     self._interface.write(bus_addrs, bus_datas)

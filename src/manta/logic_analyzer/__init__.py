@@ -1,8 +1,8 @@
 from amaranth import *
 from manta.utils import *
+from manta.memory_core import ReadOnlyMemoryCore
 from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
 from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States, TriggerModes
-from manta.logic_analyzer.sample_mem import LogicAnalyzerSampleMemory
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 
@@ -35,8 +35,12 @@ class LogicAnalyzerCore(Elaboratable):
         self._trig_blk = LogicAnalyzerTriggerBlock(
             self._probes, self._fsm.get_max_addr() + 1, interface
         )
-        self._sample_mem = LogicAnalyzerSampleMemory(
-            self._config, self._trig_blk.get_max_addr() + 1, interface
+
+        self._sample_mem = ReadOnlyMemoryCore(
+            width=sum(self._config["probes"].values()),
+            depth=self._config["sample_depth"],
+            base_addr=self._trig_blk.get_max_addr() + 1,
+            interface=interface,
         )
 
     def _check_config(self):
@@ -317,12 +321,12 @@ class LogicAnalyzerCapture:
         values_t = [list(x) for x in zip(*values)]
 
         import csv
-        with open(path, 'w') as f:
+
+        with open(path, "w") as f:
             writer = csv.writer(f)
 
             writer.writerow(names)
             writer.writerows(values_t)
-
 
     def export_vcd(self, path):
         """
