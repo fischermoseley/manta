@@ -9,24 +9,26 @@ from manta.logic_analyzer import LogicAnalyzerCore
 
 class Manta(Elaboratable):
     def __init__(self, config):
-        # load config from either a configuration file or a dictionary. Users primarily use the
-        # config file, but the dictionary is included for internal tests.
+        # Load config from either a configuration file or a dictionary.
+        # Users primarily use the config file, but the dictionary is
+        # included for internal tests.
 
         if isinstance(config, str):
-            self.config = self.read_config_file(config)
+            self._config = self._read_config_file(config)
 
         if isinstance(config, dict):
-            self.config = config
+            self._config = config
 
-        self.check_config()
+        self._check_config()
 
-        self.interface = self.get_interface()
-        self.cores = self.get_cores()
-        self.add_friendly_core_names()
+        self._get_interface()
+        self._get_cores()
+        self._add_friendly_core_names()
 
-    def read_config_file(self, path):
+    def _read_config_file(self, path):
         """
-        Take path to configuration file, and retun the configuration as a python list/dict object.
+        Takes a path to configuration file, and return the configuration as a
+        python dictionary.
         """
 
         extension = path.split(".")[-1]
@@ -46,37 +48,46 @@ class Manta(Elaboratable):
         else:
             raise ValueError("Unable to recognize configuration file extension.")
 
-    def check_config(self):
-        if "cores" not in self.config:
+    def _check_config(self):
+        if "cores" not in self._config:
             raise ValueError("No cores specified in configuration file.")
 
-        if not len(self.config["cores"]) > 0:
+        if not len(self._config["cores"]) > 0:
             raise ValueError("Must specify at least one core.")
 
-        for name, attrs in self.config["cores"].items():
-            # make sure core type is specified
+        for name, attrs in self._config["cores"].items():
+            # Make sure core type is specified
             if "type" not in attrs:
                 raise ValueError(f"No type specified for core {name}.")
 
             if attrs["type"] not in ["logic_analyzer", "io", "memory_read_only"]:
                 raise ValueError(f"Unrecognized core type specified for {name}.")
 
-    def get_interface(self):
-        if "uart" in self.config:
-            return UARTInterface.from_config(self.config["uart"])
+    def _get_interface(self):
+        """
+        Returns an instance of an interface object (UARTInterface or
+        EthernetInterface) configured with the parameters in the
+        config file.
+        """
+        if "uart" in self._config:
+            self.interface = UARTInterface.from_config(self._config["uart"])
 
-        elif "ethernet" in self.config:
-            return EthernetInterface(self.config["ethernet"])
+        elif "ethernet" in self._config:
+            self.interface = EthernetInterface(self._config["ethernet"])
 
         else:
             raise ValueError("No recognized interface specified.")
 
-    def get_cores(self):
-        """ """
+    def _get_cores(self):
+        """
+        Creates instances of the cores (IOCore, LogicAnalyzerCore,
+        ReadOnlyMemoryCore) specified in the user's configuration, and returns
+        them as a list.
+        """
 
-        cores = {}
+        self._cores = {}
         base_addr = 0
-        for name, attrs in self.config["cores"].items():
+        for name, attrs in self._config["cores"].items():
             if attrs["type"] == "io":
                 core = IOCore.from_config(attrs, base_addr, self.interface)
 
@@ -86,7 +97,7 @@ class Manta(Elaboratable):
             elif attrs["type"] == "memory_read_only":
                 core = ReadOnlyMemoryCore.from_config(attrs, base_addr, self.interface)
 
-            # make sure we're not out of address space
+            # Make sure we're not out of address space
             if core.get_max_addr() > (2**16) - 1:
                 raise ValueError(
                     f"Ran out of address space to allocate to core {name}."
@@ -94,18 +105,16 @@ class Manta(Elaboratable):
 
             # Make the next core's base address start one address after the previous one's
             base_addr = core.get_max_addr() + 1
-            cores[name] = core
+            self._cores[name] = core
 
-        return cores
-
-    def add_friendly_core_names(self):
+    def _add_friendly_core_names(self):
         """
         Add cores to the instance under a friendly name - ie, a core named `my_core` belonging
         to a Manta instance `m` could be obtained with `m.cores["my_core"]`, but this allows
         it to be obtained with `m.my_core`. Which is way nicer.
         """
 
-        for name, instance in self.cores.items():
+        for name, instance in self._cores.items():
             if not hasattr(self, name):
                 setattr(self, name, instance)
 
@@ -115,24 +124,17 @@ class Manta(Elaboratable):
                 )
 
     def elaborate(self, platform):
-        # make a module object
-        # add all the submodules
-        # connect them together, which consists of:
-        # connect interface to first core
-        # connect cores to each other
-        # connect interface to last core
-
         m = Module()
 
         # Add interface as submodule
         m.submodules.interface = self.interface
 
         # Add all cores as submodules
-        for name, instance in self.cores.items():
+        for name, instance in self._cores.items():
             m.submodules[name] = instance
 
         # Connect first/last cores to interface output/input respectively
-        core_instances = list(self.cores.values())
+        core_instances = list(self._cores.values())
         first_core = core_instances[0]
         last_core = core_instances[-1]
 
@@ -155,7 +157,7 @@ class Manta(Elaboratable):
         """
         ports = self.interface.get_top_level_ports()
 
-        for name, instance in self.cores.items():
+        for name, instance in self._cores.items():
             ports += instance.get_top_level_ports()
 
         return ports

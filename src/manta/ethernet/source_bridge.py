@@ -19,7 +19,7 @@ class UDPSourceBridge(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        state = Signal()  # can either be 0, for read/write, or 1, for data
+        state = Signal()  # Can either be 0, for read/write, or 1, for data
         rw_buf = Signal().like(self.bus_o.rw)
 
         # Can always take more data

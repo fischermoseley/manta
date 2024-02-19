@@ -113,7 +113,7 @@ def ports():
     for port in serial.tools.list_ports.comports():
         print(port)
 
-        # sometimes macOS will enumerate non-serial devices as serial ports,
+        # Sometimes macOS will enumerate non-serial devices as serial ports,
         # in which case the PID/VID/serial/location/etc are all None
         pid = f"0x{port.pid:04X}" if port.pid is not None else "None"
         vid = f"0x{port.vid:04X}" if port.vid is not None else "None"

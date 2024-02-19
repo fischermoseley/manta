@@ -27,7 +27,7 @@ def warn(message):
     Prints a warning to the user's terminal. Originally the warn() method
     from the builtin warnings module was used for this, but I don't think the
     way it outputs on the command line is the most helpful for the users.
-    (They don't care about the stacktrace or the filename/line number, for example.)
+    (ie, Users don't care about the stacktrace or the filename/line number.)
     """
     print("Warning: " + message)
 
@@ -68,7 +68,7 @@ def value_to_words(data, n_words):
     if not isinstance(data, int) or data < 0:
         raise ValueError("Behavior is only defined for nonnegative integers.")
 
-    # convert to binary, split into 16-bit chunks, and then convert back to list of int
+    # Convert to binary, split into 16-bit chunks, and then convert back to list of int
     binary = f"{data:0b}".zfill(n_words * 16)
     return [int(binary[i : i + 16], 2) for i in range(0, 16 * n_words, 16)][::-1]
 
@@ -113,7 +113,7 @@ def verify_register(module, addr, expected_data):
     possible to return a value from here, and compare it in the calling function.
     """
 
-    # place read transaction on the bus
+    # Place read transaction on the bus
     yield module.bus_i.addr.eq(addr)
     yield module.bus_i.data.eq(0)
     yield module.bus_i.rw.eq(0)
@@ -122,11 +122,11 @@ def verify_register(module, addr, expected_data):
     yield module.bus_i.addr.eq(0)
     yield module.bus_i.valid.eq(0)
 
-    # wait for output to be valid
+    # Wait for output to be valid
     while not (yield module.bus_o.valid):
         yield
 
-    # compare returned value with expected
+    # Compare returned value with expected
     data = yield (module.bus_o.data)
     if data != expected_data:
         raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")

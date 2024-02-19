@@ -292,7 +292,7 @@ class LogicAnalyzerCapture:
         Gets the value of a single probe over the capture.
         """
 
-        # sum up the widths of all the probes below this one
+        # Sum up the widths of all the probes below this one
         lower = 0
         for name, width in self._config["probes"].items():
             if name == probe_name:
@@ -300,7 +300,7 @@ class LogicAnalyzerCapture:
 
             lower += width
 
-        # add the width of the probe we'd like
+        # Add the width of the probe we'd like
         upper = lower + self._config["probes"][probe_name]
 
         total_probe_width = sum(self._config["probes"].values())
@@ -342,7 +342,7 @@ class LogicAnalyzerCapture:
         vcd_file = open(path, "w")
 
         with VCDWriter(vcd_file, "10 ns", timestamp, "manta") as writer:
-            # each probe has a name, width, and writer associated with it
+            # Each probe has a name, width, and writer associated with it
             signals = []
             for name, width in self._config["probes"].items():
                 signal = {
@@ -355,19 +355,19 @@ class LogicAnalyzerCapture:
 
             clock = writer.register_var("manta", "clk", "wire", size=1)
 
-            # include a trigger signal such would be meaningful (ie, we didn't trigger immediately)
+            # Include a trigger signal such would be meaningful (ie, we didn't trigger immediately)
             if (
                 "trigger_mode" not in self._config
                 or self._config["trigger_mode"] == "single_shot"
             ):
                 trigger = writer.register_var("manta", "trigger", "wire", size=1)
 
-            # add the data to each probe in the vcd file
+            # Add the data to each probe in the vcd file
             for timestamp in range(0, 2 * len(self._data)):
-                # run the clock
+                # Run the clock
                 writer.change(clock, timestamp, timestamp % 2 == 0)
 
-                # set the trigger (if there is one)
+                # Set the trigger (if there is one)
                 if (
                     "trigger_mode" not in self._config
                     or self._config["trigger_mode"] == "single_shot"
@@ -375,7 +375,7 @@ class LogicAnalyzerCapture:
                     triggered = (timestamp // 2) >= self.get_trigger_location()
                     writer.change(trigger, timestamp, triggered)
 
-                # add other signals
+                # Add other signals
                 for signal in signals:
                     var = signal["var"]
                     sample = signal["data"][timestamp // 2]

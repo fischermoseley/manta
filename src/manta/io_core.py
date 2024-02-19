@@ -84,13 +84,13 @@ class IOCore(Elaboratable):
                 initial_value = 0
 
             if isinstance(attrs, dict):
-                # check that each output probe has only recognized options
+                # Check that each output probe has only recognized options
                 valid_options = ["width", "initial_value"]
                 for option in attrs:
                     if option not in valid_options:
                         warn(f'Ignoring unrecognized option "{option}" in IO core.')
 
-                # check that widths are appropriate
+                # Check that widths are appropriate
                 if "width" not in attrs:
                     raise ValueError(f"No width specified for output probe {name}.")
 

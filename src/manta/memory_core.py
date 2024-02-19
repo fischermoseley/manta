@@ -64,7 +64,7 @@ class ReadOnlyMemoryCore(Elaboratable):
         if not width > 0:
             raise ValueError("Width of memory core must be positive. ")
 
-        cls(width, depth, base_addr, interface)
+        return cls(width, depth, base_addr, interface)
 
     def _pipeline_bus(self, m):
         self._bus_pipe = [Signal(InternalBus()) for _ in range(3)]

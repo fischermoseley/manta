@@ -37,13 +37,13 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         return self.registers.get_max_addr()
 
     def clear_triggers(self):
-        # reset all triggers to disabled with no argument
+        # Reset all triggers to disabled with no argument
         for p in self._probes:
             self.registers.set_probe(p.name + "_op", Operations.DISABLE)
             self.registers.set_probe(p.name + "_arg", 0)
 
     def set_triggers(self, config):
-        # set triggers
+        # Set triggers
         for trigger in config["triggers"]:
             components = trigger.strip().split(" ")
 
