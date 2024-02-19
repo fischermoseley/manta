@@ -22,6 +22,10 @@ class EthernetInterface(Elaboratable):
         self._fpga_ip_addr = config.get("fpga_ip_addr")
         self._host_ip_addr = config.get("host_ip_addr")
         self._udp_port = config.get("udp_port")
+
+        # Convert to float first because Python considers scientific notation
+        # to only represent floats, not ints.
+        self._clk_freq = int(float(config.get("clk_freq")))
         self._check_config()
 
         self.bus_i = Signal(InternalBus())
@@ -37,7 +41,7 @@ class EthernetInterface(Elaboratable):
         self.rmii_tx_en = Signal()
 
         self._dhcp_start = Signal()
-        self._dhcp_timer = Signal(range(int(100e6)))
+        self._dhcp_timer = Signal(range(self._clk_freq + 1), reset=self._clk_freq)
 
         self._source_data = Signal(32)
         self._source_last = Signal()
@@ -109,11 +113,20 @@ class EthernetInterface(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(self._dhcp_timer < int(50e6)):
-            m.d.sync += self._dhcp_timer.eq(self._dhcp_timer + 1)
+        # The DHCP engine in the LiteEth core will request a new IP address
+        # when the dhcp_start signal is pulsed. It doesn't want this signal
+        # immediately at power-on though, so a timer is used to request an IP
+        # one second after power on. The self._clk_freq attribute is used to
+        # figure out how many clock cycles that equates to.
 
-        m.d.sync += self._dhcp_start.eq(self._dhcp_timer == (int(50e6) - 2))
+        # In my limited testing this seems to be enough time.
 
+        with m.If(self._dhcp_timer < 0):
+            m.d.sync += self._dhcp_timer.eq(self._dhcp_timer - 1)
+
+        m.d.sync += self._dhcp_start.eq(self._dhcp_timer == 1)
+
+        # Add the LiteEth core as a submodule
         m.submodules.liteeth = Instance(
             "liteeth_core",
             ("i", "sys_clock", ClockSignal()),

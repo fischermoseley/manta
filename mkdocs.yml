@@ -3,7 +3,7 @@ site_description: Manta Documentation
 site_author: Fischer Moseley
 
 repo_url: https://github.com/fischermoseley/manta/
-
+repo_name: fischermoseley/manta
 docs_dir: 'doc'
 
 theme:
