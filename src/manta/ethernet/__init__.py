@@ -22,6 +22,7 @@ class EthernetInterface(Elaboratable):
         self._fpga_ip_addr = config.get("fpga_ip_addr")
         self._host_ip_addr = config.get("host_ip_addr")
         self._udp_port = config.get("udp_port")
+        self._phy = config.get("phy")
 
         # Convert to float first because Python considers scientific notation
         # to only represent floats, not ints.
@@ -31,14 +32,7 @@ class EthernetInterface(Elaboratable):
         self.bus_i = Signal(InternalBus())
         self.bus_o = Signal(InternalBus())
 
-        self.rmii_clocks_ref_clk = Signal()
-        self.rmii_crs_dv = Signal()
-        self.rmii_mdc = Signal()
-        self.rmii_mdio = Signal()
-        self.rmii_rst_n = Signal()
-        self.rmii_rx_data = Signal(2)
-        self.rmii_tx_data = Signal(2)
-        self.rmii_tx_en = Signal()
+        self._phy_io = self._define_phy_io()
 
         self._dhcp_start = Signal()
         self._dhcp_timer = Signal(range(self._clk_freq + 1), reset=self._clk_freq)
@@ -94,21 +88,101 @@ class EthernetInterface(Elaboratable):
         Return the Amaranth signals that should be included as ports in the
         top-level Manta module.
         """
-        ports = [
-            self.rmii_clocks_ref_clk,
-            self.rmii_crs_dv,
-            self.rmii_mdc,
-            self.rmii_mdio,
-            self.rmii_rst_n,
-            self.rmii_rx_data,
-            self.rmii_tx_data,
-            self.rmii_tx_en,
-        ]
-        return ports
+        return [io[2] for io in self._phy_io]
 
     def _binarize_ip_addr(self, ip_addr):
         octets = [bin(int(o))[2:].zfill(8) for o in ip_addr.split(".")]
         return int("".join(octets), 2)
+
+    def _define_phy_io(self):
+        if self._phy in ["LiteEthPHYMII"]:
+            return [
+                ("i", "mii_clocks_tx", mii_clocks_tx := Signal()),
+                ("i", "mii_clocks_rx", mii_clocks_rx := Signal()),
+                ("o", "mii_rst_n", mii_rst_n := Signal()),
+                ("io", "mii_mdio", mii_mdio := Signal()),
+                ("o", "mii_mdc", mii_mdc := Signal()),
+                ("i", "mii_rx_dv", mii_rx_dv := Signal()),
+                ("i", "mii_rx_er", mii_rx_er := Signal()),
+                ("i", "mii_rx_data", mii_rx_data := Signal(4)),
+                ("o", "mii_tx_en", mii_tx_en := Signal()),
+                ("o", "mii_tx_data", mii_tx_data := Signal(4)),
+                ("i", "mii_col", mii_col := Signal()),
+                ("i", "mii_crs", mii_crs := Signal()),
+            ]
+
+        elif self._phy in ["LiteEthPHYRMII"]:
+            return [
+                ("i", "rmii_clocks_ref_clk", rmii_clocks_ref_clk := Signal()),
+                ("o", "rmii_rst_n", rmii_rst_n := Signal()),
+                ("i", "rmii_rx_data", rmii_rx_data := Signal(2)),
+                ("i", "rmii_crs_dv", rmii_crs_dv := Signal()),
+                ("o", "rmii_tx_en", rmii_tx_en := Signal()),
+                ("o", "rmii_tx_data", rmii_tx_data := Signal(2)),
+                ("o", "rmii_mdc", rmii_mdc := Signal()),
+                ("io", "rmii_mdio", rmii_mdio := Signal()),
+            ]
+
+        elif self._phy in [
+            "LiteEthPHYGMII",
+            "LiteEthPHYGMIIMII",
+        ]:
+            return [
+                ("i", "gmii_clocks_tx", gmii_clocks_tx := Signal()),
+                ("o", "gmii_clocks_gtx", gmii_clocks_gtx := Signal()),
+                ("i", "gmii_clocks_rx", gmii_clocks_rx := Signal()),
+                ("o", "gmii_rst_n", gmii_rst_n := Signal()),
+                ("i", "gmii_int_n", gmii_int_n := Signal()),
+                ("io", "gmii_mdio", gmii_mdio := Signal()),
+                ("o", "gmii_mdc", gmii_mdc := Signal()),
+                ("i", "gmii_rx_dv", gmii_rx_dv := Signal()),
+                ("i", "gmii_rx_er", gmii_rx_er := Signal()),
+                ("i", "gmii_rx_data", gmii_rx_data := Signal(8)),
+                ("o", "gmii_tx_en", gmii_tx_en := Signal()),
+                ("o", "gmii_tx_er", gmii_tx_er := Signal()),
+                ("o", "gmii_tx_data", gmii_tx_data := Signal(8)),
+                ("i", "gmii_col", gmii_col := Signal()),
+                ("i", "gmii_crs", gmii_crs := Signal()),
+            ]
+
+        elif self._phy in [
+            "LiteEthS7PHYRGMII",
+            "LiteEthECP5PHYRGMII",
+        ]:
+            return [
+                ("o", "rgmii_clocks_tx", rgmii_clocks_tx := Signal()),
+                ("i", "rgmii_clocks_rx", rgmii_clocks_rx := Signal()),
+                ("o", "rgmii_rst_n", rgmii_rst_n := Signal()),
+                ("i", "rgmii_int_n", rgmii_int_n := Signal()),
+                ("io", "rgmii_mdio", rgmii_mdio := Signal()),
+                ("o", "rgmii_mdc", rgmii_mdc := Signal()),
+                ("i", "rgmii_rx_ctl", rgmii_rx_ctl := Signal()),
+                ("i", "rgmii_rx_data", rgmii_rx_data := Signal(4)),
+                ("o", "rgmii_tx_ctl", rgmii_tx_ctl := Signal()),
+                ("o", "rgmii_tx_data", rgmii_tx_data := Signal(4)),
+            ]
+
+        elif self._phy in [
+            "A7_1000BASEX",
+            "A7_2500BASEX",
+            "K7_1000BASEX",
+            "K7_2500BASEX",
+            "KU_1000BASEX",
+            "KU_2500BASEX",
+            "USP_GTH_1000BASEX",
+            "USP_GTH_2500BASEX",
+            "USP_GTY_1000BASEX",
+            "USP_GTY_2500BASEX",
+        ]:
+            return [
+                ("i", "sgmii_refclk", sgmii_refclk := Signal()),
+                ("i", "sgmii_rst", sgmii_rst := Signal()),
+                ("o", "sgmii_txp", sgmii_txp := Signal()),
+                ("o", "sgmii_txn", sgmii_txn := Signal()),
+                ("i", "sgmii_rxp", sgmii_rxp := Signal()),
+                ("i", "sgmii_rxn", sgmii_rxn := Signal()),
+                ("o", "sgmii_link_up", sgmii_link_up := Signal()),
+            ]
 
     def elaborate(self, platform):
         m = Module()
@@ -132,14 +206,7 @@ class EthernetInterface(Elaboratable):
             ("i", "sys_clock", ClockSignal()),
             ("i", "sys_reset", ResetSignal()),
             # PHY connection
-            ("i", "rmii_clocks_ref_clk", self.rmii_clocks_ref_clk),
-            ("i", "rmii_crs_dv", self.rmii_crs_dv),
-            ("o", "rmii_mdc", self.rmii_mdc),
-            ("io", "rmii_mdio", self.rmii_mdio),
-            ("o", "rmii_rst_n", self.rmii_rst_n),
-            ("i", "rmii_rx_data", self.rmii_rx_data),
-            ("o", "rmii_tx_data", self.rmii_tx_data),
-            ("o", "rmii_tx_en", self.rmii_tx_en),
+            *self._phy_io,
             # DHCP
             # ("o", "dhcp_done", 1),
             # ("o", "dhcp_ip_address", 1),
@@ -265,15 +332,17 @@ class EthernetInterface(Elaboratable):
         """
         liteeth_config = self._config.copy()
 
-        # Randomly assign a MAC address if one is not specified in the configuration.
-        # This will choose a MAC address in the Locally Administered, Administratively Assigned group.
-        # For more information, see:
+        # Randomly assign a MAC address if one is not specified in the
+        # configuration. This will choose a MAC address in the Locally
+        # Administered, Administratively Assigned group. For more information,
+        # please reference:
         # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
 
         if "mac_address" not in liteeth_config:
             addr = list(f"{randint(0, (2**48) - 1):012x}")
             addr[1] = "2"
             liteeth_config["mac_address"] = int("".join(addr), 16)
+            print(liteeth_config["mac_address"])
 
         # Force use of DHCP
         liteeth_config["dhcp"] = True
