@@ -1,6 +1,6 @@
 from amaranth import *
 from manta.utils import *
-from manta.memory_core import ReadOnlyMemoryCore
+from manta.memory_core import MemoryCore
 from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
 from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States, TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback

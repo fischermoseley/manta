@@ -1,4 +1,4 @@
-from manta.memory_core import ReadOnlyMemoryCore
+from manta.memory_core import MemoryCore
 from manta.utils import *
 from random import randint, sample
 
@@ -6,16 +6,16 @@ from random import randint, sample
 def fill_mem_from_user_port(mem_core, depth):
     for i in range(depth):
         yield mem_core.user_addr.eq(i)
-        yield mem_core.user_data.eq(i)
-        yield mem_core.user_we.eq(1)
+        yield mem_core.user_data_in.eq(i)
+        yield mem_core.user_write_enable.eq(1)
         yield
 
-    yield mem_core.user_we.eq(0)
+    yield mem_core.user_write_enable.eq(0)
     yield
 
 
 def verify_mem_core(width, depth, base_addr):
-    mem_core = ReadOnlyMemoryCore(width, depth, base_addr, interface=None)
+    mem_core = MemoryCore("fpga_to_host", width, depth, base_addr, interface=None)
 
     def testbench():
         yield from fill_mem_from_user_port(mem_core, depth)
