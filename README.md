@@ -1,6 +1,6 @@
 ![](doc/assets/logo.png)
 
-## Manta: A configurable and approachable tool for FPGA debugging and rapid prototyping.
+## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
 ![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
 ![formal_verification](https://github.com/fischermoseley/manta/actions/workflows/formal_verification.yml/badge.svg)
 ![build_examples](https://github.com/fischermoseley/manta/actions/workflows/build_examples.yml/badge.svg)
