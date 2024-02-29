@@ -1,6 +1,6 @@
 ![](assets/logo.png)
 
-## Manta: An In-Situ Debugging Tool for Programmable Hardware
+## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
 
 Manta is a tool for getting information into and out of FPGAs over UART or Ethernet. It's primarily intended for debugging and experimentation, but it's robust enough to be a simple, reliable transport layer between a FPGA and a host machine. It works by letting you configure a series of cores, which live as digital logic on the FPGA and are represented with vendor-agnostic Verilog-2001. The information and behavior of these cores are accessible to the host machine, which presents a Python API to the user. Manta includes the following cores, any number and combination of which may be used at once:
 
