@@ -37,7 +37,7 @@ class LogicAnalyzerCore(Elaboratable):
         )
 
         self._sample_mem = MemoryCore(
-            mode = "fpga_to_host",
+            mode="fpga_to_host",
             width=sum(self._config["probes"].values()),
             depth=self._config["sample_depth"],
             base_addr=self._trig_blk.get_max_addr() + 1,

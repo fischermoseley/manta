@@ -60,7 +60,7 @@ class Manta(Elaboratable):
             if "type" not in attrs:
                 raise ValueError(f"No type specified for core {name}.")
 
-            if attrs["type"] not in ["logic_analyzer", "io", "memory_read_only"]:
+            if attrs["type"] not in ["logic_analyzer", "io", "memory"]:
                 raise ValueError(f"Unrecognized core type specified for {name}.")
 
     def _get_interface(self):
@@ -93,7 +93,7 @@ class Manta(Elaboratable):
             elif attrs["type"] == "logic_analyzer":
                 core = LogicAnalyzerCore(attrs, base_addr, self.interface)
 
-            elif attrs["type"] == "memory_read_only":
+            elif attrs["type"] == "memory":
                 core = MemoryCore.from_config(attrs, base_addr, self.interface)
 
             # Make sure we're not out of address space

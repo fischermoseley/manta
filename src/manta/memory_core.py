@@ -63,7 +63,7 @@ class MemoryCore(Elaboratable):
     @classmethod
     def from_config(cls, config, base_addr, interface):
         # Check for unrecognized options
-        valid_options = ["type", "depth", "width"]
+        valid_options = ["type", "depth", "width", "mode"]
         for option in config:
             if option not in valid_options:
                 warn(f"Ignoring unrecognized option '{option}' in memory core.")
@@ -98,43 +98,64 @@ class MemoryCore(Elaboratable):
         if mode not in ["fpga_to_host", "host_to_fpga", "bidirectional"]:
             raise ValueError("Unrecognized mode provided to memory core.")
 
-        return cls(width, depth, base_addr, interface)
+        return cls(mode, width, depth, base_addr, interface)
 
-    def _handle_read_ports(self, m):
-        # These are tied to the bus
+    def _tie_mems_to_bus(self, m):
         for i, mem in enumerate(self._mems):
-            read_port = mem.read_port()
-            m.d.comb += read_port.en.eq(1)
-
+            # Compute address range corresponding to this chunk of memory
             start_addr = self._base_addr + (i * self._depth)
             stop_addr = start_addr + self._depth - 1
 
-            # Throw BRAM operations into the front of the pipeline
-            with m.If(
-                (self.bus_i.valid)
-                & (~self.bus_i.rw)
-                & (self.bus_i.addr >= start_addr)
-                & (self.bus_i.addr <= stop_addr)
-            ):
-                m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
+            # Handle write ports
+            if self._mode in ["host_to_fpga", "bidirectional"]:
+                pass
+                # write_port = mem.write_port()
+                # m.d.sync += write_port.data.eq(self.bus_i.data)
+                # m.d.sync += write_port.en.eq(self.bus_i.rw)
+                # m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
 
-            # Pull BRAM reads from the back of the pipeline
-            with m.If(
-                (self._bus_pipe[2].valid)
-                & (~self._bus_pipe[2].rw)
-                & (self._bus_pipe[2].addr >= start_addr)
-                & (self._bus_pipe[2].addr <= stop_addr)
-            ):
-                m.d.sync += self.bus_o.data.eq(read_port.data)
+            # Handle read ports
+            if self._mode in ["fpga_to_host", "bidirectional"]:
+                read_port = mem.read_port()
+                m.d.comb += read_port.en.eq(1)
 
-    def _handle_write_ports(self, m):
-        # These are given to the user
-        for i, mem in enumerate(self._mems):
-            write_port = mem.write_port()
+                # Throw BRAM operations into the front of the pipeline
+                with m.If(
+                    (self.bus_i.valid)
+                    & (~self.bus_i.rw)
+                    & (self.bus_i.addr >= start_addr)
+                    & (self.bus_i.addr <= stop_addr)
+                ):
+                    m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
 
-            m.d.comb += write_port.addr.eq(self.user_addr)
-            m.d.comb += write_port.data.eq(self.user_data_in[16 * i : 16 * (i + 1)])
-            m.d.comb += write_port.en.eq(self.user_write_enable)
+                # Pull BRAM reads from the back of the pipeline
+                with m.If(
+                    (self._bus_pipe[2].valid)
+                    & (~self._bus_pipe[2].rw)
+                    & (self._bus_pipe[2].addr >= start_addr)
+                    & (self._bus_pipe[2].addr <= stop_addr)
+                ):
+                    m.d.sync += self.bus_o.data.eq(read_port.data)
+
+    def _tie_mems_to_user_logic(self, m):
+        # Handle write ports
+        if self._mode in ["fpga_to_host", "bidirectional"]:
+            for i, mem in enumerate(self._mems):
+                write_port = mem.write_port()
+                m.d.comb += write_port.addr.eq(self.user_addr)
+                m.d.comb += write_port.data.eq(self.user_data_in[16 * i : 16 * (i + 1)])
+                m.d.comb += write_port.en.eq(self.user_write_enable)
+
+        # Handle read ports
+        if self._mode in ["host_to_fpga", "bidirectional"]:
+            read_datas = []
+            for i, mem in enumerate(self._mems):
+                read_port = mem.read_port()
+                m.d.comb += read_port.addr.eq(self.user_addr)
+                m.d.comb += read_port.en.eq(1)
+                read_datas.append(read_port.data)
+
+            m.d.comb += self.user_data_out.eq(Cat(read_datas))
 
     def elaborate(self, platform):
         m = Module()
@@ -143,9 +164,14 @@ class MemoryCore(Elaboratable):
         n_full = self._width // 16
         n_partial = self._width % 16
 
-        self._mems = [Memory(width=16, depth=self._depth, init=[0]*self._depth) for _ in range(n_full)]
+        self._mems = [
+            Memory(width=16, depth=self._depth, init=[0] * self._depth)
+            for _ in range(n_full)
+        ]
         if n_partial > 0:
-            self._mems += [Memory(width=n_partial, depth=self._depth, init=[0]*self._depth)]
+            self._mems += [
+                Memory(width=n_partial, depth=self._depth, init=[0] * self._depth)
+            ]
 
         # Add memories as submodules
         for i, mem in enumerate(self._mems):
@@ -160,8 +186,8 @@ class MemoryCore(Elaboratable):
 
         m.d.sync += self.bus_o.eq(self._bus_pipe[2])
 
-        self._handle_read_ports(m)
-        self._handle_write_ports(m)
+        self._tie_mems_to_bus(m)
+        self._tie_mems_to_user_logic(m)
         return m
 
     def get_top_level_ports(self):

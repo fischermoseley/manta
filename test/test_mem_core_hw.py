@@ -28,7 +28,8 @@ class MemoryCoreLoopbackTest(Elaboratable):
         return {
             "cores": {
                 "mem_core": {
-                    "type": "memory_read_only",
+                    "type": "memory",
+                    "mode": "fpga_to_host",
                     "width": self.width,
                     "depth": self.depth,
                 },
