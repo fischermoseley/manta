@@ -60,8 +60,6 @@ class MemoryCore(Elaboratable):
                 self.user_write_enable,
             ]
 
-        self._define_mems()
-
     @classmethod
     def from_config(cls, config, base_addr, interface):
         # Check for unrecognized options
@@ -92,39 +90,15 @@ class MemoryCore(Elaboratable):
         if not width > 0:
             raise ValueError("Width of memory core must be positive. ")
 
+        # Check mode is provided and is recognized value
+        mode = config.get("mode")
+        if not mode:
+            raise ValueError("Mode of memory core must be specified.")
+
+        if mode not in ["fpga_to_host", "host_to_fpga", "bidirectional"]:
+            raise ValueError("Unrecognized mode provided to memory core.")
+
         return cls(width, depth, base_addr, interface)
-
-    def _pipeline_bus(self, m):
-        self._bus_pipe = [Signal(InternalBus()) for _ in range(3)]
-        m.d.sync += self._bus_pipe[0].eq(self.bus_i)
-
-        for i in range(1, 3):
-            m.d.sync += self._bus_pipe[i].eq(self._bus_pipe[i - 1])
-
-        m.d.sync += self.bus_o.eq(self._bus_pipe[2])
-
-    def _define_mems(self):
-        # There's three cases that must be handled:
-        # 1. Integer number of 16 bit mems
-        # 2. Integer number of 16 bit mems + partial mem
-        # 3. Just the partial mem (width < 16)
-
-        # Only one, partial-width memory is needed
-        if self._width < 16:
-            self._mems = [Memory(depth=self._depth, width=self._width)]
-
-        # Only full-width memories are needed
-        elif self._width % 16 == 0:
-            self._mems = [
-                Memory(depth=self._depth, width=16) for _ in range(self._width // 16)
-            ]
-
-        # Both full-width and partial memories are needed
-        else:
-            self._mems = [
-                Memory(depth=self._depth, width=16) for i in range(self._width // 16)
-            ]
-            self._mems += [Memory(depth=self._depth, width=self._width % 16)]
 
     def _handle_read_ports(self, m):
         # These are tied to the bus
@@ -165,11 +139,27 @@ class MemoryCore(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
+        # Define memories
+        n_full = self._width // 16
+        n_partial = self._width % 16
+
+        self._mems = [Memory(width=16, depth=self._depth, init=[0]*self._depth) for _ in range(n_full)]
+        if n_partial > 0:
+            self._mems += [Memory(width=n_partial, depth=self._depth, init=[0]*self._depth)]
+
         # Add memories as submodules
         for i, mem in enumerate(self._mems):
             m.submodules[f"mem_{i}"] = mem
 
-        self._pipeline_bus(m)
+        # Pipeline the bus to accomodate the two clock-cycle delay in the memories
+        self._bus_pipe = [Signal(InternalBus()) for _ in range(3)]
+        m.d.sync += self._bus_pipe[0].eq(self.bus_i)
+
+        for i in range(1, 3):
+            m.d.sync += self._bus_pipe[i].eq(self._bus_pipe[i - 1])
+
+        m.d.sync += self.bus_o.eq(self._bus_pipe[2])
+
         self._handle_read_ports(m)
         self._handle_write_ports(m)
         return m
