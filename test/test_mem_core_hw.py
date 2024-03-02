@@ -92,7 +92,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
         self.manta.io_core.set_probe("we", 0)
 
     def verify_register(self, addr, expected_data):
-        data = self.manta.mem_core.read_from_user_addr(addr)
+        data = self.manta.mem_core.read(addr)
 
         if data != expected_data:
             raise ValueError(

@@ -1,5 +1,4 @@
 from amaranth import *
-from amaranth.lib.memory import Memory
 from manta.utils import *
 from math import ceil
 
@@ -61,6 +60,8 @@ class MemoryCore(Elaboratable):
                 self.user_write_enable,
             ]
 
+        self._define_mems()
+
     @classmethod
     def from_config(cls, config, base_addr, interface):
         # Check for unrecognized options
@@ -91,86 +92,9 @@ class MemoryCore(Elaboratable):
         if not width > 0:
             raise ValueError("Width of memory core must be positive. ")
 
-        # Check mode is provided and is recognized value
-        mode = config.get("mode")
-        if not mode:
-            raise ValueError("Mode of memory core must be specified.")
+        return cls(width, depth, base_addr, interface)
 
-        if mode not in ["fpga_to_host", "host_to_fpga", "bidirectional"]:
-            raise ValueError("Unrecognized mode provided to memory core.")
-
-        return cls(mode, width, depth, base_addr, interface)
-
-    def _tie_mems_to_bus(self, m):
-        for i, mem in enumerate(self._mems):
-            # Compute address range corresponding to this chunk of memory
-            start_addr = self._base_addr + (i * self._depth)
-            stop_addr = start_addr + self._depth - 1
-
-            # Handle write ports
-            if self._mode in ["host_to_fpga", "bidirectional"]:
-                write_port = mem.write_port()
-                m.d.sync += write_port.data.eq(self.bus_i.data)
-                m.d.sync += write_port.en.eq(self.bus_i.rw)
-                m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
-
-            # Handle read ports
-            if self._mode in ["fpga_to_host", "bidirectional"]:
-                read_port = mem.read_port()
-                m.d.comb += read_port.en.eq(1)
-
-                # Throw BRAM operations into the front of the pipeline
-                with m.If(
-                    (self.bus_i.valid)
-                    & (self.bus_i.addr >= start_addr)
-                    & (self.bus_i.addr <= stop_addr)
-                ):
-                    m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
-
-                # Pull BRAM reads from the back of the pipeline
-                with m.If(
-                    (self._bus_pipe[2].valid)
-                    & (self._bus_pipe[2].addr >= start_addr)
-                    & (self._bus_pipe[2].addr <= stop_addr)
-                ):
-                    m.d.sync += self.bus_o.data.eq(read_port.data)
-
-    def _tie_mems_to_user_logic(self, m):
-        # Handle write ports
-        if self._mode in ["fpga_to_host", "bidirectional"]:
-            for i, mem in enumerate(self._mems):
-                write_port = mem.write_port()
-                m.d.comb += write_port.addr.eq(self.user_addr)
-                m.d.comb += write_port.data.eq(self.user_data_in[16 * i : 16 * (i + 1)])
-                m.d.comb += write_port.en.eq(self.user_write_enable)
-
-        # Handle read ports
-        if self._mode in ["host_to_fpga", "bidirectional"]:
-            read_datas = []
-            for i, mem in enumerate(self._mems):
-                read_port = mem.read_port()
-                m.d.comb += read_port.addr.eq(self.user_addr)
-                m.d.comb += read_port.en.eq(1)
-                read_datas.append(read_port.data)
-
-            m.d.comb += self.user_data_out.eq(Cat(read_datas))
-
-    def elaborate(self, platform):
-        m = Module()
-
-        # Define memories
-        n_full = self._width // 16
-        n_partial = self._width % 16
-
-        self._mems = [Memory(shape=16, depth=self._depth, init=[0]*self._depth) for _ in range(n_full)]
-        if n_partial > 0:
-            self._mems += [Memory(shape=n_partial, depth=self._depth, init=[0]*self._depth)]
-
-        # Add memories as submodules
-        for i, mem in enumerate(self._mems):
-            m.submodules[f"mem_{i}"] = mem
-
-        # Pipeline the bus to accomodate the two clock-cycle delay in the memories
+    def _pipeline_bus(self, m):
         self._bus_pipe = [Signal(InternalBus()) for _ in range(3)]
         m.d.sync += self._bus_pipe[0].eq(self.bus_i)
 
@@ -179,9 +103,75 @@ class MemoryCore(Elaboratable):
 
         m.d.sync += self.bus_o.eq(self._bus_pipe[2])
 
-        # Tie memory ports to the internal bus and user logic
-        self._tie_mems_to_bus(m)
-        self._tie_mems_to_user_logic(m)
+    def _define_mems(self):
+        # There's three cases that must be handled:
+        # 1. Integer number of 16 bit mems
+        # 2. Integer number of 16 bit mems + partial mem
+        # 3. Just the partial mem (width < 16)
+
+        # Only one, partial-width memory is needed
+        if self._width < 16:
+            self._mems = [Memory(depth=self._depth, width=self._width)]
+
+        # Only full-width memories are needed
+        elif self._width % 16 == 0:
+            self._mems = [
+                Memory(depth=self._depth, width=16) for _ in range(self._width // 16)
+            ]
+
+        # Both full-width and partial memories are needed
+        else:
+            self._mems = [
+                Memory(depth=self._depth, width=16) for i in range(self._width // 16)
+            ]
+            self._mems += [Memory(depth=self._depth, width=self._width % 16)]
+
+    def _handle_read_ports(self, m):
+        # These are tied to the bus
+        for i, mem in enumerate(self._mems):
+            read_port = mem.read_port()
+            m.d.comb += read_port.en.eq(1)
+
+            start_addr = self._base_addr + (i * self._depth)
+            stop_addr = start_addr + self._depth - 1
+
+            # Throw BRAM operations into the front of the pipeline
+            with m.If(
+                (self.bus_i.valid)
+                & (~self.bus_i.rw)
+                & (self.bus_i.addr >= start_addr)
+                & (self.bus_i.addr <= stop_addr)
+            ):
+                m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
+
+            # Pull BRAM reads from the back of the pipeline
+            with m.If(
+                (self._bus_pipe[2].valid)
+                & (~self._bus_pipe[2].rw)
+                & (self._bus_pipe[2].addr >= start_addr)
+                & (self._bus_pipe[2].addr <= stop_addr)
+            ):
+                m.d.sync += self.bus_o.data.eq(read_port.data)
+
+    def _handle_write_ports(self, m):
+        # These are given to the user
+        for i, mem in enumerate(self._mems):
+            write_port = mem.write_port()
+
+            m.d.comb += write_port.addr.eq(self.user_addr)
+            m.d.comb += write_port.data.eq(self.user_data_in[16 * i : 16 * (i + 1)])
+            m.d.comb += write_port.en.eq(self.user_write_enable)
+
+    def elaborate(self, platform):
+        m = Module()
+
+        # Add memories as submodules
+        for i, mem in enumerate(self._mems):
+            m.submodules[f"mem_{i}"] = mem
+
+        self._pipeline_bus(m)
+        self._handle_read_ports(m)
+        self._handle_write_ports(m)
         return m
 
     def get_top_level_ports(self):
@@ -195,7 +185,7 @@ class MemoryCore(Elaboratable):
         """
         Return the maximum addresses in memory used by the core. The address
         space used by the core extends from `base_addr` to the number returned
-        by this function.
+        by this function (including the endpoints).
         """
         return self._max_addr
 

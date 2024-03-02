@@ -187,7 +187,7 @@ class LogicAnalyzerCore(Elaboratable):
         """
         Return the maximum addresses in memory used by the core. The address
         space used by the core extends from `base_addr` to the number returned
-        by this function.
+        by this function (including the endpoints).
         """
         return self._sample_mem.get_max_addr()
 
@@ -253,7 +253,7 @@ class LogicAnalyzerCore(Elaboratable):
         # Read out the entirety of the sample memory
         print_if_verbose(" -> Reading sample memory contents...")
         addrs = list(range(self._config["sample_depth"]))
-        raw_capture = self._sample_mem.read_from_user_addr(addrs)
+        raw_capture = self._sample_mem.read(addrs)
 
         # Revolve the memory around the read_pointer, such that all the beginning
         # of the caputure is at the first element
