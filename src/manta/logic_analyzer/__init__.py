@@ -36,7 +36,8 @@ class LogicAnalyzerCore(Elaboratable):
             self._probes, self._fsm.get_max_addr() + 1, interface
         )
 
-        self._sample_mem = ReadOnlyMemoryCore(
+        self._sample_mem = MemoryCore(
+            mode = "fpga_to_host",
             width=sum(self._config["probes"].values()),
             depth=self._config["sample_depth"],
             base_addr=self._trig_blk.get_max_addr() + 1,
@@ -158,7 +159,7 @@ class LogicAnalyzerCore(Elaboratable):
         # Concat all the probes together, and feed to input of sample memory
         # (it is necessary to reverse the order such that first probe occupies
         # the lowest location in memory)
-        m.d.comb += self._sample_mem.user_data.eq(Cat(self._probes[::-1]))
+        m.d.comb += self._sample_mem.user_data_in.eq(Cat(self._probes[::-1]))
 
         # Wire bus connections between internal modules
         m.d.comb += [
@@ -170,7 +171,7 @@ class LogicAnalyzerCore(Elaboratable):
             # Non-bus Connections
             self._fsm.trigger.eq(self._trig_blk.trig),
             self._sample_mem.user_addr.eq(self._fsm.write_pointer),
-            self._sample_mem.user_we.eq(self._fsm.write_enable),
+            self._sample_mem.user_write_enable.eq(self._fsm.write_enable),
         ]
 
         return m

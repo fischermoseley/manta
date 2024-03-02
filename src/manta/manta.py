@@ -80,9 +80,8 @@ class Manta(Elaboratable):
 
     def _get_cores(self):
         """
-        Creates instances of the cores (IOCore, LogicAnalyzerCore,
-        ReadOnlyMemoryCore) specified in the user's configuration, and returns
-        them as a list.
+        Creates instances of the cores (IOCore, LogicAnalyzerCore, MemoryCore)
+        specified in the user's configuration, and returns them as a list.
         """
 
         self._cores = {}
@@ -95,7 +94,7 @@ class Manta(Elaboratable):
                 core = LogicAnalyzerCore(attrs, base_addr, self.interface)
 
             elif attrs["type"] == "memory_read_only":
-                core = ReadOnlyMemoryCore.from_config(attrs, base_addr, self.interface)
+                core = MemoryCore.from_config(attrs, base_addr, self.interface)
 
             # Make sure we're not out of address space
             if core.get_max_addr() > (2**16) - 1:

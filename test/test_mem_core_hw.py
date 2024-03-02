@@ -73,8 +73,8 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
         m.d.comb += [
             self.manta.mem_core.user_addr.eq(addr),
-            self.manta.mem_core.user_data.eq(data),
-            self.manta.mem_core.user_we.eq(we),
+            self.manta.mem_core.user_data_in.eq(data),
+            self.manta.mem_core.user_write_enable.eq(we),
             self.manta.interface.rx.eq(uart_pins.rx.i),
             uart_pins.tx.o.eq(self.manta.interface.tx),
         ]
