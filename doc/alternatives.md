@@ -1,4 +1,4 @@
-There's quite a few FPGA debugging tools out there, and it may happen that your needs are better met by another tool. This section aims to provide a list of alternatives, in hopes that you're able to be confident in your debugging flow.
+There's quite a few FPGA debugging tools out there, and it may happen that your needs are better met by another tool! This section aims to provide a list of alternatives, in hopes that you're able to be confident in your debugging flow.
 
 ## Open Source Tools
 
@@ -8,6 +8,12 @@ An embedded logic analyzer written in Migen, primarily for use in LiteX SoC desi
 
 - [Source Code](https://github.com/enjoy-digital/litescope)
 - [Documentation](https://github.com/enjoy-digital/litex/wiki/Use-LiteScope-To-Debug-A-SoC)
+
+### GateMate ILA
+
+An embedded logic analyzer written in Verilog, targeting the GateMate FPGA family from Colonge Chip and the Yosys/NextPNR toolchain. Communication between the host and FPGA is accomplished with SPI, via a FT232 or FT2232 used as a USB-SPI adapter. GateMate is inteneded to be used with GTKWave, so the tool generates `.gtkw` files in addition to VCD files.
+
+- [Source Code](https://github.com/colognechip/gatemate_ila)
 
 ### ZipCPU Debugger
 
