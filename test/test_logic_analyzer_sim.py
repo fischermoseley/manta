@@ -61,42 +61,40 @@ def set_probe(name, value):
     yield probe.eq(value)
 
 
+@simulate(la)
 def test_single_shot_capture():
-    def testbench():
-        # # ok nice what happens if we try to run the core, which includes:
-        yield from set_fsm_register("request_stop", 1)
-        yield from set_fsm_register("request_stop", 0)
+    # # ok nice what happens if we try to run the core, which includes:
+    yield from set_fsm_register("request_stop", 1)
+    yield from set_fsm_register("request_stop", 0)
 
-        # setting triggers
-        yield from set_trig_blk_register("curly_op", Operations.EQ)
-        yield from set_trig_blk_register("curly_arg", 4)
+    # setting triggers
+    yield from set_trig_blk_register("curly_op", Operations.EQ)
+    yield from set_trig_blk_register("curly_arg", 4)
 
-        # setting trigger mode
-        yield from set_fsm_register("trigger_mode", 0)
+    # setting trigger mode
+    yield from set_fsm_register("trigger_mode", 0)
 
-        # setting trigger location
-        yield from set_fsm_register("trigger_location", 511)
+    # setting trigger location
+    yield from set_fsm_register("trigger_location", 511)
 
-        # starting capture
-        yield from set_fsm_register("request_start", 1)
-        yield from set_fsm_register("request_start", 0)
+    # starting capture
+    yield from set_fsm_register("request_start", 1)
+    yield from set_fsm_register("request_start", 0)
 
-        # wait a few hundred clock cycles, see what happens
-        for _ in range(700):
-            yield
+    # wait a few hundred clock cycles, see what happens
+    for _ in range(700):
+        yield
 
-        # provide the trigger condition
-        yield from set_probe("curly", 4)
+    # provide the trigger condition
+    yield from set_probe("curly", 4)
 
-        for _ in range(700):
-            yield
+    for _ in range(700):
+        yield
 
-        # dump sample memory contents
-        yield from write_register(la, 0, 0)
-        yield from write_register(la, 0, 1)
-        yield from write_register(la, 0, 0)
+    # dump sample memory contents
+    yield from write_register(la, 0, 0)
+    yield from write_register(la, 0, 1)
+    yield from write_register(la, 0, 0)
 
-        for addr in range(la.get_max_addr()):
-            yield from print_data_at_addr(addr)
-
-    simulate(la, testbench, "la_core.vcd")
+    for addr in range(la.get_max_addr()):
+        yield from print_data_at_addr(addr)

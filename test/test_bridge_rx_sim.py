@@ -86,35 +86,29 @@ def verify_bad_bytes(bytes):
     yield bridge_rx.valid_i.eq(0)
 
 
+@simulate(bridge_rx)
 def test_read_decode():
-    def testbench():
-        yield from verify_read_decoding(b"R0000\r\n", 0x0000)
-        yield from verify_read_decoding(b"R1234\r\n", 0x1234)
-        yield from verify_read_decoding(b"RBABE\r\n", 0xBABE)
-        yield from verify_read_decoding(b"R5678\n", 0x5678)
-        yield from verify_read_decoding(b"R9ABC\r", 0x9ABC)
-
-    simulate(bridge_rx, testbench)
+    yield from verify_read_decoding(b"R0000\r\n", 0x0000)
+    yield from verify_read_decoding(b"R1234\r\n", 0x1234)
+    yield from verify_read_decoding(b"RBABE\r\n", 0xBABE)
+    yield from verify_read_decoding(b"R5678\n", 0x5678)
+    yield from verify_read_decoding(b"R9ABC\r", 0x9ABC)
 
 
+@simulate(bridge_rx)
 def test_write_decode():
-    def testbench():
-        yield from verify_write_decoding(b"W12345678\r\n", 0x1234, 0x5678)
-        yield from verify_write_decoding(b"WDEADBEEF\r\n", 0xDEAD, 0xBEEF)
-        yield from verify_write_decoding(b"WDEADBEEF\r", 0xDEAD, 0xBEEF)
-        yield from verify_write_decoding(b"WB0BACAFE\n", 0xB0BA, 0xCAFE)
-
-    simulate(bridge_rx, testbench)
+    yield from verify_write_decoding(b"W12345678\r\n", 0x1234, 0x5678)
+    yield from verify_write_decoding(b"WDEADBEEF\r\n", 0xDEAD, 0xBEEF)
+    yield from verify_write_decoding(b"WDEADBEEF\r", 0xDEAD, 0xBEEF)
+    yield from verify_write_decoding(b"WB0BACAFE\n", 0xB0BA, 0xCAFE)
 
 
+@simulate(bridge_rx)
 def test_no_decode():
-    def testbench():
-        yield from verify_bad_bytes(b"RABC\r\n")
-        yield from verify_bad_bytes(b"R12345\r\n")
-        yield from verify_bad_bytes(b"M\r\n")
-        yield from verify_bad_bytes(b"W123456789101112131415161718191201222\r\n")
-        yield from verify_bad_bytes(b"RABCG\r\n")
-        yield from verify_bad_bytes(b"WABC[]()##*@\r\n")
-        yield from verify_bad_bytes(b"R\r\n")
-
-    simulate(bridge_rx, testbench)
+    yield from verify_bad_bytes(b"RABC\r\n")
+    yield from verify_bad_bytes(b"R12345\r\n")
+    yield from verify_bad_bytes(b"M\r\n")
+    yield from verify_bad_bytes(b"W123456789101112131415161718191201222\r\n")
+    yield from verify_bad_bytes(b"RABCG\r\n")
+    yield from verify_bad_bytes(b"WABC[]()##*@\r\n")
+    yield from verify_bad_bytes(b"R\r\n")

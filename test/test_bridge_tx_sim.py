@@ -57,11 +57,9 @@ def verify_encoding(data, bytes):
         raise ValueError(f"Received {sent_bytes} instead of {bytes}.")
 
 
+@simulate(bridge_tx)
 def test_some_random_values():
-    def testbench():
-        for i in sample(range(0xFFFF), k=5000):
-            expected = f"D{i:04X}\r\n".encode("ascii")
-            print(i)
-            yield from verify_encoding(i, expected)
-
-    simulate(bridge_tx, testbench)
+    for i in sample(range(0xFFFF), k=5000):
+        expected = f"D{i:04X}\r\n".encode("ascii")
+        print(i)
+        yield from verify_encoding(i, expected)

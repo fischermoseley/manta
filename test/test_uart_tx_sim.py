@@ -41,17 +41,13 @@ def verify_bit_sequence(byte):
         raise ValueError("Done not asserted at end of transmission!")
 
 
+@simulate(uart_tx)
 def test_all_possible_bytes():
-    def testbench():
-        for i in range(0xFF):
-            yield from verify_bit_sequence(i)
-
-    simulate(uart_tx, testbench)
+    for i in range(0xFF):
+        yield from verify_bit_sequence(i)
 
 
+@simulate(uart_tx)
 def test_bytes_random_sample():
-    def testbench():
-        for i in sample(range(0xFF), k=0xFF):
-            yield from verify_bit_sequence(i)
-
-    simulate(uart_tx, testbench)
+    for i in sample(range(0xFF), k=0xFF):
+        yield from verify_bit_sequence(i)

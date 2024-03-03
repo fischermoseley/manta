@@ -22,8 +22,8 @@ class MemoryCore(Elaboratable):
         self._base_addr = base_addr
         self._interface = interface
 
-        self._n_brams = ceil(self._width / 16)
-        self._max_addr = self._base_addr + (self._depth * self._n_brams)
+        self._n_mems = ceil(self._width / 16)
+        self._max_addr = self._base_addr + (self._depth * self._n_mems)
 
         # Bus Connections
         self.bus_i = Signal(InternalBus())
@@ -106,27 +106,88 @@ class MemoryCore(Elaboratable):
             start_addr = self._base_addr + (i * self._depth)
             stop_addr = start_addr + self._depth - 1
 
-            # Handle write ports
-            if self._mode in ["host_to_fpga", "bidirectional"]:
-                pass
-                # write_port = mem.write_port()
-                # m.d.sync += write_port.data.eq(self.bus_i.data)
-                # m.d.sync += write_port.en.eq(self.bus_i.rw)
-                # m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
+            # # Handle write ports
+            # if self._mode in ["host_to_fpga", "bidirectional"]:
+            #     write_port = mem.write_port()
+            #     m.d.sync += write_port.data.eq(self.bus_i.data)
+            #     m.d.sync += write_port.en.eq(self.bus_i.rw)
+            #     m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
 
-            # Handle read ports
-            if self._mode in ["fpga_to_host", "bidirectional"]:
+            # # Handle read ports
+            # if self._mode in ["fpga_to_host", "bidirectional"]:
+            #     read_port = mem.read_port()
+            #     m.d.comb += read_port.en.eq(1)
+
+            #     # Throw BRAM operations into the front of the pipeline
+            #     with m.If(
+            #         (self.bus_i.valid)
+            #         & (~self.bus_i.rw)
+            #         & (self.bus_i.addr >= start_addr)
+            #         & (self.bus_i.addr <= stop_addr)
+            #     ):
+            #         m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
+
+            #     # Pull BRAM reads from the back of the pipeline
+            #     with m.If(
+            #         (self._bus_pipe[2].valid)
+            #         & (~self._bus_pipe[2].rw)
+            #         & (self._bus_pipe[2].addr >= start_addr)
+            #         & (self._bus_pipe[2].addr <= stop_addr)
+            #     ):
+            #         m.d.sync += self.bus_o.data.eq(read_port.data)
+
+            if self._mode == "fpga_to_host":
                 read_port = mem.read_port()
                 m.d.comb += read_port.en.eq(1)
 
                 # Throw BRAM operations into the front of the pipeline
                 with m.If(
                     (self.bus_i.valid)
-                    & (~self.bus_i.rw)
                     & (self.bus_i.addr >= start_addr)
                     & (self.bus_i.addr <= stop_addr)
                 ):
                     m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
+
+                # Pull BRAM reads from the back of the pipeline
+                with m.If(
+                    (self._bus_pipe[2].valid)
+                    & (~self._bus_pipe[2].rw)
+                    & (self._bus_pipe[2].addr >= start_addr)
+                    & (self._bus_pipe[2].addr <= stop_addr)
+                ):
+                    m.d.sync += self.bus_o.data.eq(read_port.data)
+
+            elif self._mode == "host_to_fpga":
+                write_port = mem.write_port()
+                m.d.sync += write_port.en.eq(0)
+
+                # Throw BRAM operations into the front of the pipeline
+                with m.If(
+                    (self.bus_i.valid)
+                    & (self.bus_i.addr >= start_addr)
+                    & (self.bus_i.addr <= stop_addr)
+                ):
+                    m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
+                    m.d.sync += write_port.data.eq(self.bus_i.data)
+                    m.d.sync += write_port.en.eq(self.bus_i.rw)
+
+            elif self._mode == "bidirectional":
+                read_port = mem.read_port()
+                m.d.comb += read_port.en.eq(1)
+
+                write_port = mem.write_port()
+                m.d.sync += write_port.en.eq(0)
+
+                # Throw BRAM operations into the front of the pipeline
+                with m.If(
+                    (self.bus_i.valid)
+                    & (self.bus_i.addr >= start_addr)
+                    & (self.bus_i.addr <= stop_addr)
+                ):
+                    m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
+                    m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
+                    m.d.sync += write_port.data.eq(self.bus_i.data)
+                    m.d.sync += write_port.en.eq(self.bus_i.rw)
 
                 # Pull BRAM reads from the back of the pipeline
                 with m.If(
@@ -238,7 +299,7 @@ class MemoryCore(Elaboratable):
 
         bus_addrs = self._convert_user_to_bus_addr(addrs)
         datas = self._interface.read(bus_addrs)
-        data_chunks = split_into_chunks(datas, self._n_brams)
+        data_chunks = split_into_chunks(datas, self._n_mems)
         return [words_to_value(chunk) for chunk in data_chunks]
 
     def write(self, addrs, datas):
@@ -264,5 +325,5 @@ class MemoryCore(Elaboratable):
             raise TypeError("Write data must all be integers.")
 
         bus_addrs = self._convert_user_to_bus_addr([addrs])[0]
-        bus_datas = [word for d in datas for word in value_to_words(d, self._n_brams)]
+        bus_datas = [word for d in datas for word in value_to_words(d, self._n_mems)]
         self._interface.write(bus_addrs, bus_datas)

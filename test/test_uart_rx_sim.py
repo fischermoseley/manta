@@ -43,23 +43,19 @@ def verify_receive(data):
         raise ValueError("Failed to assert valid!")
 
 
+@simulate(uart_rx)
 def test_all_possible_bytes():
-    def testbench():
-        yield uart_rx.rx.eq(1)
-        yield
+    yield uart_rx.rx.eq(1)
+    yield
 
-        for i in range(0xFF):
-            yield from verify_receive(i)
-
-    simulate(uart_rx, testbench)
+    for i in range(0xFF):
+        yield from verify_receive(i)
 
 
+@simulate(uart_rx)
 def test_bytes_random_sample():
-    def testbench():
-        yield uart_rx.rx.eq(1)
-        yield
+    yield uart_rx.rx.eq(1)
+    yield
 
-        for i in sample(range(0xFF), k=0xFF):
-            yield from verify_receive(i)
-
-    simulate(uart_rx, testbench)
+    for i in sample(range(0xFF), k=0xFF):
+        yield from verify_receive(i)

@@ -83,22 +83,41 @@ def split_into_chunks(data, chunk_size):
     return [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
 
 
-def simulate(top, testbench, vcd_path=None):
+def simulate(top):
     """
-    Run a behavior simulation using Amaranth's built-in simulator `pysim`. Takes
-    the top-level module to simulate, the testbench process to run, and an optional
-    path to export a VCD file to.
+    A decorator for running behavioral simulation using Amaranth's built-in
+    simulator. Requires the top-level module in the simulation as an argument,
+    and automatically names VCD file containing the waveform dump with the name
+    of the function being decorated.
     """
-    sim = Simulator(top)
-    sim.add_clock(1e-6)  # 1 MHz
-    sim.add_sync_process(testbench)
 
-    if vcd_path is None:
-        sim.run()
+    def decorator(testbench):
+        def wrapper(*args, **kwargs):
+            sim = Simulator(top)
+            sim.add_clock(1e-6)  # 1 MHz
+            sim.add_sync_process(testbench)
 
-    else:
-        with sim.write_vcd(vcd_path):
-            sim.run()
+            vcd_path = testbench.__name__ + ".vcd"
+
+            with sim.write_vcd(vcd_path):
+                sim.run()
+
+        return wrapper
+
+    return decorator
+
+
+# def simulate_decorator(testbench):
+#     def wrapper_accepting_arguments(top):
+#         sim = Simulator(top)
+#         sim.add_clock(1e-6)  # 1 MHz
+#         sim.add_sync_process(testbench)
+
+#         vcd_path = testbench.__name__ + ".vcd"
+#         with sim.write_vcd(vcd_path):
+#             sim.run()
+
+#     return wrapper_accepting_arguments
 
 
 def verify_register(module, addr, expected_data):
@@ -143,7 +162,10 @@ def write_register(module, addr, data):
     yield module.bus_i.rw.eq(1)
     yield module.bus_i.valid.eq(1)
     yield
+    yield module.bus_i.addr.eq(0)
+    yield module.bus_i.data.eq(0)
     yield module.bus_i.valid.eq(0)
+    yield module.bus_i.rw.eq(0)
     yield
 
 
