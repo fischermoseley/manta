@@ -78,9 +78,11 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_xilinx():
-    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), "/dev/ttyUSB1").verify()
+    port = "/dev/serial/by-id/usb-Digilent_Digilent_USB_Device_210292696307-if01-port0"
+    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), port).verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_ice40():
-    LogicAnalyzerCounterTest(ICEStickPlatform(), "/dev/ttyUSB2").verify()
+    port = "/dev/serial/by-id/usb-Lattice_Lattice_FTUSB_Interface_Cable-if01-port0"
+    LogicAnalyzerCounterTest(ICEStickPlatform(), port).verify()
