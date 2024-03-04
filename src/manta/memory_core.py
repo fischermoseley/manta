@@ -1,4 +1,6 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
 from manta.utils import *
 from math import ceil
 

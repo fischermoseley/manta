@@ -1,4 +1,6 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
 from manta.utils import *
 from manta.ethernet.source_bridge import UDPSourceBridge
 from manta.ethernet.sink_bridge import UDPSinkBridge
@@ -6,7 +8,7 @@ from random import randint
 import socket
 
 
-class EthernetInterface(Elaboratable):
+class EthernetInterface(wiring.Component):
     """
     A module for communicating with Manta over Ethernet, using UDP.
 

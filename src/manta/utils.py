@@ -1,11 +1,13 @@
 from amaranth import *
-from amaranth.sim import Simulator
 from amaranth.lib import data
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
+from amaranth.sim import Simulator
 from abc import ABC, abstractmethod
 import os
 
 
-class MantaCore(ABC, Elaboratable):
+class MantaCore(ABC, wiring.Component):
 
     @property
     @abstractmethod

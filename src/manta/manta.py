@@ -1,13 +1,14 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
 from manta.uart import UARTInterface
-
 from manta.ethernet import EthernetInterface
 from manta.io_core import IOCore
 from manta.memory_core import MemoryCore
 from manta.logic_analyzer import LogicAnalyzerCore
 
 
-class Manta(Elaboratable):
+class Manta(wiring.Component):
     def __init__(self, config):
         # Load config from either a configuration file or a dictionary.
         # Users primarily use the config file, but the dictionary is
@@ -157,7 +158,7 @@ class Manta(Elaboratable):
         ports = self.interface.get_top_level_ports()
 
         for name, instance in self._cores.items():
-            ports += instance.get_top_level_ports()
+            ports += instance.top_level_ports
 
         return ports
 

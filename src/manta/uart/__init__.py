@@ -1,4 +1,6 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
 from manta.utils import *
 from manta.uart.receiver import UARTReceiver
 from manta.uart.receive_bridge import ReceiveBridge
@@ -7,7 +9,7 @@ from manta.uart.transmit_bridge import TransmitBridge
 from serial import Serial
 
 
-class UARTInterface(Elaboratable):
+class UARTInterface(wiring.Component):
     """
     A module for communicating with Manta over UART.
 

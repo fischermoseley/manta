@@ -1,7 +1,9 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
 
 
-class UARTTransmitter(Elaboratable):
+class UARTTransmitter(wiring.Component):
     """
     A module for transmitting bytes on a 8N1 UART at a configurable baudrate.
     Accepts bytes as a stream.

@@ -14,7 +14,7 @@ configuration, or a standard one.
 """
 
 
-class MemoryCoreLoopbackTest(Elaboratable):
+class MemoryCoreLoopbackTest(wiring.Component):
     def __init__(self, platform, width, depth, port):
         self.platform = platform
         self.width = width

@@ -6,7 +6,7 @@ from manta.utils import *
 import pytest
 
 
-class LogicAnalyzerCounterTest(Elaboratable):
+class LogicAnalyzerCounterTest(wiring.Component):
     def __init__(self, platform, port):
         self.platform = platform
         self.port = port

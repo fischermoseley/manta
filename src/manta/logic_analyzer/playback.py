@@ -1,7 +1,9 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
 
 
-class LogicAnalyzerPlayback(Elaboratable):
+class LogicAnalyzerPlayback(wiring.Component):
     """
     A synthesizable module that plays back data captured by a
     LogicAnalyzerCore. Takes a list of all the samples captured by a core,
