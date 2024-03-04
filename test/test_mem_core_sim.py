@@ -28,6 +28,7 @@ class MemoryCoreTests:
         for addr in self.user_addrs:
             yield from self.verify_user_side(addr, 0)
 
+
     def one_bus_write_then_one_bus_read(self):
         for addr in self.bus_addrs:
             data_width = self.get_data_width(addr)
@@ -48,7 +49,7 @@ class MemoryCoreTests:
         for addr in jumble(self.bus_addrs):
             yield from self.verify_bus_side(addr, self.model[addr])
 
-    def rand_bus_reads_writes(self):
+    def rand_bus_writes_rand_bus_reads(self):
         # random reads and writes in random orders
         for _ in range(5):
             for addr in jumble(self.bus_addrs):
@@ -62,6 +63,7 @@ class MemoryCoreTests:
                     data = randint(0, (2**data_width) - 1)
                     self.model[addr] = data
                     yield from self.write_bus_side(addr, data)
+
 
     def one_user_write_then_one_bus_read(self):
         for user_addr in self.user_addrs:
@@ -93,7 +95,7 @@ class MemoryCoreTests:
         for bus_addr in jumble(self.bus_addrs):
             yield from self.verify_bus_side(bus_addr, self.model[bus_addr])
 
-    def rand_bus_reads_rand_user_writes(self):
+    def rand_user_writes_rand_bus_reads(self):
         # random reads and writes in random orders
         for _ in range(5):
             for user_addr in jumble(self.user_addrs):
@@ -118,6 +120,30 @@ class MemoryCoreTests:
                     words = value_to_words(data, self.n_mems)
                     for addr, word in zip(bus_addrs, words):
                         self.model[addr] = word
+
+
+    def one_bus_write_then_one_user_read(self):
+        yield
+
+    def multi_bus_write_then_multi_user_reads(self):
+        yield
+
+    def rand_bus_writes_rand_user_reads(self):
+        yield
+
+
+    def one_user_write_then_one_user_read(self):
+        for addr in self.user_addrs:
+            data = randint(0, (2**self.width) - 1)
+
+            yield from self.write_user_side(addr, data)
+            yield from self.verify_user_side(addr, data)
+
+    def multi_user_write_then_multi_user_read(self):
+        yield
+
+    def rand_user_write_rand_user_read(self):
+        yield
 
     def get_data_width(self, addr):
         # this part is a little hard to check since we might have a
@@ -174,17 +200,27 @@ def test_bidirectional():
     @simulate(mem_core)
     def test_bidirectional_testbench():
         yield from tests.bus_addrs_all_zero()
+        yield from tests.user_addrs_all_zero()
 
         # Test Bus -> Bus functionality
-        yield from tests.user_addrs_all_zero()
         yield from tests.one_bus_write_then_one_bus_read()
         yield from tests.multi_bus_writes_then_multi_bus_reads()
-        yield from tests.rand_bus_reads_writes()
+        yield from tests.rand_bus_writes_rand_bus_reads()
 
         # Test User -> Bus functionality
         yield from tests.one_user_write_then_one_bus_read()
         yield from tests.multi_user_write_then_multi_bus_reads()
-        yield from tests.rand_bus_reads_rand_user_writes()
+        yield from tests.rand_user_writes_rand_bus_reads()
+
+        # Test Bus -> User functionality
+        yield from tests.one_bus_write_then_one_user_read()
+        yield from tests.multi_bus_write_then_multi_user_reads()
+        yield from tests.rand_bus_writes_rand_user_reads()
+
+        # Test User -> User functionality
+        yield from tests.one_user_write_then_one_user_read()
+        yield from tests.multi_user_write_then_multi_user_read()
+        yield from tests.rand_user_write_rand_user_read()
 
     test_bidirectional_testbench()
 
@@ -207,7 +243,7 @@ def test_fpga_to_host():
         # Test User -> Bus functionality
         yield from tests.one_user_write_then_one_bus_read()
         yield from tests.multi_user_write_then_multi_bus_reads()
-        yield from tests.rand_bus_reads_rand_user_writes()
+        yield from tests.rand_user_writes_rand_bus_reads()
 
     test_fpga_to_host_testbench()
 
@@ -226,9 +262,11 @@ def test_host_to_fpga():
     @simulate(mem_core)
     def test_host_to_fpga_testbench():
         yield from tests.user_addrs_all_zero()
-        # yield from tests.one_user_write_then_one_bus_read()
-        # yield from tests.multi_user_write_then_multi_bus_reads()
-        # yield from tests.rand_bus_reads_rand_user_writes()
+
+        # Test Bus -> User functionality
+        yield from tests.one_bus_write_then_one_user_read()
+        yield from tests.multi_bus_write_then_multi_user_reads()
+        yield from tests.rand_bus_writes_rand_user_reads()
 
     test_host_to_fpga_testbench()
 
