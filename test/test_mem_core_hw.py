@@ -104,7 +104,7 @@ class MemoryCoreLoopbackTest(wiring.Component):
         self.build_and_program()
 
         # Read and write randomly from the bus side
-        for addr in sample(range(self.depth), k=self.depth):
+        for addr in jumble(range(self.depth)):
             data = randint(0, 2**self.width - 1)
             self.write_user_side(addr, data)
             self.verify_register(addr, data)

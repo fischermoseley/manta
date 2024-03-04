@@ -49,5 +49,5 @@ def test_all_possible_bytes():
 
 @simulate(uart_tx)
 def test_bytes_random_sample():
-    for i in sample(range(0xFF), k=0xFF):
+    for i in jumble(range(0xFF)):
         yield from verify_bit_sequence(i)

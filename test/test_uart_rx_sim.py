@@ -57,5 +57,5 @@ def test_bytes_random_sample():
     yield uart_rx.rx.eq(1)
     yield
 
-    for i in sample(range(0xFF), k=0xFF):
+    for i in jumble(range(0xFF)):
         yield from verify_receive(i)

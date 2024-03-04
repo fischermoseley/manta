@@ -4,6 +4,7 @@ from amaranth.lib import wiring
 from amaranth.lib.wiring import In, Out
 from amaranth.sim import Simulator
 from abc import ABC, abstractmethod
+from random import sample
 import os
 
 
@@ -140,29 +141,26 @@ def simulate(top):
     return decorator
 
 
-# def simulate_decorator(testbench):
-#     def wrapper_accepting_arguments(top):
-#         sim = Simulator(top)
-#         sim.add_clock(1e-6)  # 1 MHz
-#         sim.add_sync_process(testbench)
-
-#         vcd_path = testbench.__name__ + ".vcd"
-#         with sim.write_vcd(vcd_path):
-#             sim.run()
-
-#     return wrapper_accepting_arguments
+def jumble(iterable):
+    """
+    Returns the provided iterable, but with every element moved to a random
+    index. Very similar to random.shuffle, but returns an iteratable, instead
+    of modifying one in-place.
+    """
+    return sample(iterable, len(iterable))
 
 
 def verify_register(module, addr, expected_data):
     """
-    Read the contents of a register out over a module's bus connection, and verify
-    that it contains the expected data.
+    Read the contents of a register out over a module's bus connection, and
+    verify that it contains the expected data.
 
     Unfortunately because Amaranth uses generator functions to define processes,
     this must be a generator function and thus cannot return a value - it must
     yield the next timestep. This means that the comparision with the expected
     value must occur inside this function and not somewhere else, it's not
-    possible to return a value from here, and compare it in the calling function.
+    possible to return a value from here, and compare it in the calling
+    function.
     """
 
     # Place read transaction on the bus
