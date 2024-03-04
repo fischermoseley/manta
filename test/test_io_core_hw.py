@@ -7,7 +7,7 @@ import pytest
 from random import randint
 
 
-class IOCoreLoopbackTest(wiring.Component):
+class IOCoreLoopbackTest(Elaboratable):
     def __init__(self, platform, port):
         self.platform = platform
         self.port = port

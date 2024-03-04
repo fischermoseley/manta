@@ -1,9 +1,7 @@
 from amaranth import *
-from amaranth.lib import wiring
-from amaranth.lib.wiring import In, Out
 
 
-class TransmitBridge(wiring.Component):
+class TransmitBridge(Elaboratable):
     """
     A module for bridging Manta's internal bus to the stream of bytes expected
     by the UARTTransmitter module.

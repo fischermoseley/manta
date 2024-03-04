@@ -28,7 +28,6 @@ class MemoryCoreTests:
         for addr in self.user_addrs:
             yield from self.verify_user_side(addr, 0)
 
-
     def one_bus_write_then_one_bus_read(self):
         for addr in self.bus_addrs:
             data_width = self.get_data_width(addr)
@@ -63,7 +62,6 @@ class MemoryCoreTests:
                     data = randint(0, (2**data_width) - 1)
                     self.model[addr] = data
                     yield from self.write_bus_side(addr, data)
-
 
     def one_user_write_then_one_bus_read(self):
         for user_addr in self.user_addrs:
@@ -121,7 +119,6 @@ class MemoryCoreTests:
                     for addr, word in zip(bus_addrs, words):
                         self.model[addr] = word
 
-
     def one_bus_write_then_one_user_read(self):
         yield
 
@@ -130,7 +127,6 @@ class MemoryCoreTests:
 
     def rand_bus_writes_rand_user_reads(self):
         yield
-
 
     def one_user_write_then_one_user_read(self):
         for addr in self.user_addrs:

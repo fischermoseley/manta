@@ -1,10 +1,8 @@
 from amaranth import *
-from amaranth.lib import wiring
-from amaranth.lib.wiring import In, Out
 from manta.utils import *
 
 
-class UDPSourceBridge(wiring.Component):
+class UDPSourceBridge(Elaboratable):
     """
     A module for bridging the AXI-stream of incoming UDP packet data to Manta's
     internal bus. Connects to the LiteEth core's "source" port.

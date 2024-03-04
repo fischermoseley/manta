@@ -1,6 +1,4 @@
 from amaranth import *
-from amaranth.lib import wiring
-from amaranth.lib.wiring import In, Out
 from amaranth.lib.enum import IntEnum
 from amaranth.lib.data import ArrayLayout
 
@@ -11,7 +9,7 @@ class States(IntEnum):
     WRITE = 2
 
 
-class ReceiveBridge(wiring.Component):
+class ReceiveBridge(Elaboratable):
     """
     A module for bridging the stream of bytes from the UARTReceiver module to
     Manta's internal bus.

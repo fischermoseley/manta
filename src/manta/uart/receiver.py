@@ -1,9 +1,7 @@
 from amaranth import *
-from amaranth.lib import wiring
-from amaranth.lib.wiring import In, Out
 
 
-class UARTReceiver(wiring.Component):
+class UARTReceiver(Elaboratable):
     """
     A module for receiving bytes on a 8N1 UART at a configurable baudrate.
     Outputs bytes as a stream.

@@ -1,6 +1,4 @@
 from amaranth import *
-from amaranth.lib import wiring
-from amaranth.lib.wiring import In, Out
 from amaranth.lib.enum import IntEnum
 from manta.io_core import IOCore
 
@@ -19,7 +17,7 @@ class TriggerModes(IntEnum):
     IMMEDIATE = 2
 
 
-class LogicAnalyzerFSM(wiring.Component):
+class LogicAnalyzerFSM(Elaboratable):
     """
     A module containing the state machine for a LogicAnalyzerCore. Primarily
     responsible for controlling the write port of the Logic Analyzer's sample

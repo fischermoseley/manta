@@ -1,11 +1,9 @@
 from amaranth import *
-from amaranth.lib import wiring
-from amaranth.lib.wiring import In, Out
 from amaranth.lib.enum import IntEnum
 from manta.io_core import IOCore
 
 
-class LogicAnalyzerTriggerBlock(wiring.Component):
+class LogicAnalyzerTriggerBlock(Elaboratable):
     """
     A module containing an instance of a LogicAnalyzerTrigger for each input
     probe. The operations and arguments of these LogicAnalyzerTriggers are set
@@ -88,7 +86,7 @@ class Operations(IntEnum):
     NEQ = 9
 
 
-class LogicAnalyzerTrigger(wiring.Component):
+class LogicAnalyzerTrigger(Elaboratable):
     """
     A module containing a programmable "trigger" for a given input signal,
     which asserts its output when the programmed "trigger condition" is met.
