@@ -96,5 +96,5 @@ def test_single_shot_capture():
     yield from write_register(la, 0, 1)
     yield from write_register(la, 0, 0)
 
-    for addr in range(la.get_max_addr()):
+    for addr in range(la.max_addr):
         yield from print_data_at_addr(addr)

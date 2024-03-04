@@ -34,7 +34,7 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         space used by the core extends from `base_addr` to the number returned
         by this function (including the endpoints).
         """
-        return self.registers.get_max_addr()
+        return self.registers.max_addr
 
     def clear_triggers(self):
         # Reset all triggers to disabled with no argument

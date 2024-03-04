@@ -3,7 +3,7 @@ from manta.utils import *
 from math import ceil
 
 
-class MemoryCore(Elaboratable):
+class MemoryCore(MantaCore):
     """
     A module for generating a memory on the FPGA, with a port tied to Manta's
     internal bus, and a port provided to user logic.
@@ -59,6 +59,14 @@ class MemoryCore(Elaboratable):
                 self.user_data_out,
                 self.user_write_enable,
             ]
+
+    @property
+    def top_level_ports(self):
+        return self._top_level_ports
+
+    @property
+    def max_addr(self):
+        return self._max_addr
 
     @classmethod
     def from_config(cls, config, base_addr, interface):
@@ -250,21 +258,6 @@ class MemoryCore(Elaboratable):
         self._tie_mems_to_bus(m)
         self._tie_mems_to_user_logic(m)
         return m
-
-    def get_top_level_ports(self):
-        """
-        Return the Amaranth signals that should be included as ports in the
-        top-level Manta module.
-        """
-        return self._top_level_ports
-
-    def get_max_addr(self):
-        """
-        Return the maximum addresses in memory used by the core. The address
-        space used by the core extends from `base_addr` to the number returned
-        by this function (including the endpoints).
-        """
-        return self._max_addr
 
     def _convert_user_to_bus_addr(self, addrs):
         """

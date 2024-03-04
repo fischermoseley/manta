@@ -6,7 +6,7 @@ from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States, TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 
-class LogicAnalyzerCore(Elaboratable):
+class LogicAnalyzerCore(MantaCore):
     """
     A module for generating a logic analyzer on the FPGA, with configurable
     triggers, trigger position, and trigger modes.
@@ -43,6 +43,14 @@ class LogicAnalyzerCore(Elaboratable):
             base_addr=self._trig_blk.get_max_addr() + 1,
             interface=interface,
         )
+
+    @property
+    def max_addr(self):
+        return self._sample_mem.max_addr
+
+    @property
+    def top_level_ports(self):
+        return self._probes
 
     def _check_config(self):
         # Check for unrecognized options
@@ -175,21 +183,6 @@ class LogicAnalyzerCore(Elaboratable):
         ]
 
         return m
-
-    def get_top_level_ports(self):
-        """
-        Return the Amaranth signals that should be included as ports in the
-        top-level Manta module.
-        """
-        return self._probes
-
-    def get_max_addr(self):
-        """
-        Return the maximum addresses in memory used by the core. The address
-        space used by the core extends from `base_addr` to the number returned
-        by this function (including the endpoints).
-        """
-        return self._sample_mem.get_max_addr()
 
     def capture(self, verbose=False):
         """

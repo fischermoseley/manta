@@ -97,13 +97,13 @@ class Manta(Elaboratable):
                 core = MemoryCore.from_config(attrs, base_addr, self.interface)
 
             # Make sure we're not out of address space
-            if core.get_max_addr() > (2**16) - 1:
+            if core.max_addr > (2**16) - 1:
                 raise ValueError(
                     f"Ran out of address space to allocate to core {name}."
                 )
 
             # Make the next core's base address start one address after the previous one's
-            base_addr = core.get_max_addr() + 1
+            base_addr = core.max_addr + 1
             self._cores[name] = core
 
     def _add_friendly_core_names(self):

@@ -1,7 +1,38 @@
+from amaranth import *
 from amaranth.sim import Simulator
-from amaranth.lib import data, enum
-from math import ceil
+from amaranth.lib import data
+from abc import ABC, abstractmethod
 import os
+
+
+class MantaCore(ABC, Elaboratable):
+
+    @property
+    @abstractmethod
+    def max_addr(self):
+        """
+        Return the maximum addresses in memory used by the core. The address
+        space used by the core extends from `base_addr` to the number returned
+        by this function (including the endpoints).
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
+        """
+        pass
+
+    @abstractmethod
+    def elaborate(self, platform):
+        pass
+
+    # @abstractclassmethod
+    # def from_config(cls):
+    #     pass
 
 
 class InternalBus(data.StructLayout):

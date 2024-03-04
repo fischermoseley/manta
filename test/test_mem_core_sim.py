@@ -2,15 +2,18 @@ from manta.memory_core import MemoryCore
 from manta.utils import *
 from random import randint, sample, choice
 
-class MemoryCoreTests():
+
+class MemoryCoreTests:
     def __init__(self, mem_core):
         self.mem_core = mem_core
         self.base_addr = mem_core._base_addr
-        self.max_addr = mem_core.get_max_addr()
+        self.max_addr = mem_core.max_addr
         self.width = self.mem_core._width
         self.depth = self.mem_core._depth
 
-        self.bus_addrs = list(range(self.base_addr, self.max_addr))  # include the endpoint!
+        self.bus_addrs = list(
+            range(self.base_addr, self.max_addr)
+        )  # include the endpoint!
         self.user_addrs = list(range(self.mem_core._depth))
         self.model = {}
 
@@ -86,7 +89,10 @@ class MemoryCoreTests():
 
         data = yield (self.mem_core.user_data_out)
         if data != expected_data:
-            raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")
+            raise ValueError(
+                f"Read from {addr} yielded {data} instead of {expected_data}"
+            )
+
 
 mem_core = MemoryCore(
     mode="bidirectional",
@@ -98,6 +104,7 @@ mem_core = MemoryCore(
 
 tests = MemoryCoreTests(mem_core)
 
+
 @simulate(mem_core)
 def test_bidirectional_testbench():
     yield from tests.check_each_address_on_bus_side_contains_zero()
@@ -105,6 +112,7 @@ def test_bidirectional_testbench():
     yield from tests.check_write_then_immediately_read_bus_side()
     yield from tests.check_multiple_writes_then_multiple_reads()
     yield from tests.check_random_reads_random_writes_random_orders()
+
 
 # def test_sweep_core_widths():
 #     for i in range(1, 64):

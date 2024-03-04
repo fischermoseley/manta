@@ -3,7 +3,7 @@ from manta.utils import *
 from math import ceil
 
 
-class IOCore(Elaboratable):
+class IOCore(MantaCore):
     """
     A module for setting and getting the values of registers of arbitrary size
     on a FPGA.
@@ -33,6 +33,14 @@ class IOCore(Elaboratable):
         ]
 
         self._make_memory_map()
+
+    @property
+    def top_level_ports(self):
+        return self._inputs + self._outputs
+
+    @property
+    def max_addr(self):
+        return self._max_addr
 
     @classmethod
     def from_config(cls, config, base_addr, interface):
@@ -172,21 +180,6 @@ class IOCore(Elaboratable):
                         m.d.sync += self.bus_o.data.eq(signal)
 
         return m
-
-    def get_top_level_ports(self):
-        """
-        Return the Amaranth signals that should be included as ports in the
-        top-level Manta module.
-        """
-        return self._inputs + self._outputs
-
-    def get_max_addr(self):
-        """
-        Return the maximum addresses in memory used by the core. The address
-        space used by the core extends from `base_addr` to the number returned
-        by this function (including the endpoints).
-        """
-        return self._max_addr
 
     def set_probe(self, name, value):
         """
