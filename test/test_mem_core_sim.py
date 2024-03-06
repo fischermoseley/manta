@@ -120,13 +120,61 @@ class MemoryCoreTests:
                         self.model[addr] = word
 
     def one_bus_write_then_one_user_read(self):
-        yield
+        for user_addr in self.user_addrs:
+            # Try and set the value at the user address to a given value,
+            # by writing to the appropriate memory locaitons on the bus side
+            data = randint(0, (2**self.width) - 1)
+
+            words = value_to_words(data, self.n_mems)
+
+            for i, word in enumerate(words):
+                bus_addr = self.base_addr + user_addr + (i * self.depth)
+                yield from self.write_bus_side(bus_addr, word)
+
+            yield from self.verify_user_side(user_addr, data)
 
     def multi_bus_write_then_multi_user_reads(self):
-        yield
+        # write-write-write then read-read-read
+        for bus_addr in jumble(self.bus_addrs):
+            data_width = self.get_data_width(bus_addr)
+            data = randint(0, (2**data_width) - 1)
+
+            self.model[bus_addr] = data
+            yield from self.write_bus_side(bus_addr, data)
+
+        for user_addr in jumble(self.user_addrs):
+            bus_addrs = [
+                self.base_addr + user_addr + (i * self.depth)
+                for i in range(self.n_mems)
+            ]
+
+            value = words_to_value([self.model[addr] for addr in bus_addrs])
+            yield from self.verify_user_side(user_addr, value)
 
     def rand_bus_writes_rand_user_reads(self):
-        yield
+        for _ in range(5 * self.depth):
+            operation = choice(["read", "write"])
+
+            # write random data to random bus address
+            if operation == "write":
+                bus_addr = randint(self.base_addr, self.max_addr - 1)
+                data_width = self.get_data_width(bus_addr)
+                data = randint(0, (2**data_width) - 1)
+                self.model[bus_addr] = data
+
+                yield from self.write_bus_side(bus_addr, data)
+
+            # read from random user_addr
+            if operation == "read":
+                user_addr = randint(0, self.depth - 1)
+                bus_addrs = [
+                    self.base_addr + user_addr + (i * self.depth)
+                    for i in range(self.n_mems)
+                ]
+
+                value = words_to_value([self.model[addr] for addr in bus_addrs])
+
+                yield from self.verify_user_side(user_addr, value)
 
     def one_user_write_then_one_user_read(self):
         for addr in self.user_addrs:
@@ -136,10 +184,58 @@ class MemoryCoreTests:
             yield from self.verify_user_side(addr, data)
 
     def multi_user_write_then_multi_user_read(self):
-        yield
+        # write-write-write then read-read-read
+        for user_addr in jumble(self.user_addrs):
+            data = randint(0, (2**self.width) - 1)
+
+            bus_addrs = [
+                self.base_addr + user_addr + (i * self.depth)
+                for i in range(self.n_mems)
+            ]
+
+            words = value_to_words(data, self.n_mems)
+            for addr, word in zip(bus_addrs, words):
+                self.model[addr] = word
+
+            yield from self.write_user_side(addr, data)
+
+        for user_addr in jumble(self.user_addrs):
+            bus_addrs = [
+                self.base_addr + user_addr + (i * self.depth)
+                for i in range(self.n_mems)
+            ]
+
+            value = words_to_value([self.model[addr] for addr in bus_addrs])
+
+            yield from self.verify_user_side(user_addr, value)
 
     def rand_user_write_rand_user_read(self):
-        yield
+        # random reads and writes in random orders
+        for _ in range(5):
+            for user_addr in jumble(self.user_addrs):
+
+                operation = choice(["read", "write"])
+                if operation == "read":
+                    bus_addrs = [
+                        self.base_addr + user_addr + (i * self.depth)
+                        for i in range(self.n_mems)
+                    ]
+
+                    value = words_to_value([self.model[addr] for addr in bus_addrs])
+
+                    yield from self.verify_user_side(user_addr, value)
+
+                elif operation == "write":
+                    data = randint(0, (2**self.width) - 1)
+                    yield from self.write_user_side(user_addr, data)
+
+                    words = value_to_words(data, self.n_mems)
+                    bus_addrs = [
+                        self.base_addr + user_addr + (i * self.depth)
+                        for i in range(self.n_mems)
+                    ]
+                    for addr, word in zip(bus_addrs, words):
+                        self.model[addr] = word
 
     def get_data_width(self, addr):
         # this part is a little hard to check since we might have a
@@ -164,6 +260,7 @@ class MemoryCoreTests:
 
     def verify_user_side(self, addr, expected_data):
         yield self.mem_core.user_addr.eq(addr)
+        yield
         yield
 
         data = yield (self.mem_core.user_data_out)
