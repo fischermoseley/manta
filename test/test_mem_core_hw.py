@@ -4,7 +4,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
 from manta.utils import *
 import pytest
-from random import randint, sample
+from random import randint, getrandbits
 from math import ceil, log2
 
 """
@@ -105,7 +105,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
         # Read and write randomly from the bus side
         for addr in jumble(range(self.depth)):
-            data = randint(0, 2**self.width - 1)
+            data = getrandbits(self.width)
             self.write_user_side(addr, data)
             self.verify_register(addr, data)
 

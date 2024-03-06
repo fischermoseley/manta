@@ -4,7 +4,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
 from manta.utils import *
 import pytest
-from random import randint
+from random import getrandbits
 
 
 class IOCoreLoopbackTest(Elaboratable):
@@ -120,7 +120,7 @@ class IOCoreLoopbackTest(Elaboratable):
         # to the second input, and so on...
         for input, output in zip(inputs, outputs):
             width = self.config["cores"]["io_core"]["inputs"][input]
-            value = randint(0, 2**width - 1)
+            value = getrandbits(width)
 
             self.manta.io_core.set_probe(output, value)
             readback = self.manta.io_core.get_probe(input)

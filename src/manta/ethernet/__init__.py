@@ -2,7 +2,7 @@ from amaranth import *
 from manta.utils import *
 from manta.ethernet.source_bridge import UDPSourceBridge
 from manta.ethernet.sink_bridge import UDPSinkBridge
-from random import randint
+from random import getrandbits
 import socket
 
 
@@ -339,7 +339,7 @@ class EthernetInterface(Elaboratable):
         # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
 
         if "mac_address" not in liteeth_config:
-            addr = list(f"{randint(0, (2**48) - 1):012x}")
+            addr = list(f"{getrandbits(48):012x}")
             addr[1] = "2"
             liteeth_config["mac_address"] = int("".join(addr), 16)
             print(liteeth_config["mac_address"])

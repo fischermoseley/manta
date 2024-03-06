@@ -2,7 +2,7 @@ from amaranth import *
 from amaranth.lib import data
 from amaranth.sim import Simulator
 from abc import ABC, abstractmethod
-from random import sample
+from random import sample, randint
 import os
 
 
@@ -75,6 +75,20 @@ def words_to_value(data):
     return int("".join([f"{i:016b}" for i in data[::-1]]), 2)
 
 
+def value_to_words(data, n_words):
+    """
+    Takes a integer, interprets it as a set of 16-bit integers
+    concatenated together, and splits it into a list of 16-bit numbers.
+    """
+
+    if not isinstance(data, int) or data < 0:
+        raise ValueError("Behavior is only defined for nonnegative integers.")
+
+    # Convert to binary, split into 16-bit chunks, and then convert back to list of int
+    binary = f"{data:0b}".zfill(n_words * 16)
+    return [int(binary[i : i + 16], 2) for i in range(0, 16 * n_words, 16)][::-1]
+
+
 def check_value_fits_in_bits(value, n_bits):
     """
     Rasies an exception if the provided value isn't an integer that cannot
@@ -89,20 +103,6 @@ def check_value_fits_in_bits(value, n_bits):
 
     if value < 0 and value < -(2 ** (n_bits - 1)):
         raise ValueError("Signed integer too large.")
-
-
-def value_to_words(data, n_words):
-    """
-    Takes a integer, interprets it as a set of 16-bit integers
-    concatenated together, and splits it into a list of 16-bit numbers.
-    """
-
-    if not isinstance(data, int) or data < 0:
-        raise ValueError("Behavior is only defined for nonnegative integers.")
-
-    # Convert to binary, split into 16-bit chunks, and then convert back to list of int
-    binary = f"{data:0b}".zfill(n_words * 16)
-    return [int(binary[i : i + 16], 2) for i in range(0, 16 * n_words, 16)][::-1]
 
 
 def split_into_chunks(data, chunk_size):

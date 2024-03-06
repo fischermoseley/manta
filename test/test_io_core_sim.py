@@ -2,7 +2,7 @@ from amaranth import *
 from amaranth.sim import Simulator
 from manta.io_core import IOCore
 from manta.utils import *
-from random import randint
+from random import getrandbits
 
 probe0 = Signal(1)
 probe1 = Signal(2)
@@ -51,7 +51,7 @@ def test_output_probe_buffer_initial_value():
 def test_output_probes_are_writeable():
     for o in outputs:
         addrs = io_core._memory_map[o.name]["addrs"]
-        test_value = randint(0, (2**o.width) - 1)
+        test_value = getrandbits(o.width)
         datas = value_to_words(test_value, len(addrs))
 
         # write value to registers
@@ -67,7 +67,7 @@ def test_output_probes_are_writeable():
 def test_output_probes_update():
     for o in outputs:
         addrs = io_core._memory_map[o.name]["addrs"]
-        test_value = randint(0, (2**o.width) - 1)
+        test_value = getrandbits(o.width)
         datas = value_to_words(test_value, len(addrs))
 
         # write value to registers
@@ -93,7 +93,7 @@ def test_output_probes_update():
 def test_input_probes_update():
     for i in inputs:
         # set input probe value
-        test_value = randint(0, (2**i.width) - 1)
+        test_value = getrandbits(i.width)
         yield i.eq(test_value)
 
         # pulse strobe register
