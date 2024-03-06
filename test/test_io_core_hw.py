@@ -5,6 +5,7 @@ from manta import Manta
 from manta.utils import *
 import pytest
 from random import getrandbits
+import os
 
 
 class IOCoreLoopbackTest(Elaboratable):
@@ -143,11 +144,11 @@ class IOCoreLoopbackTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_xilinx():
-    port = "/dev/serial/by-id/usb-Digilent_Digilent_USB_Device_210292696307-if01-port0"
+    port = os.environ["NEXYS4DDR_PORT"]
     IOCoreLoopbackTest(Nexys4DDRPlatform(), port).verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_ice40():
-    port = "/dev/serial/by-id/usb-Lattice_Lattice_FTUSB_Interface_Cable-if01-port0"
+    port = os.environ["ICESTICK_PORT"]
     IOCoreLoopbackTest(ICEStickPlatform(), port).verify()

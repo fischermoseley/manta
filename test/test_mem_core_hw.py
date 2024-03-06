@@ -4,8 +4,9 @@ from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
 from manta.utils import *
 import pytest
-from random import randint, getrandbits
+from random import getrandbits
 from math import ceil, log2
+import os
 
 """
 Fundamentally we want a function to generate a configuration (as a dictionary)
@@ -112,13 +113,13 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_mem_core_xilinx():
-    port = "/dev/serial/by-id/usb-Digilent_Digilent_USB_Device_210292696307-if01-port0"
+    port = os.environ["NEXYS4DDR_PORT"]
     MemoryCoreLoopbackTest(Nexys4DDRPlatform(), 33, 1024, port).verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_mem_core_ice40():
-    port = "/dev/serial/by-id/usb-Lattice_Lattice_FTUSB_Interface_Cable-if01-port0"
+    port = os.environ["ICESTICK_PORT"]
     MemoryCoreLoopbackTest(ICEStickPlatform(), 1, 2, port).verify()
     MemoryCoreLoopbackTest(ICEStickPlatform(), 1, 512, port).verify()
     MemoryCoreLoopbackTest(ICEStickPlatform(), 1, 1024, port).verify()

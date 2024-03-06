@@ -4,6 +4,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
 from manta.utils import *
 import pytest
+import os
 
 
 class LogicAnalyzerCounterTest(Elaboratable):
@@ -78,11 +79,11 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_xilinx():
-    port = "/dev/serial/by-id/usb-Digilent_Digilent_USB_Device_210292696307-if01-port0"
+    port = os.environ["NEXYS4DDR_PORT"]
     LogicAnalyzerCounterTest(Nexys4DDRPlatform(), port).verify()
 
 
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_ice40():
-    port = "/dev/serial/by-id/usb-Lattice_Lattice_FTUSB_Interface_Cable-if01-port0"
+    port = os.environ["ICESTICK_PORT"]
     LogicAnalyzerCounterTest(ICEStickPlatform(), port).verify()
