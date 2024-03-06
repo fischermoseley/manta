@@ -20,6 +20,7 @@ class MemoryCoreTests:
         self.user_addrs = list(range(self.mem_core._depth))
         self.model = {}
 
+
     def bus_addrs_all_zero(self):
         for addr in self.bus_addrs:
             yield from self.verify_bus_side(addr, 0)
@@ -28,9 +29,29 @@ class MemoryCoreTests:
         for addr in self.user_addrs:
             yield from self.verify_user_side(addr, 0)
 
+    def bus_to_bus_functionality(self):
+        yield from self.one_bus_write_then_one_bus_read()
+        yield from self.multi_bus_writes_then_multi_bus_reads()
+        yield from self.rand_bus_writes_rand_bus_reads()
+
+    def user_to_bus_functionality(self):
+        yield from self.one_user_write_then_one_bus_read()
+        yield from self.multi_user_write_then_multi_bus_reads()
+        yield from self.rand_user_writes_rand_bus_reads()
+
+    def bus_to_user_functionality(self):
+        yield from self.one_bus_write_then_one_user_read()
+        yield from self.multi_bus_write_then_multi_user_reads()
+        yield from self.rand_bus_writes_rand_user_reads()
+
+    def user_to_user_functionality(self):
+        yield from self.one_user_write_then_one_user_read()
+        yield from self.multi_user_write_then_multi_user_read()
+        yield from self.rand_user_write_rand_user_read()
+
     def one_bus_write_then_one_bus_read(self):
         for addr in self.bus_addrs:
-            data_width = self.get_data_width(addr)
+            data_width = self._get_data_width(addr)
             data = randint(0, (2**data_width) - 1)
 
             yield from self.write_bus_side(addr, data)
@@ -39,7 +60,7 @@ class MemoryCoreTests:
     def multi_bus_writes_then_multi_bus_reads(self):
         # write-write-write then read-read-read
         for addr in jumble(self.bus_addrs):
-            data_width = self.get_data_width(addr)
+            data_width = self._get_data_width(addr)
             data = randint(0, (2**data_width) - 1)
 
             self.model[addr] = data
@@ -58,7 +79,7 @@ class MemoryCoreTests:
                     yield from self.verify_bus_side(addr, self.model[addr])
 
                 elif operation == "write":
-                    data_width = self.get_data_width(addr)
+                    data_width = self._get_data_width(addr)
                     data = randint(0, (2**data_width) - 1)
                     self.model[addr] = data
                     yield from self.write_bus_side(addr, data)
@@ -136,7 +157,7 @@ class MemoryCoreTests:
     def multi_bus_write_then_multi_user_reads(self):
         # write-write-write then read-read-read
         for bus_addr in jumble(self.bus_addrs):
-            data_width = self.get_data_width(bus_addr)
+            data_width = self._get_data_width(bus_addr)
             data = randint(0, (2**data_width) - 1)
 
             self.model[bus_addr] = data
@@ -158,7 +179,7 @@ class MemoryCoreTests:
             # write random data to random bus address
             if operation == "write":
                 bus_addr = randint(self.base_addr, self.max_addr - 1)
-                data_width = self.get_data_width(bus_addr)
+                data_width = self._get_data_width(bus_addr)
                 data = randint(0, (2**data_width) - 1)
                 self.model[bus_addr] = data
 
@@ -185,29 +206,14 @@ class MemoryCoreTests:
 
     def multi_user_write_then_multi_user_read(self):
         # write-write-write then read-read-read
+        self.foo = {}
         for user_addr in jumble(self.user_addrs):
             data = randint(0, (2**self.width) - 1)
-
-            bus_addrs = [
-                self.base_addr + user_addr + (i * self.depth)
-                for i in range(self.n_mems)
-            ]
-
-            words = value_to_words(data, self.n_mems)
-            for addr, word in zip(bus_addrs, words):
-                self.model[addr] = word
-
-            yield from self.write_user_side(addr, data)
+            self.foo[user_addr] = data
+            yield from self.write_user_side(user_addr, data)
 
         for user_addr in jumble(self.user_addrs):
-            bus_addrs = [
-                self.base_addr + user_addr + (i * self.depth)
-                for i in range(self.n_mems)
-            ]
-
-            value = words_to_value([self.model[addr] for addr in bus_addrs])
-
-            yield from self.verify_user_side(user_addr, value)
+            yield from self.verify_user_side(user_addr, self.foo[user_addr])
 
     def rand_user_write_rand_user_read(self):
         # random reads and writes in random orders
@@ -216,28 +222,14 @@ class MemoryCoreTests:
 
                 operation = choice(["read", "write"])
                 if operation == "read":
-                    bus_addrs = [
-                        self.base_addr + user_addr + (i * self.depth)
-                        for i in range(self.n_mems)
-                    ]
-
-                    value = words_to_value([self.model[addr] for addr in bus_addrs])
-
-                    yield from self.verify_user_side(user_addr, value)
+                    yield from self.verify_user_side(user_addr, self.foo[user_addr])
 
                 elif operation == "write":
                     data = randint(0, (2**self.width) - 1)
+                    self.foo[user_addr] = data
                     yield from self.write_user_side(user_addr, data)
 
-                    words = value_to_words(data, self.n_mems)
-                    bus_addrs = [
-                        self.base_addr + user_addr + (i * self.depth)
-                        for i in range(self.n_mems)
-                    ]
-                    for addr, word in zip(bus_addrs, words):
-                        self.model[addr] = word
-
-    def get_data_width(self, addr):
+    def _get_data_width(self, addr):
         # this part is a little hard to check since we might have a
         # memory at the end of the address space that's less than
         # 16-bits wide. so we'll have to calculate how wide our
@@ -295,27 +287,35 @@ def test_bidirectional():
         yield from tests.bus_addrs_all_zero()
         yield from tests.user_addrs_all_zero()
 
-        # Test Bus -> Bus functionality
-        yield from tests.one_bus_write_then_one_bus_read()
-        yield from tests.multi_bus_writes_then_multi_bus_reads()
-        yield from tests.rand_bus_writes_rand_bus_reads()
-
-        # Test User -> Bus functionality
-        yield from tests.one_user_write_then_one_bus_read()
-        yield from tests.multi_user_write_then_multi_bus_reads()
-        yield from tests.rand_user_writes_rand_bus_reads()
-
-        # Test Bus -> User functionality
-        yield from tests.one_bus_write_then_one_user_read()
-        yield from tests.multi_bus_write_then_multi_user_reads()
-        yield from tests.rand_bus_writes_rand_user_reads()
-
-        # Test User -> User functionality
-        yield from tests.one_user_write_then_one_user_read()
-        yield from tests.multi_user_write_then_multi_user_read()
-        yield from tests.rand_user_write_rand_user_read()
+        yield from tests.bus_to_bus_functionality()
+        yield from tests.user_to_bus_functionality()
+        yield from tests.bus_to_user_functionality()
+        yield from tests.user_to_user_functionality()
 
     test_bidirectional_testbench()
+
+def test_bidirectional_random():
+    mem_core = MemoryCore(
+        mode="bidirectional",
+        width=randint(0, 128),
+        depth=randint(0, 2048),
+        base_addr=randint(0, 32678),
+        interface=None,
+    )
+
+    tests = MemoryCoreTests(mem_core)
+
+    @simulate(mem_core)
+    def test_bidirectional_random_testbench():
+        yield from tests.bus_addrs_all_zero()
+        yield from tests.user_addrs_all_zero()
+
+        yield from tests.bus_to_bus_functionality()
+        yield from tests.user_to_bus_functionality()
+        yield from tests.bus_to_user_functionality()
+        yield from tests.user_to_user_functionality()
+
+    test_bidirectional_random_testbench()
 
 
 def test_fpga_to_host():
@@ -332,13 +332,27 @@ def test_fpga_to_host():
     @simulate(mem_core)
     def test_fpga_to_host_testbench():
         yield from tests.bus_addrs_all_zero()
-
-        # Test User -> Bus functionality
-        yield from tests.one_user_write_then_one_bus_read()
-        yield from tests.multi_user_write_then_multi_bus_reads()
-        yield from tests.rand_user_writes_rand_bus_reads()
+        yield from tests.user_to_bus_functionality()
 
     test_fpga_to_host_testbench()
+
+def test_fpga_to_host_random():
+    mem_core = MemoryCore(
+        mode="fpga_to_host",
+        width=randint(0, 128),
+        depth=randint(0, 2048),
+        base_addr=randint(0, 32678),
+        interface=None,
+    )
+
+    tests = MemoryCoreTests(mem_core)
+
+    @simulate(mem_core)
+    def test_fpga_to_host_random_testbench():
+        yield from tests.bus_addrs_all_zero()
+        yield from tests.user_to_bus_functionality()
+
+    test_fpga_to_host_random_testbench()
 
 
 def test_host_to_fpga():
@@ -355,23 +369,24 @@ def test_host_to_fpga():
     @simulate(mem_core)
     def test_host_to_fpga_testbench():
         yield from tests.user_addrs_all_zero()
-
-        # Test Bus -> User functionality
-        yield from tests.one_bus_write_then_one_user_read()
-        yield from tests.multi_bus_write_then_multi_user_reads()
-        yield from tests.rand_bus_writes_rand_user_reads()
+        yield from tests.bus_to_user_functionality()
 
     test_host_to_fpga_testbench()
 
+def test_host_to_fpga_random():
+    mem_core = MemoryCore(
+        mode="host_to_fpga",
+        width=randint(0, 128),
+        depth=randint(0, 2048),
+        base_addr=randint(0, 32678),
+        interface=None,
+    )
 
-# def test_sweep_core_widths():
-#     for i in range(1, 64):
-#         verify_mem_core(i, 128, 0)
+    tests = MemoryCoreTests(mem_core)
 
+    @simulate(mem_core)
+    def test_host_to_fpga_random_testbench():
+        yield from tests.user_addrs_all_zero()
+        yield from tests.bus_to_user_functionality()
 
-# def test_random_cores():
-#     for _ in range(5):
-#         width = randint(0, 512)
-#         depth = randint(0, 1024)
-#         base_addr = randint(0, 2**16 - 1 - depth)
-#         verify_mem_core(width, depth, base_addr)
+    test_host_to_fpga_random_testbench()
