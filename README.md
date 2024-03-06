@@ -1,6 +1,6 @@
 ![](doc/assets/logo.png)
 
-## Manta: An In-Situ Debugging Tool for Programmable Hardware
+## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
 ![run_tests](https://github.com/fischermoseley/manta/actions/workflows/run_tests.yml/badge.svg)
 ![build_docs](https://github.com/fischermoseley/manta/actions/workflows/build_docs.yml/badge.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

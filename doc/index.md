@@ -1,6 +1,6 @@
 ![](assets/logo.png)
 
-## Manta: An In-Situ Debugging Tool for Programmable Hardware
+## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
 
 Manta is a tool for moving data between a host machine and a FPGA over UART or Ethernet. It's primarily intended for debugging and rapid prototyping of FPGA designs, but it's robust enough to be used as a simple, reliable transport layer.
 
