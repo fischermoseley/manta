@@ -2,6 +2,7 @@ from manta.memory_core import MemoryCore
 from manta.utils import *
 from random import randint, choice, getrandbits
 from math import ceil
+import pytest
 
 
 class MemoryCoreTests:
@@ -258,125 +259,39 @@ class MemoryCoreTests:
         yield self.mem_core.user_write_enable.eq(0)
 
 
-def test_bidirectional():
-    mem_core = MemoryCore(
-        mode="bidirectional",
-        width=23,
-        depth=512,
-        base_addr=0,
-        interface=None,
-    )
+modes = ["bidirectional", "fpga_to_host", "host_to_fpga"]
+widths = [23, randint(0, 128)]
+depths = [512, randint(0, 1024)]
+base_addrs = [0, randint(0, 32678)]
+
+cases = [
+    (m, w, d, ba) for m in modes for w in widths for d in depths for ba in base_addrs
+]
+
+
+@pytest.mark.parametrize("mode, width, depth, base_addr", cases)
+def test_mem_core(mode, width, depth, base_addr):
+    mem_core = MemoryCore(mode, width, depth, base_addr, interface=None)
 
     tests = MemoryCoreTests(mem_core)
 
     @simulate(mem_core)
-    def test_bidirectional_testbench():
-        yield from tests.bus_addrs_all_zero()
-        yield from tests.user_addrs_all_zero()
+    def testbench():
+        if mode == "bidirectional":
+            yield from tests.bus_addrs_all_zero()
+            yield from tests.user_addrs_all_zero()
 
-        yield from tests.bus_to_bus_functionality()
-        yield from tests.user_to_bus_functionality()
-        yield from tests.bus_to_user_functionality()
-        yield from tests.user_to_user_functionality()
+            yield from tests.bus_to_bus_functionality()
+            yield from tests.user_to_bus_functionality()
+            yield from tests.bus_to_user_functionality()
+            yield from tests.user_to_user_functionality()
 
-    test_bidirectional_testbench()
+        if mode == "fpga_to_host":
+            yield from tests.bus_addrs_all_zero()
+            yield from tests.user_to_bus_functionality()
 
+        if mode == "host_to_fpga":
+            yield from tests.user_addrs_all_zero()
+            yield from tests.bus_to_user_functionality()
 
-def test_bidirectional_random():
-    mem_core = MemoryCore(
-        mode="bidirectional",
-        width=randint(0, 128),
-        depth=randint(0, 1024),
-        base_addr=randint(0, 32678),
-        interface=None,
-    )
-
-    tests = MemoryCoreTests(mem_core)
-
-    @simulate(mem_core)
-    def test_bidirectional_random_testbench():
-        yield from tests.bus_addrs_all_zero()
-        yield from tests.user_addrs_all_zero()
-
-        yield from tests.bus_to_bus_functionality()
-        yield from tests.user_to_bus_functionality()
-        yield from tests.bus_to_user_functionality()
-        yield from tests.user_to_user_functionality()
-
-    test_bidirectional_random_testbench()
-
-
-def test_fpga_to_host():
-    mem_core = MemoryCore(
-        mode="fpga_to_host",
-        width=23,
-        depth=512,
-        base_addr=0,
-        interface=None,
-    )
-
-    tests = MemoryCoreTests(mem_core)
-
-    @simulate(mem_core)
-    def test_fpga_to_host_testbench():
-        yield from tests.bus_addrs_all_zero()
-        yield from tests.user_to_bus_functionality()
-
-    test_fpga_to_host_testbench()
-
-
-def test_fpga_to_host_random():
-    mem_core = MemoryCore(
-        mode="fpga_to_host",
-        width=randint(0, 128),
-        depth=randint(0, 1024),
-        base_addr=randint(0, 32678),
-        interface=None,
-    )
-
-    tests = MemoryCoreTests(mem_core)
-
-    @simulate(mem_core)
-    def test_fpga_to_host_random_testbench():
-        yield from tests.bus_addrs_all_zero()
-        yield from tests.user_to_bus_functionality()
-
-    test_fpga_to_host_random_testbench()
-
-
-def test_host_to_fpga():
-    mem_core = MemoryCore(
-        mode="host_to_fpga",
-        width=23,
-        depth=512,
-        base_addr=0,
-        interface=None,
-    )
-
-    tests = MemoryCoreTests(mem_core)
-
-    @simulate(mem_core)
-    def test_host_to_fpga_testbench():
-        yield from tests.user_addrs_all_zero()
-        yield from tests.bus_to_user_functionality()
-
-    test_host_to_fpga_testbench()
-
-
-def test_host_to_fpga_random():
-    mem_core = MemoryCore(
-        mode="host_to_fpga",
-        width=randint(0, 128),
-        depth=randint(0, 1024),
-        base_addr=randint(0, 32678),
-        interface=None,
-    )
-
-    tests = MemoryCoreTests(mem_core)
-
-    @simulate(mem_core)
-    def test_host_to_fpga_random_testbench():
-        yield from tests.user_addrs_all_zero()
-        yield from tests.bus_to_user_functionality()
-
-    test_host_to_fpga_random_testbench()
+    testbench()

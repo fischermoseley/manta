@@ -317,6 +317,6 @@ class MemoryCore(MantaCore):
         if not all(isinstance(d, int) for d in datas):
             raise TypeError("Write data must all be integers.")
 
-        bus_addrs = self._convert_user_to_bus_addr([addrs])[0]
+        bus_addrs = self._convert_user_to_bus_addr(addrs)
         bus_datas = [word for d in datas for word in value_to_words(d, self._n_mems)]
         self._interface.write(bus_addrs, bus_datas)
