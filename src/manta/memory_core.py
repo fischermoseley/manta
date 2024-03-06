@@ -114,36 +114,6 @@ class MemoryCore(MantaCore):
             start_addr = self._base_addr + (i * self._depth)
             stop_addr = start_addr + self._depth - 1
 
-            # # Handle write ports
-            # if self._mode in ["host_to_fpga", "bidirectional"]:
-            #     write_port = mem.write_port()
-            #     m.d.sync += write_port.data.eq(self.bus_i.data)
-            #     m.d.sync += write_port.en.eq(self.bus_i.rw)
-            #     m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
-
-            # # Handle read ports
-            # if self._mode in ["fpga_to_host", "bidirectional"]:
-            #     read_port = mem.read_port()
-            #     m.d.comb += read_port.en.eq(1)
-
-            #     # Throw BRAM operations into the front of the pipeline
-            #     with m.If(
-            #         (self.bus_i.valid)
-            #         & (~self.bus_i.rw)
-            #         & (self.bus_i.addr >= start_addr)
-            #         & (self.bus_i.addr <= stop_addr)
-            #     ):
-            #         m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
-
-            #     # Pull BRAM reads from the back of the pipeline
-            #     with m.If(
-            #         (self._bus_pipe[2].valid)
-            #         & (~self._bus_pipe[2].rw)
-            #         & (self._bus_pipe[2].addr >= start_addr)
-            #         & (self._bus_pipe[2].addr <= stop_addr)
-            #     ):
-            #         m.d.sync += self.bus_o.data.eq(read_port.data)
-
             if self._mode == "fpga_to_host":
                 read_port = mem.read_port()
                 m.d.comb += read_port.en.eq(1)
