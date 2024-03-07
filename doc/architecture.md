@@ -86,13 +86,19 @@ Each Memory core is actually a set of 16-bit wide BRAMs with their ports concate
 
 Since each $n$-bit wide block memory is actually $ceil(n/16)$ BRAMs under the hood, addressing the BRAMs correctly from Manta's internal bus is important. BRAMs are organized such that each 16-bit slice of a $N$-bit word in the Block Memory core are placed next to each other in bus address space. For instance, a 34-bit wide block memory would exist on Manta's internal bus as:
 
-| Bus Address Space | BRAM Address Space   |
-| -----------       | -------------------- |
-| BASE_ADDR + 0     | address 0, bits 0-15 |
-| BASE_ADDR + 1     | address 0, bits 16-31|
-| BASE_ADDR + 2     | address 0, bits 32-33|
-| BASE_ADDR + 3     | address 1, bits 0-15 |
-| BASE_ADDR + 4     | address 1, bits 16-31|
-| BASE_ADDR + 5     | address 1, bits 32-33|
+| Bus Address Space           | BRAM Address Space   |
+| -----------                 | -------------------- |
+| BASE_ADDR + 0               | address 0, bits 0-15 |
+| BASE_ADDR + 1               | address 1, bits 0-15 |
+| BASE_ADDR + n               | address n, bits 0-15 |
+| ...                         | ...                  |
+| BASE_ADDR + 0 + DEPTH       | address 0, bits 16-31|
+| BASE_ADDR + 1 + DEPTH       | address 1, bits 16-31|
+| BASE_ADDR + n + DEPTH       | address n, bits 16-31|
+| ...                         | ...                  |
+| BASE_ADDR + 0 + (2 * DEPTH) | address 0, bits 32-33|
+| BASE_ADDR + 1 + (2 * DEPTH) | address 1, bits 32-33|
+| BASE_ADDR + n + (2 * DEPTH) | address n, bits 32-33|
+| ...                         | ...                  |
 
 ...and so on.

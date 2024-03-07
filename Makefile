@@ -8,5 +8,5 @@ format:
 clean:
 	git clean -Xdf
 
-serve_docs:
+preview_site:
 	mkdocs serve

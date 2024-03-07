@@ -5,7 +5,7 @@ To use Manta, you'll need a host machine with a FPGA board connected over UART, 
 
 - _Specify a set of debug cores you wish to include in your design._ This is done by writing a configuration file, typically called `manta.yaml`. Specifying files in JSON is also supported, as long as the hierarchy in the file is equivalent. Just make sure that your YAML files end in `.yaml` or `.yml`, and that JSON files end in `.json`.
 - _Invoke Manta to generate Verilog from the configuration provided._ This is done by running `manta gen [config_file] [verilog_file]` at the command line, which generates a Verilog file (typically named `manta.v`) from the provided configuration file. This Verilog file contains a definition for a Verilog module named `manta`, and all its constituent modules.
-- _Instantiate `manta` in your design, and connecting it to the logic you'd like to debug._ An example instantiation is provided at the top of `manta.v`, which you can copy-paste into your main source code. You'll connect its ports to the logic you're trying to debug, as well as to whatever interface you're using to communicate with the host. This will be a serial transciever on your development board if you're using UART, or it's RMII PHY if you're using Ethernet.
+- _Instantiate `manta` in your design, and connecting it to the logic you'd like to debug._ Manta will provide an example instantiation if you run `manta inst [config_file]`, which you can copy-paste into your source code. You'll connect its ports to the logic you're trying to debug, as well as to whatever interface you're using to communicate with the host. This will be a serial transciever on your development board if you're using UART, or it's RMII PHY if you're using Ethernet.
 - _Build and upload the design to your FPGA using your preferred toolchain._
 - _Use the debug core(s) through the Python API or the command line._ The functions availble to each core are described in their documentation.
 - _Repeat!_ As you debug, you'll probably want to change exactly how Manta is configured. This means tweaking the configuration file, regenerating the Verilog module, and so on.
@@ -58,12 +58,12 @@ This Manta instance has an IO Core and a Logic Analyzer, each containing a numbe
 
 ## Example Instantiation
 
-Lastly, we Manta can automatically generate a copy-pasteable Verilog snippet to instantiate Manta in your design. This is done by running `manta inst` with the path to the configuration file describing the Manta core you'd like to instantiate. For example, the following snippet is generated for the configuration above:
+Lastly, we Manta can automatically generate a copy-pasteable Verilog snippet to instantiate Manta in your design by running `manta inst [config_file]`. For example, the following snippet is generated for the configuration above:
 
 ```verilog
 manta manta_inst (
     .clk(clk),
-    .rst(rst)
+    .rst(rst),
     .rx(rx),
     .tx(tx),
     .probe_0_in(probe_0_in),

@@ -43,22 +43,26 @@ Inside this configuration, the following parameters may be configured:
 
 ## Python API
 
-The IO core functionality is stored in the `Manta.IOCore`, `Manta.InputProbe`, and `Manta.OutputProbe` classes in [src/manta/io_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/io_core/__init__.py), and it may be controlled with the two functions:
-
-`Manta.IOCoreProbe.set(data)`
-
-- [`int`, `bool`] _data_: The value to write to an output probe. May be signed or unsigned, but will raise an exception if the value is too large for the width of the port.
-- _returns_: None
-
-This method is blocking. When called it will dispatch a request to the FPGA, and wait until a response has been received.
+The IO core functionality is stored in the `Manta.IOCore` class in [src/manta/io_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/io_core.py), and it may be controlled with the two functions:
 
 ---
 
-`Manta.IOCoreProbe.get()`
+`Manta.IOCore.set_probe(name, data)`
 
+- [`string`] _name_: The probe to write to. Must not be an output port, and must match the name provided in the config file.
+- [`int`, `bool`] _data_: The value to write to an output probe. May be signed or unsigned, but will raise an exception if the value is too large for the width of the port.
+- _returns_: None
+
+This method is blocking. When called it will dispatch a request to the FPGA, and halt execution until the request has been sent.
+
+---
+
+`Manta.IOCore.get_probe(name)`
+
+- [`string`] _name_: The probe to read from. May be either an input or an output port, and must match the name provided in the config file.
 - _returns_: The value of an input or output probe. In the case of an output probe, the value returned will be the last value written to the probe.
 
-This method is blocking. When called it will dispatch a request to the FPGA, and wait until a response has been received.
+This method is blocking. When called it will dispatch a request to the FPGA, and halt execution until the request has been sent and a response has been received.
 
 ---
 
@@ -70,11 +74,11 @@ A small example is shown below, using the [example configuration](#configuration
 ```python
 >>> import Manta
 >>> m = Manta
->>> m.my_io_core.fozzy.set(True)
->>> m.my_io_core.fozzy.get()
+>>> m.my_io_core.set_probe("fozzy", True)
+>>> m.my_io_core.get_probe("fozzy")
 True
->>> m.my_io_core.gonzo.set(4)
->>> m.my_io_core.scooter.get()
+>>> m.my_io_core.set_probe("gonzo", 4)
+>>> m.my_io_core.get_probe("scooter")
 5
 ```
 

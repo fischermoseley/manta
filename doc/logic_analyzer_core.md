@@ -67,17 +67,9 @@ Each individual trigger is specified with the following structure:
 Lastly, if you're not able to express your desired trigger condition in terms of the operators above, fear not! You can also specify an `external_trigger: true` entry in the config file, which exposes an input on Manta's top level for your own trigger.
 
 ### Trigger Position (optional)
-Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accommodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occurring. This is best explained with a picture:
+Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accommodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occurring. This is similar to a "holdoff" option on a traditional oscilloscope or logic analyzer.
 
-![](assets/trigger_positions.png){style="width:90%"}
-
-The windows at the bottom of the diagram show what portions of the timeseries will be captured for different trigger positions. For instance:
-
-- A trigger position of half the sample depth centers the capture window around when the trigger condition is met.
-- A trigger position of zero places the trigger at the zeroth clock cycle of the capture.
-- A trigger position equal to the sample depth causes the trigger to occur on the last sample in the capture.
-
-If `trigger_position` is not specified, Manta will default to centering the capture window around the trigger condition.
+If `trigger_position` is not specified, Manta will default to centering the capture window around the trigger condition. This results in just as many samples before the trigger as after.
 
 ### Capture Modes (optional)
 The logic analyzer has a few different ways of capturing data, which are represented by the _capture modes_ below:
@@ -125,5 +117,5 @@ This is useful for two situations in particular:
 - _Sparse Sampling_ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more efficient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less FPGA resources than sampling the entire pattern history table.
 
 ## Python API
-The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py). This class contains methods for capturing data, and exporting `.vcd` and `.v` files.
+The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py). This class contains methods for capturing data, exporting it as `.vcd`, `.v` or `.csv` files, or as a Python list.
 
