@@ -27,13 +27,6 @@ jobs:
 
       - name: Run tests
         run:  |
-          # export tool paths
-          export VIVADO=/tools/Xilinx/Vivado/2023.1/bin/vivado
-          export YOSYS=/tools/oss-cad-suite/bin/yosys
-          export NEXTPNR_ICE40=/tools/oss-cad-suite/bin/nextpnr-ice40
-          export ICEPACK=/tools/oss-cad-suite/bin/icepack
-          export ICEPROG=/tools/oss-cad-suite/bin/iceprog
-
+          source ./environment.sh
           source venv/bin/activate
-
           make test
