@@ -1,0 +1,35 @@
+---
+cores:
+  my_logic_analyzer:
+    type: logic_analyzer
+    sample_depth: 8192
+
+    probes:
+      probe0: 1
+      probe1: 4
+      probe2: 8
+      probe3: 16
+
+    triggers:
+      - probe2 EQ 3
+
+  my_io_core:
+    type: io
+    inputs:
+      sw: 16
+    outputs:
+      led: 16
+
+
+ethernet:
+  phy: LiteEthPHYRMII
+  device: xc7a
+  vendor: xilinx
+  toolchain: vivado
+
+  refclk_freq: 50e6
+  clk_freq: 50e6
+
+  fpga_ip_addr: "192.168.0.110"
+  host_ip_addr: "192.168.0.100"
+  udp_port: 2000
