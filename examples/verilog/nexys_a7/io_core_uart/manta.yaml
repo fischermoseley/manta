@@ -1,0 +1,26 @@
+---
+cores:
+  my_io_core:
+    type: io
+
+    inputs:
+      btnu: 1
+      btnd: 1
+      btnl: 1
+      btnr: 1
+      btnc: 1
+      sw: 16
+
+    outputs:
+      led: 16
+      led16_b: 1
+      led16_g: 1
+      led16_r: 1
+      led17_b: 1
+      led17_g: 1
+      led17_r: 1
+
+uart:
+  port: "/dev/ttyUSB1"
+  baudrate: 115200
+  clock_freq: 100000000

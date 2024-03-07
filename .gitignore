@@ -23,5 +23,9 @@ build/
 *.bin
 *.bit
 *.out
-*.xdc
 .Xil/*
+
+# Yosys/IceStorm files from the same
+*.asc
+*.bin
+*.json

@@ -115,6 +115,7 @@ def split_into_chunks(data, chunk_size):
 
     return [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
 
+
 def make_build_dir_if_it_does_not_exist_already():
     """
     Make build/ if it doesn't exist already.
@@ -133,6 +134,7 @@ def simulate(top):
 
     def decorator(testbench):
         make_build_dir_if_it_does_not_exist_already()
+
         def wrapper(*args, **kwargs):
             sim = Simulator(top)
             sim.add_clock(1e-6)  # 1 MHz

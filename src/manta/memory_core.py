@@ -60,6 +60,19 @@ class MemoryCore(MantaCore):
                 self.user_write_enable,
             ]
 
+        # Define memories
+        n_full = self._width // 16
+        n_partial = self._width % 16
+
+        self._mems = [
+            Memory(width=16, depth=self._depth, init=[0] * self._depth)
+            for _ in range(n_full)
+        ]
+        if n_partial > 0:
+            self._mems += [
+                Memory(width=n_partial, depth=self._depth, init=[0] * self._depth)
+            ]
+
     @property
     def top_level_ports(self):
         return self._top_level_ports
@@ -198,19 +211,6 @@ class MemoryCore(MantaCore):
 
     def elaborate(self, platform):
         m = Module()
-
-        # Define memories
-        n_full = self._width // 16
-        n_partial = self._width % 16
-
-        self._mems = [
-            Memory(width=16, depth=self._depth, init=[0] * self._depth)
-            for _ in range(n_full)
-        ]
-        if n_partial > 0:
-            self._mems += [
-                Memory(width=n_partial, depth=self._depth, init=[0] * self._depth)
-            ]
 
         # Add memories as submodules
         for i, mem in enumerate(self._mems):
