@@ -1,0 +1,16 @@
+---
+cores:
+  my_io_core:
+    type: io
+
+    outputs:
+      LED0: 1
+      LED1: 1
+      LED2: 1
+      LED3: 1
+      LED4: 1
+
+uart:
+  port: "/dev/ttyUSB3"
+  baudrate: 115200
+  clock_freq: 12000000
