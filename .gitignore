@@ -16,7 +16,7 @@ build/
 *.out
 *.csv
 
-# Vivado files from the occasional debugging sesh
+# Vivado files
 *.log
 *.jou
 *.rpt
@@ -25,7 +25,7 @@ build/
 *.out
 .Xil/*
 
-# Yosys/IceStorm files from the same
+# Yosys/IceStorm files
 *.asc
 *.bin
 *.json
