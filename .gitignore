@@ -23,7 +23,7 @@ build/
 *.bin
 *.bit
 *.out
-.Xil/*
+.Xil/
 
 # Yosys/IceStorm files
 *.asc
