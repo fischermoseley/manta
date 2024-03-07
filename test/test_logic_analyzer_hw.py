@@ -59,14 +59,16 @@ class LogicAnalyzerCounterTest(Elaboratable):
         self.build_and_program()
         cap = self.manta.la.capture()
 
+        make_build_dir_if_it_does_not_exist_already()
+
         # check that VCD export works
-        cap.export_vcd("out.vcd")
+        cap.export_vcd("build/logic_analyzer_capture.vcd")
 
         # check that CSV export works
-        cap.export_csv("out.csv")
+        cap.export_csv("build/logic_analyzer_capture.csv")
 
         # check that Verilog export works
-        cap.export_playback_verilog("out.v")
+        cap.export_playback_verilog("build/logic_analzyer_capture_playback.v")
 
         # verify that each signal is just a counter modulo the width of the signal
         for name, width in self.manta.la._config["probes"].items():

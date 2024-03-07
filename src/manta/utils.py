@@ -2,7 +2,8 @@ from amaranth import *
 from amaranth.lib import data
 from amaranth.sim import Simulator
 from abc import ABC, abstractmethod
-from random import sample, randint
+from random import sample
+from pathlib import Path
 import os
 
 
@@ -114,22 +115,30 @@ def split_into_chunks(data, chunk_size):
 
     return [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
 
+def make_build_dir_if_it_does_not_exist_already():
+    """
+    Make build/ if it doesn't exist already.
+    """
+
+    Path("build").mkdir(parents=True, exist_ok=True)
+
 
 def simulate(top):
     """
     A decorator for running behavioral simulation using Amaranth's built-in
     simulator. Requires the top-level module in the simulation as an argument,
-    and automatically names VCD file containing the waveform dump with the name
-    of the function being decorated.
+    and automatically names VCD file containing the waveform dump in build/
+    with the name of the function being decorated.
     """
 
     def decorator(testbench):
+        make_build_dir_if_it_does_not_exist_already()
         def wrapper(*args, **kwargs):
             sim = Simulator(top)
             sim.add_clock(1e-6)  # 1 MHz
             sim.add_sync_process(testbench)
 
-            vcd_path = testbench.__name__ + ".vcd"
+            vcd_path = "build/" + testbench.__name__ + ".vcd"
 
             with sim.write_vcd(vcd_path):
                 sim.run()
