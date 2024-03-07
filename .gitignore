@@ -2,32 +2,30 @@
 .DS_Store
 *.vscode/
 
-# Python outputs
+# Python files
 venv/
-dist/
-build/
-*.egg-info
+manta.egg-info/
+.pytest_cache
 __pycache__/
+build/
 
-# Vivado output products
-*.Xil/
+# Miscellaneous file types
+*.v
+*.sv
+*.vcd
+*.out
+*.csv
+
+# Vivado files
 *.log
 *.jou
 *.rpt
-*.bit
-cpu_impl_netlist.v
-
-# IceStorm output products
 *.bin
-
-# iVerilog output products
-*.vcd
+*.bit
 *.out
+.Xil/
 
-# Formal outputs
-test/formal_verification/*_basic
-test/formal_verification/*_cover
-
-# Manta output products
-manta.v
-*.mem
+# Yosys/IceStorm files
+*.asc
+*.bin
+*.json

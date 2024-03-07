@@ -1,19 +1,28 @@
 [project]
-name = "mantaray"
-version = "0.1.0"
+name = "manta"
+version = "1.0.0"
 authors = [
   { name="Fischer Moseley", email="fischerm@mit.edu" },
 ]
 description = "An In-Situ Debugging Tool for Programmable Hardware"
 readme = "README.md"
 dependencies = [
+  "amaranth[builtin-yosys]",
   "PyYAML",
   "pyserial",
+  "liteeth@git+https://github.com/enjoy-digital/liteeth@2023.12",
   "pyvcd",
-  "scapy"
 ]
 
-requires-python = ">=3.7"
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "mkdocs-material",
+  "amaranth_boards@git+https://github.com/amaranth-lang/amaranth-boards"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/fischermoseley/manta"
@@ -23,9 +32,6 @@ manta = "manta:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-manta = ["**/*.v"]
 
 [build-system]
 requires = ["setuptools"]

@@ -1,0 +1,32 @@
+name: run_tests
+on: [push]
+jobs:
+  all:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Manta from Source
+        run: |
+          # Make venv
+          python3 -m venv venv/
+          source venv/bin/activate
+
+          # Update pip
+          python3 -m pip install -U pip
+
+          # omitting the following commmand causes the version of setuptools
+          # used by python to get confused, and it doesn't detect the name
+          # or version of the package from pyproject.toml - so the following
+          # workaround is used:
+          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
+          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+
+          # Install Manta, with optional dev-only dependencies
+          python3 -m pip install ".[dev]"
+
+      - name: Run tests
+        run:  |
+          source ./environment.sh
+          source venv/bin/activate
+          make test

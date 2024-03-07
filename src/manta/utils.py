@@ -1,124 +1,246 @@
-import pkgutil
-from math import ceil
-
-def pack_16bit_words(data):
-    """Takes a list of integers, interprets them as 16-bit integers, and
-    concatenates them together in little-endian order."""
-
-    for d in data:
-        if d > 0: assert d < 2**16, "Unsigned integer too large."
-        if d < 0: assert d < 2**15, "Signed integer too large."
-
-    return int(''.join([f'{i:016b}' for i in data[::-1]]), 2)
-
-def unpack_16bit_words(data, n_words):
-    """Takes a integer, interprets it as a set of 16-bit integers
-    concatenated together, and splits it into a list of 16-bit numbers"""
-
-    assert isinstance(data, int), "Behavior is only defined for nonnegative integers."
-    assert data >= 0, "Behavior is only defined for nonnegative integers."
-
-    # convert to binary, split into 16-bit chunks, and then convert back to list of int
-    binary = f'{data:0b}'.zfill(n_words * 16)
-    return [int(binary[i:i+16], 2) for i in range(0, 16 * n_words, 16)][::-1]
-
-class VerilogManipulator:
-    def __init__(self, filepath=None):
-        if filepath is not None:
-            self.hdl = pkgutil.get_data(__name__, filepath).decode()
-
-            # scrub any default_nettype or timescale directives from the source
-            self.hdl = self.hdl.replace("`default_nettype none", "")
-            self.hdl = self.hdl.replace("`default_nettype wire", "")
-            self.hdl = self.hdl.replace("`timescale 1ns/1ps", "")
-            self.hdl = self.hdl.strip()
-
-            # python tries to be cute and automatically convert
-            # line endings on Windows, but Manta's source comes
-            # with (and injects) UNIX line endings, so Python
-            # ends up adding way too many line breaks, so we just
-            # undo anything it's done when we load the file
-            self.hdl = self.hdl.replace("\r\n", "\n")
-
-        else:
-            self.hdl = None
-
-    def sub(self, replace, find):
-        # sometimes we have integer inputs, want to accomodate
-        if isinstance(replace, str):
-            replace_str = replace
-
-        elif isinstance(replace, int):
-            replace_str = str(replace)
-
-        else:
-            raise ValueError("Only string and integer arguments supported.")
+from amaranth import *
+from amaranth.lib import data
+from amaranth.sim import Simulator
+from abc import ABC, abstractmethod
+from random import sample
+from pathlib import Path
+import os
 
 
-        # if the string being subbed in isn't multiline, just
-        # find-and-replace like normal:
-        if "\n" not in replace_str:
-            self.hdl = self.hdl.replace(find, replace_str)
+class MantaCore(ABC, Elaboratable):
 
-        # if the string being substituted in is multiline,
-        # make sure the replace text gets put at the same
-        # indentation level by adding whitespace to left
-        # of the line.
-        else:
-            for line in self.hdl.split("\n"):
-                if find in line:
-                    # get whitespace that's on the left side of the line
-                    whitespace = line.rstrip().replace(line.lstrip(), "")
+    @property
+    @abstractmethod
+    def max_addr(self):
+        """
+        Return the maximum addresses in memory used by the core. The address
+        space used by the core extends from `base_addr` to the number returned
+        by this function (including the endpoints).
+        """
+        pass
 
-                    # add it to every line, except the first
-                    replace_as_lines = replace_str.split("\n")
-                    replace_with_whitespace = f"\n{whitespace}".join(replace_as_lines)
+    @property
+    @abstractmethod
+    def top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
+        """
+        pass
 
-                    # replace the first occurance in the HDL with it
-                    self.hdl = self.hdl.replace(find, replace_with_whitespace, 1)
+    @abstractmethod
+    def elaborate(self, platform):
+        pass
 
-    def get_hdl(self):
-        return self.hdl
-
-    def net_dec(self, nets, net_type, trailing_comma = False):
-        """Takes a dictonary of nets in the format {probe: width}, and generates
-        the net declarations that would go in a Verilog module definition.
-
-        For example, calling net_dec({foo : 1, bar : 4}, "input wire") would produce:
-
-        input wire foo,
-        input [3:0] wire bar
-
-        Which you'd then slap into your module declaration, along with all the other
-        inputs and outputs the module needs."""
-
-        dec = []
-        for name, width in nets.items():
-            if width == 1:
-                dec.append(f"{net_type} {name}")
-
-            else:
-                dec.append(f"{net_type} [{width-1}:0] {name}")
-
-        dec = ",\n".join(dec)
-        dec = dec + "," if trailing_comma else dec
-        return dec
-
-    def net_conn(self, nets, trailing_comma = False):
-        """Takes a dictionary of nets in the format {probe: width}, and generates
-        the net connections that would go in the Verilog module instantiation.
-
-        For example, calling net_conn({foo: 1, bar: 4}) would produce:
-
-        .foo(foo),
-        .bar(bar)
-
-        Which you'd then slap into your module instantiation, along with all the other
-        module inputs and outputs that get connected elsewhere."""
+    # @abstractclassmethod
+    # def from_config(cls):
+    #     pass
 
 
-        conn = [f".{name}({name})" for name in nets]
-        conn = ",\n".join(conn)
-        conn = conn + "," if trailing_comma else conn
+class InternalBus(data.StructLayout):
+    """
+    Describes the layout of Manta's internal bus, such that signals of
+    the appropriate dimension can be instantiated with Signal(InternalBus()).
+    """
 
-        return conn
+    def __init__(self):
+        super().__init__(
+            {
+                "addr": 16,
+                "data": 16,
+                "rw": 1,
+                "valid": 1,
+                "last": 1,
+            }
+        )
+
+
+def warn(message):
+    """
+    Prints a warning to the user's terminal. Originally the warn() method
+    from the builtin warnings module was used for this, but I don't think the
+    way it outputs on the command line is the most helpful for the users.
+    (ie, Users don't care about the stacktrace or the filename/line number.)
+    """
+    print("Warning: " + message)
+
+
+def words_to_value(data):
+    """
+    Takes a list of integers, interprets them as 16-bit integers, and
+    concatenates them together in little-endian order.
+    """
+
+    [check_value_fits_in_bits(d, 16) for d in data]
+
+    return int("".join([f"{i:016b}" for i in data[::-1]]), 2)
+
+
+def value_to_words(data, n_words):
+    """
+    Takes a integer, interprets it as a set of 16-bit integers
+    concatenated together, and splits it into a list of 16-bit numbers.
+    """
+
+    if not isinstance(data, int) or data < 0:
+        raise ValueError("Behavior is only defined for nonnegative integers.")
+
+    # Convert to binary, split into 16-bit chunks, and then convert back to list of int
+    binary = f"{data:0b}".zfill(n_words * 16)
+    return [int(binary[i : i + 16], 2) for i in range(0, 16 * n_words, 16)][::-1]
+
+
+def check_value_fits_in_bits(value, n_bits):
+    """
+    Rasies an exception if the provided value isn't an integer that cannot
+    be expressed with the provided number of bits.
+    """
+
+    if not isinstance(value, int):
+        raise TypeError("Value must be an integer.")
+
+    if value > 0 and value > 2**n_bits - 1:
+        raise ValueError("Unsigned integer too large.")
+
+    if value < 0 and value < -(2 ** (n_bits - 1)):
+        raise ValueError("Signed integer too large.")
+
+
+def split_into_chunks(data, chunk_size):
+    """
+    Split a list into a list of lists, where each sublist has length `chunk_size`.
+    If the list can't be evenly divided into chunks, then the last entry in the
+    returned list will have length less than `chunk_size`.
+    """
+
+    return [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
+
+
+def make_build_dir_if_it_does_not_exist_already():
+    """
+    Make build/ if it doesn't exist already.
+    """
+
+    Path("build").mkdir(parents=True, exist_ok=True)
+
+
+def simulate(top):
+    """
+    A decorator for running behavioral simulation using Amaranth's built-in
+    simulator. Requires the top-level module in the simulation as an argument,
+    and automatically names VCD file containing the waveform dump in build/
+    with the name of the function being decorated.
+    """
+
+    def decorator(testbench):
+        make_build_dir_if_it_does_not_exist_already()
+
+        def wrapper(*args, **kwargs):
+            sim = Simulator(top)
+            sim.add_clock(1e-6)  # 1 MHz
+            sim.add_sync_process(testbench)
+
+            vcd_path = "build/" + testbench.__name__ + ".vcd"
+
+            with sim.write_vcd(vcd_path):
+                sim.run()
+
+        return wrapper
+
+    return decorator
+
+
+def jumble(iterable):
+    """
+    Returns the provided iterable, but with every element moved to a random
+    index. Very similar to random.shuffle, but returns an iteratable, instead
+    of modifying one in-place.
+    """
+    return sample(iterable, len(iterable))
+
+
+def verify_register(module, addr, expected_data):
+    """
+    Read the contents of a register out over a module's bus connection, and
+    verify that it contains the expected data.
+
+    Unfortunately because Amaranth uses generator functions to define processes,
+    this must be a generator function and thus cannot return a value - it must
+    yield the next timestep. This means that the comparision with the expected
+    value must occur inside this function and not somewhere else, it's not
+    possible to return a value from here, and compare it in the calling
+    function.
+    """
+
+    # Place read transaction on the bus
+    yield module.bus_i.addr.eq(addr)
+    yield module.bus_i.data.eq(0)
+    yield module.bus_i.rw.eq(0)
+    yield module.bus_i.valid.eq(1)
+    yield
+    yield module.bus_i.addr.eq(0)
+    yield module.bus_i.valid.eq(0)
+
+    # Wait for output to be valid
+    while not (yield module.bus_o.valid):
+        yield
+
+    # Compare returned value with expected
+    data = yield (module.bus_o.data)
+    if data != expected_data:
+        raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")
+
+
+def write_register(module, addr, data):
+    """
+    Write to a register over a module's bus connection, placing the contents of `data`
+    at `addr`.
+    """
+
+    yield module.bus_i.addr.eq(addr)
+    yield module.bus_i.data.eq(data)
+    yield module.bus_i.rw.eq(1)
+    yield module.bus_i.valid.eq(1)
+    yield
+    yield module.bus_i.addr.eq(0)
+    yield module.bus_i.data.eq(0)
+    yield module.bus_i.valid.eq(0)
+    yield module.bus_i.rw.eq(0)
+    yield
+
+
+def xilinx_tools_installed():
+    """
+    Return whether Vivado is installed, by checking if the VIVADO environment variable is set,
+    or if the binary exists on PATH.
+
+    This variable should point to the binary itself, not just the folder it's located in
+    (ie, /tools/Xilinx/Vivado/2023.1/bin/vivado, not /tools/Xilinx/Vivado/2023.1/bin)
+    """
+    from shutil import which
+
+    return ("VIVADO" in os.environ) or (which("vivado") is not None)
+
+
+def ice40_tools_installed():
+    """
+    Return whether the ice40 tools are installed, by checking if the YOSYS, NEXTPNR_ICE40,
+    ICEPACK, and ICEPROG environment variables are defined, or if the binaries exist on PATH.
+
+    # These variables should point to the binaries themselves, not just the folder it's located in
+    # (ie, /tools/oss-cad-suite/bin/yosys, not /tools/oss-cad-suite/bin/)
+    """
+
+    # Check environment variables
+    env_vars = ["YOSYS", "NEXTPNR_ICE40", "ICEPACK", "ICEPROG"]
+    if all(var in os.environ for var in env_vars):
+        return True
+
+    # Check PATH
+    binaries = ["yosys", "nextpnr-ice40", "icepack", "iceprog"]
+    from shutil import which
+
+    if all([which(b) for b in binaries]):
+        return True
+
+    return False

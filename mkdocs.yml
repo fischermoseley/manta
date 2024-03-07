@@ -3,7 +3,7 @@ site_description: Manta Documentation
 site_author: Fischer Moseley
 
 repo_url: https://github.com/fischermoseley/manta/
-
+repo_name: fischermoseley/manta
 docs_dir: 'doc'
 
 theme:
@@ -17,18 +17,24 @@ theme:
     - navigation.expand
 
   palette:
-    - scheme: default
-      primary: custom
-      accent: light blue
+    - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - scheme: slate
-      primary: custom
-      accent: light blue
-      toggle:
-        icon: material/brightness-4
+        icon: material/link
         name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: custom
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: custom
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
 
 extra_css:
   - stylesheets/extra.css
@@ -57,14 +63,15 @@ markdown_extensions:
 nav:
     - Home: index.md
     - Installation: installation.md
-    - Reference:
-      - Getting Started: getting_started.md
+    - Getting Started: getting_started.md
+    - Alternatives: alternatives.md
+    - Architecture: architecture.md
+    - Usage:
       - IO Core: io_core.md
       - Logic Analyzer Core: logic_analyzer_core.md
-      - Block Memory Core: block_memory_core.md
-      - UART Interace: uart_interface.md
+      - Memory Core: memory_core.md
+      - UART Interface: uart_interface.md
       - Ethernet Interface: ethernet_interface.md
     - For Developers:
       - Repository Structure: repository_structure.md
-      - How It Works: how_it_works.md
       - Roadmap: https://github.com/fischermoseley/manta/milestones

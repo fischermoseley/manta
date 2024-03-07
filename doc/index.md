@@ -2,7 +2,13 @@
 
 ## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
 
-Manta is a tool for getting information into and out of FPGAs over UART or Ethernet. It's primarily intended for debugging and experimentation, but it's robust enough to be a simple, reliable transport layer between a FPGA and a host machine. It works by letting you configure a series of cores, which live as digital logic on the FPGA and are represented with vendor-agnostic Verilog-2001. The information and behavior of these cores are accessible to the host machine, which presents a Python API to the user. Manta includes the following cores, any number and combination of which may be used at once:
+Manta is a tool for moving data between a host machine and a FPGA over UART or Ethernet. It's primarily intended for debugging and rapid prototyping of FPGA designs, but it's robust enough to be used as a simple, reliable transport layer.
+
+Manta works by generating a number of cores that are instantiated in the FPGA design. These allow for a variety of functions, such as reading and writing to registers and memory, or capturing data with a logic analyzer. These cores are operated by the connected host machine through either the Manta CLI, or a simple Python API.
+
+Manta is written in Amaranth HDL, and the generated designs may be used natively in other Amaranth designs, or exported to vendor-agnostic Verilog-2001. All dependencies are cross-platform, so Manta can be used on any machine that has at least Python 3.8 or newer installed.
+
+Manta's capabilities are best reflected in its cores, for which a brief description of each is provided below:
 
 ### __Logic Analyzer Core__
 
@@ -28,9 +34,9 @@ You may find this core useful for:
 
 * _Making dashboards_ - you'd like to get some telemetry out of your existing FPGA design and display it nicely, but you don't want to implement an interface, design a packetization scheme, and write a library.
 
-### __Block Memory Cores__
+### __Memory Cores__
 
-_More details available on the [full documentation page](./block_memory_core.md)._
+_More details available on the [full documentation page](./memory_core.md)._
 
 This core creates a two-port block memory on the FPGA, and gives one port to the host machine, and the other to your logic on the FPGA. The width and depth of this block memory is configurable, allowing large chunks of arbitrarily-sized data to be shuffled onto and off of the FPGA by the host machine, via the Python API. This lets you establish a transport layer between the host and FPGA, that treats the data as exactly how it exists on the FPGA.
 
@@ -40,14 +46,10 @@ You may find this core useful for:
 
 * _Hand-tuning ROMs_ - you're designing a digital filter for a DSP project and would like to tune it in real-time, or you're developing a soft processor and want to upload program code without rebuilding a bitstream.
 
-
-## Dependencies
-Manta is written in Python, and generates Verilog-2001 HDL. It's cross-platform, and its only strict dependency is pyYAML. However, [pySerial](https://github.com/pyserial/pyserial) is required for using UART, [scapy](https://github.com/secdev/scapy) is required for using Ethernet, and [pyvcd](https://github.com/westerndigitalcorporation/pyvcd) is required if you want to export a waveform from the Logic Analyzer core to a `.vcd` file.
-
 ## About
 Manta and its source code are released under a [GPLv3 license](https://github.com/fischermoseley/manta/blob/main/LICENSE.txt), and it was originally developed as part of my [Master's Thesis at MIT](https://hdl.handle.net/1721.1/151223) in 2023, done under the supervision of [Dr. Joe Steinmeyer](https://www.jodalyst.com/). The thesis itself is copyrighted by Fischer Moseley (me!), but feel free to use the following Bibtex if you'd like to cite it:
 
-```
+```bibtex
 @misc{manta2023,
     author={Fischer Moseley},
     title={Manta: An In-Situ Debugging Tool for Programmable Hardware},

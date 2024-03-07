@@ -1,16 +1,45 @@
-!!! warning "This section is under construction!"
-
-    The Ethernet interface is just about to get refactored to implement a few performance gains, so what's here represents the Ethernet interface circa April 2023. Hang tight for new stuff!
-
 ## Overview
-For situations where the onboard UART is not available, Manta provides a 100Mbps Ethernet link for communicating between the host machine and target FPGA. This link implements a L2 MAC on the FPGA, designed to be directly connected to a host machine on a dedicated network adapter. The MAC is controlled by a bridge interface, which performs the exact same function as it does on the UART interface. Incoming packets are parsed into bus transactions, placed on the bus, and any response data is encapsulated into another packet sent to the host.
+For scenarios where UART is not available or higher bandwidth is desired, Manta provides an Ethernet interface for communicating between the host and FPGA. This interface uses UDP for communication, and leverages the builtin Python `sockets` module on the host side, and the open-source [LiteEth](https://github.com/enjoy-digital/liteeth) Ethernet core on the FPGA side.
 
-This is done by interacting with an Ethernet PHY, an onboard transceiver IC that converts between the FPGA's logic-level signaling and the voltages on the cable's twisted pairs. The communication between the Ethernet PHY and the FPGA is done over an interface that's dependent on the speed of the PHY. The 10/100 Mbps interface used on the Nexys A7-100T uses the RMII as defined in IEEE 802.3u. RMII is the second-oldest member in the Media Independent Interface family, with newer revisions of 802.3 supporting faster interfaces.
+!!! info "Not every device is supported!"
 
-Manta's bus clock must be equivalent to the PHY's reference clock if Ethernet is to be used - in the case of the 100Mbps RMII PHY on the Nexys A7 used in 6.205, this is 50MHz. This doesn't pose a problem for user logic, which is connected through Manta's cores that perform CDC internally. It does mean that a reference clock for the PHY has to be synthesized outside of Manta itself, and the means by which this is done varies by FPGA vendor and toolchain.
+    Although Manta aims to be as platform-agnostic as possible, Ethernet PHYs and FPGA clock primitives are very particular devices. As a result, the supported devices are loosely restricted to those on [this list](https://github.com/enjoy-digital/liteeth?tab=readme-ov-file#-features). If a device you'd like to use isn't on the list, the community would love your help!
 
-This MAC allows for the usage of packets with the structure shown below. The bus transaction being communicated is placed at the beginning of the packet's payload field, which IEEE 802.3 allows to vary in length from 46 to 1500 bytes. The 46-byte lower limit requires 41 bytes of zero padding to be added to the five bytes used to specify a bus transaction, and only one bus transactions is specified in each Ethernet frame. This abundance of unused space results in all packets being the same length, whether the packet contains a read request, write request, or read response. Packets containing write requests elicit no response from the FPGA, just as write requests delivered over UART produce no response.
+Although UDP does not guarantee reliable packet delivery, this usually doesn't pose an issue in practice. Manta will throw a runtime error if packets are dropped, and the UDP checksum and Ethernet FCS guarantee that any data delivered is not corrupted. Together, these two behaviors prevent corrupted data from being provided to the user, as Manta will error before returning invalid data. As long as your network is not terribly congested, Manta will operate without issue.
 
-![](assets/ethernet_packet.png)
+## Configuration
 
-These packets are addressed directly to the host's MAC address, which is obtained during code autogeneration. These packets also use a fixed Ethertype of `0x88B5`, which is specially reserved for "public use and for prototype and vendor-specific protocol development" in IEEE 802.1. This was done to create an Ethernet II frame instead of a legacy 802.3 frame, without having to implement a higher level protocol like TCP or UDP to safely use a fixed Ethertype. This allows the MAC to use modern Ethernet II frames safely, but save FPGA resources.
+The configuration of the Ethernet core is best shown by example:
+```yaml
+ethernet:
+  phy: LiteEthPHYRMII
+  vendor: xilinx
+  toolchain: vivado
+
+  clk_freq: 50e6
+  refclk_freq: 50e6
+
+  fpga_ip_addr: "192.168.0.110"
+  host_ip_addr: "192.168.0.100"
+```
+This snippet at the end of the configuration file defines the interface. The following parameters must be set:
+
+- `phy` _(required)_: The name of the LiteEth PHY class to use. Valid values consist of any of the names in [this list](https://github.com/enjoy-digital/liteeth/blob/b4e28506238c5340f2ade7899c2223424cabd410/liteeth/phy/__init__.py#L25-L45). Select the appropriate one for your FPGA vendor and family.
+
+- `vendor` _(required)_: The vendor of the FPGA being designed for. Currently only values of `xilinx` and `lattice` are supported. Used to generate timing constraints files, which are currently unused.
+
+- `toolchain` _(required)_: The toolchain being used. Currently only values of `vivado` and `diamond` are supported.
+
+- `clk_freq` _(required)_: The frequency of the clock provided to the Manta instance.
+
+- `refclk_freq` _(required)_: The frequency of the reference clock to be provided to the Ethernet PHY. This frequency must match the MII variant supported by the PHY, as well as speed that the PHY is being operated at. For instance, a RGMII PHY may be operated at either 125MHz in Gigabit mode, or 25MHz in 100Mbps mode.
+
+- `fpga_ip_addr` _(required)_: The IP address the FPGA will attempt to claim. Upon power-on, the FPGA will issue a DHCP request for this IP address. The easiest way to check if this was successful is by pinging the FPGA's IP, but if you have access to your network's router it may report a list of connected devices.
+
+- `host_ip_addr` _(required)_: The IP address of the host machine, which the FPGA will send packets back to.
+
+Lastly, any additonal arguments provided in the `ethernet` section of the config file will be passed to the LiteEth standalone core generator. As a result, the [examples](https://github.com/enjoy-digital/liteeth/tree/master/examples) provided by LiteEth may be of some service to you if you're bringing up a different FPGA!
+
+!!! warning "LiteEth doesn't always generate its own `refclk`!"
+
+    Although LitEth is built on Migen and LiteX which support PLLs and other clock generation primitives, I haven't seen it instantiate one to synthesize a suitable `refclk` at the appropriate frequency from the input clock. As a result, for now it's recommended to generate your `refclk` outside Manta, and then use it to clock your Manta instance.

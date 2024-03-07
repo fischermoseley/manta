@@ -1,11 +1,8 @@
 ![](doc/assets/logo.png)
 
 ## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
-![functional_simulation](https://github.com/fischermoseley/manta/actions/workflows/functional_simulation.yml/badge.svg)
-![formal_verification](https://github.com/fischermoseley/manta/actions/workflows/formal_verification.yml/badge.svg)
-![build_examples](https://github.com/fischermoseley/manta/actions/workflows/build_examples.yml/badge.svg)
+![run_tests](https://github.com/fischermoseley/manta/actions/workflows/run_tests.yml/badge.svg)
 ![build_docs](https://github.com/fischermoseley/manta/actions/workflows/build_docs.yml/badge.svg)
-
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 

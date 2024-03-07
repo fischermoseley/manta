@@ -1,3 +1,3 @@
-import manta
+from manta.cli import main
 
-manta.main()
+main()

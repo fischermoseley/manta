@@ -14,7 +14,7 @@ cores:
   my_logic_analyzer:
     type: logic_analyzer
     sample_depth: 4096
-    trigger_loc: 1000
+    trigger_location: 1000
 
     probes:
       larry: 1
@@ -60,24 +60,16 @@ Each individual trigger is specified with the following structure:
     - `EQ`, for equal to.
     - `NEQ`, for not equal to.
 
-    These operations require a constant to compare against, referred to as an _argument_, which is descirbed below:
+    These operations require a constant to compare against, referred to as an _argument_, which is described below:
 
 - __argument__: A constant to compare against, if the operation specified requires one. On the FPGA, the argument will have just as many bits as the probe width.
 
-Lastly, if you're not able to express your desired trigger condition in terms of the operators above, fear not! You can also specifiy an `external_trigger: true` entry in the config file, which exposes an input on Manta's top level for your own trigger.
+Lastly, if you're not able to express your desired trigger condition in terms of the operators above, fear not! You can also specify an `external_trigger: true` entry in the config file, which exposes an input on Manta's top level for your own trigger.
 
 ### Trigger Position (optional)
-Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accomodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occuring. This is best explained with a picture:
+Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accommodate this, the logic analyzer has an optional _Trigger Position_ parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the `trigger_position` entry in the configuration file, which sets how many samples to save prior to the trigger condition occurring. This is similar to a "holdoff" option on a traditional oscilloscope or logic analyzer.
 
-![](assets/trigger_positions.png){style="width:90%"}
-
-The windows at the bottom of the diagram show what portions of the timeseries will be captured for different trigger positions. For instance:
-
-- A trigger position of half the sample depth centers the capture window around when the trigger condition is met.
-- A trigger position of zero places the trigger at the zeroth clock cycle of the capture.
-- A trigger position equal to the sample depth causes the trigger to occur on the last sample in the capture.
-
-If `trigger_position` is not specified, Manta will default to centering the capture window around the trigger condition.
+If `trigger_position` is not specified, Manta will default to centering the capture window around the trigger condition. This results in just as many samples before the trigger as after.
 
 ### Capture Modes (optional)
 The logic analyzer has a few different ways of capturing data, which are represented by the _capture modes_ below:
@@ -101,50 +93,29 @@ manta capture [config file] [LA core] [path] [path]
 If the file `manta.yaml` contained the configuration above, and you wanted to export a .vcd and .mem of the captured data, you would execute:
 
 ```bash
-manta capture manta.yaml my_logic_analyzer capture.vcd capture.mem
+manta capture manta.yaml my_logic_analyzer capture.vcd capture.v
 ```
 
-This will reset your logic analyzer, configure it with the triggers specified in `manta.yaml`, and perform a capture. The resulting .vcd file can be opened in a waveform viewer like [GTKWave](https://gtkwave.sourceforge.net/), and the `.mem` file can be used for playback as described in the following section.
-
-Manta will stuff the capture data into as many files as you provide it on the command line, so if you don't want the `.mem` or `.vcd` file, just omit their paths.
+This will reset your logic analyzer, configure it with the triggers specified in `manta.yaml`, and perform a capture. The resulting .vcd file can be opened in a waveform viewer like [GTKWave](https://gtkwave.sourceforge.net/). Manta will stuff the capture data into as many files as you provide it on the command line, so if you don't want the `.mem` or `.vcd` file, just omit their paths.
 
 
 ### Playback
 
-The Logic Analyzer Core has the ability to capture a recording of a set of signals on the FPGA, and then 'play them back' inside a Verilog simulation. This requires generating a small Verilog module that loads a capture from a `.mem` file, which can be done by:
-
-```
-manta playback [config_file_path] [core_name] [verilog_file_path]
-```
+Manta has the ability to generate a module that _plays back_ a set of data captured from a Logic Analyzer core. This module has a set of outputs matching the inputs of the Logic Analyzer, which when enabled, will take the exact values captured by the logic analyzer. This module is synthesizable, and can either be used in simulation or included in the FPGA design. This is handy for
 
 If the file `manta.yaml` contained the configuration above, then running:
-
+```bash
+manta capture manta.yaml my_logic_analyzer capture.v
 ```
-manta playback manta.yaml my_logic_analyzer sim/playback.v
-```
 
-Generates a Verilog wrapper at `sim/playback.v`, which can then be instantiated in the testbench in which it is needed. An example instantiation is provided at the top of the output verilog, so a simple copy-paste into the testbench is all that's necessary to use the module. This module is also fully synthesizable, so you can use it in designs that live on the FPGA too, if so you so wish.
+Generates a Verilog module at `capture.v` which can then be instantiated in the testbench or FPGA design in which it is needed.
 
 This is useful for two situations in particular:
 
 - _Input Verification._ Designs will often work in simulation, but fail in hardware. In the absence of any build errors, this usually means that the inputs being applied to the logic in simulation don't accurately represent those being applied to the logic in the real world. Playing signals back in simulation allows for easy comparison between simulated and measured input, and provides a nice way to check that the logic downstream is behaves properly.
 
-- _Sparse Sampling_ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more effecient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less BRAM than sampling the entire pattern history table.
+- _Sparse Sampling_ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more efficient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less FPGA resources than sampling the entire pattern history table.
 
 ## Python API
-The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py).
-
-At present, this class contains methods used really only for capturing data, and exporting `.vcd` and `.mem` files. It'd be super handy to expose the data from the logic analyzer core in a Pythonic way - which is why the feature is on the [roadmap](https://github.com/fischermoseley/manta/milestones)!
-
-## How It Works
-The Logic Analyzer Core's implementation on the FPGA consists of three primary components:
-
-![](assets/logic_analyzer_architecture.png){style="width:85%"}
-
-- The _Finite State Machine (FSM)_, which controls the operation of the core. The FSM's operation is driven by its associated registers, which are placed in a separate module. This permits simple CDC between the bus and user clock domains.
-- The _Trigger Block_, which generates the core's trigger condition. The trigger block contains a trigger for each input probe, and the registers necessary to configure them. It also contains the $N$-logic gate (either AND or OR) that generates the core's trigger from the individual probe triggers. CDC is performed in exactly the same manner as the FSM. If an external trigger is specified, the trigger block is omitted from the Logic Analyzer Core, and the external trigger is routed to the FSM's `trig` input.
-- The _Sample Memory_, which stores the states of the probes during a capture. This is implemented as a dual-port, dual-clock block memory, with the bus on one port and the probes on the other. The probe-connected port only writes to the memory, with the address and enable pins managed by the FSM. CDC is performed in the block RAM primitive itself.
-\end{itemize}
-
-
+The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py). This class contains methods for capturing data, exporting it as `.vcd`, `.v` or `.csv` files, or as a Python list.
 
