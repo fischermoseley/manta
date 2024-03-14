@@ -20,6 +20,14 @@ cd manta
 pip install -e ".[dev]"
 ```
 
+Manta's hardware-in-the-loop tests rely on Amaranth's build system for programming FPGAs, which in turn rely on the open-source `xc3sprog` and `iceprog` tools for programming Xilinx and ice40 devices, respecitvely. If you'd like to run these tests locally, you may need to install these tools and have them available on your `PATH`. If you're on Linux, you may also need to add a new udev rule to give non-superuser accounts access to any connected FTDI devices. This can be done by making a new file at `/etc/udev/rules.d/99-ftdi-devices.rules`, which contains:
+
+```
+ACTION=="add", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="666"
+```
+
+Be sure to reload your udev rules after saving the file.
+
 ## Adding Manta to Path (Recommended)
 
 It's recommended to place Manta on your system path by adding `export PATH="~/.local/bin:$PATH"` to your `.bashrc` or `.zshrc`. This isn't strictly necessary, but it means that Manta (and any other executable Python modules) can be run as just `manta` on the command line, instead of `python3 -m manta`. If you're on Windows, this location will likely be different.
