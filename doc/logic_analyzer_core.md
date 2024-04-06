@@ -117,5 +117,5 @@ This is useful for two situations in particular:
 - _Sparse Sampling_ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more efficient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less FPGA resources than sampling the entire pattern history table.
 
 ## Python API
-The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/la_core/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/la_core/__init__.py). This class contains methods for capturing data, exporting it as `.vcd`, `.v` or `.csv` files, or as a Python list.
+The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/logic_analyzer/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/logic_analyzer/__init__.py). This class contains methods for capturing data, exporting it as `.vcd`, `.v` or `.csv` files, or as a Python list.
 
