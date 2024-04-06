@@ -61,9 +61,9 @@ This Manta instance has an IO Core and a Logic Analyzer, each containing a numbe
 Lastly, we Manta can automatically generate a copy-pasteable Verilog snippet to instantiate Manta in your design by running `manta inst [config_file]`. For example, the following snippet is generated for the configuration above:
 
 
-!!! note "Reset is active HIGH"
+!!! note "Reset is active high!"
 
-    The manta instance resets while `rst` signal is held high. If you want to share reset logic with an active LOW reset signal, e.g. `rst_n`, be sure to invert this signal before passing it in.
+    The Manta instance will reset while `rst` is held high. If you want to share reset logic with an active low reset signal (for example, `rst_n`), be sure to invert it first.
 
 ```verilog
 manta manta_inst (
