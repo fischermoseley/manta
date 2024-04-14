@@ -28,8 +28,16 @@ The data bus is designed for simplicity, and consists of five signals used to pe
 
 Each core has a bus input and output port, so that cores can be daisy-chained together. When it receives an incoming bus transaction (signalled by `valid`), the core checks the address on the wire against its own memory space. If the address lies within the core, the core will perform the requested operation against its own memory space. In the case of a read, it places the data at that address on `data`, and in the case of a write, it copies the value of `data` to the specified location in memory. However, if the address lies outside of the memory of the core, then no operations are performed.
 
-![Read Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/render_wavedrom_directly/doc/assets/read_transaction.json5){:style="width:49%"}
-![Write Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/render_wavedrom_directly/doc/assets/write_transaction.json5){:style="width:49%"}
+<style>
+    .svg-container {
+        background-color: white;
+        display: inline-block;
+        width: 49%;
+    }
+</style>
+
+![Read Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/render_wavedrom_directly/doc/assets/read_transaction.json5){.svg-container}
+![Write Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/render_wavedrom_directly/doc/assets/write_transaction.json5){.svg-container}
 
 ## Message Format
 
