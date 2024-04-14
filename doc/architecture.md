@@ -36,8 +36,8 @@ Each core has a bus input and output port, so that cores can be daisy-chained to
     }
 </style>
 
-![Read Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/render_wavedrom_directly/doc/assets/read_transaction.json5){.svg-container}
-![Write Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/render_wavedrom_directly/doc/assets/write_transaction.json5){.svg-container}
+![Read Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/main/doc/assets/read_transaction.json5){.svg-container}
+![Write Transaction](https://svg.wavedrom.com/github/fischermoseley/manta/main/doc/assets/write_transaction.json5){.svg-container}
 
 ## Message Format
 
