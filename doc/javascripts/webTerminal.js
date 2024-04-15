@@ -4,6 +4,21 @@ async function selectPort(){
     await navigator.serial.requestPort();
 }
 
+// Start Web Worker for Serial API
+globalThis.receiveBuffer = [];
+
+const serialWorker = new Worker("../javascripts/serial.js");
+function sendToSerialWorker(data){
+    console.log("Main -> Worker: ", data);
+    serialWorker.postMessage(data);
+}
+
+serialWorker.onmessage = (e) => {
+    console.log("Worker -> Main: ", e.data);
+    receiveBuffer.push(e.data);
+};
+
+// Main function for the Web Terminal
 async function WebTerminal(data){
     let pyodide = await loadPyodide();
 
@@ -18,47 +33,20 @@ async function WebTerminal(data){
 
     pyodide.runPythonAsync(`
         import asyncio
-        import time
-
-        from js import read, write
-        from manta.utils import value_to_words
-
+        from js import sendToSerialWorker
+        from js import receiveBuffer
         from manta import Manta
-        m = Manta("/manta.yaml")
-        print(m.my_io_core)
 
-        async def set_probe(name, value):
-            # Write value to core
-            probe = m.my_io_core._memory_map.get(name)
-            addrs = probe["addrs"]
-            datas = value_to_words(value, len(addrs))
-            for a, d in zip(addrs, datas):
-                await write(a, d)
+        #m = Manta("/manta.yaml")
 
-            # Pulse strobe register
-            await write(m.my_io_core._base_addr, 0)
-            await write(m.my_io_core._base_addr, 1)
-            await write(m.my_io_core._base_addr, 0)
+        print("Sending read request")
+        sendToSerialWorker("R0000\\r\\n")
 
-        async def foobar():
-            for i in range(10):
-                await set_probe(f"LED{i%4}", 1)
-                await set_probe(f"LED{i%4}", 0)
-                print(i)
+        for _ in range(10):
+            print(len(receiveBuffer))
+            print(receiveBuffer)
+            await asyncio.sleep(0.1)
 
-        #loop = asyncio.get_event_loop()
-        #loop.run_until_complete(foobar())
-
-        async def barfoo():
-            print("entering barfoo")
-            await write("R0000\\r\\n")
-            print(await read())
-
-
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(barfoo())
-        #asyncio.run(foobar()) # doesn't work! asyncio.run() cannot be called from a running event loop
-        #await foobar() # doesn't work either! await outside function
-        #await barfoo() # doesn't work either! await outside function
+        print("Python Complete")
     `);
 }

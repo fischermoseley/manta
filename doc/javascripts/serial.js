@@ -17,7 +17,6 @@ async function write(data) {
     const writer = port.writable.getWriter();
     await writer.write(new TextEncoder().encode(data));
     await writer.releaseLock();
-    console.log('Sent:', data);
 }
 
 async function read() {
@@ -27,8 +26,18 @@ async function read() {
     reader.releaseLock();
 
     if (!done) {
-        const data = new TextDecoder().decode(value);
-        console.log('Received:', data);
-        return data;
+        return new TextDecoder().decode(value);
     }
 }
+
+self.addEventListener('message', async function(event) {
+    await write(event.data);
+});
+
+async function readWrapper() {
+    if (port) {
+        self.postMessage(await read()); // this is a hack but i'm curious
+    }
+}
+
+setInterval(readWrapper, 500);
