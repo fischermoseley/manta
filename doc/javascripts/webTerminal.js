@@ -1,4 +1,10 @@
-async function web_terminal(data){
+document.getElementById('connectButton').addEventListener('click', selectPort);
+
+async function selectPort(){
+    await navigator.serial.requestPort();
+}
+
+async function WebTerminal(data){
     let pyodide = await loadPyodide();
 
     // Load Manta.yaml into pyodide's file system
@@ -45,8 +51,9 @@ async function web_terminal(data){
 
         async def barfoo():
             print("entering barfoo")
-            print(await read(m.my_io_core._base_addr))
-            print(await read(m.my_io_core._base_addr + 1))
+            await write("R0000\\r\\n")
+            print(await read())
+
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(barfoo())

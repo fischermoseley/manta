@@ -18,7 +18,7 @@ function runAfterUpload() {
     }
 
     // Your additional JavaScript code to run after file upload
-    web_terminal(data);
+    WebTerminal(data);
 }
 
 runAfterUpload(); // Start checking for file upload completion

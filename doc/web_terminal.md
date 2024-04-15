@@ -10,7 +10,7 @@
 
 
 <!-- Load Javascript -->
-<script src="../javascripts/web_terminal.js"></script>
+<script src="../javascripts/webTerminal.js"></script>
 <script src="../javascripts/serial.js"></script>
 <script src="../javascripts/upload.js"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
