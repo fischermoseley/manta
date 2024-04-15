@@ -66,6 +66,7 @@ nav:
     - Getting Started: getting_started.md
     - Alternatives: alternatives.md
     - Architecture: architecture.md
+    - Web Terminal: web_terminal.md
     - Usage:
       - IO Core: io_core.md
       - Logic Analyzer Core: logic_analyzer_core.md
