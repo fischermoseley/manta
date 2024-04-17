@@ -1,4 +1,5 @@
 document.getElementById('connectButton').addEventListener('click', selectPort);
+document.getElementById('runButton').addEventListener('click', webTerminal);
 
 async function selectPort(){
     await navigator.serial.requestPort();
@@ -19,11 +20,11 @@ serialWorker.onmessage = (e) => {
 };
 
 // Main function for the Web Terminal
-async function WebTerminal(data){
+async function webTerminal(){
     let pyodide = await loadPyodide();
 
     // Load Manta.yaml into pyodide's file system
-    pyodide.FS.writeFile("/manta.yaml", data, { encoding: "utf8" });
+    // pyodide.FS.writeFile("/manta.yaml", data, { encoding: "utf8" });
 
     // Load micropip, setuptools, manta
     await pyodide.loadPackage("micropip");
