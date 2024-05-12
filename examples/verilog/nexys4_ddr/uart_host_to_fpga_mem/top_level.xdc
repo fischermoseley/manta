@@ -3,7 +3,7 @@
 ## - uncomment the lines corresponding to used pins
 ## - rename the used ports (in each line, after get_ports) according to the top level signal names in the project
 
-## This file has been modified from the default .xdc provided by Digilent for the Nexys A7
+## This file has been modified from the default .xdc provided by Digilent for the Nexys 4 DDR
 
 ## Clock signal - uncomment _both_ of these lines to create clk_100mhz
 set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk }]; #IO_L12P_T1_MRCC_35 Sch=clk

@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-def test_arty_a7_tools():
+def test_nexys4_ddr_tools():
     Nexys4DDRPlatform().build(Blinky(), do_program=False)
 
 
