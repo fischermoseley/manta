@@ -1,0 +1,26 @@
+{
+  signal: [
+    {name: 'clk', wave: 'p...|....'},
+    {},
+    ['input port', 
+      {name: 'addr',  wave: 'x3x.|....', data: ['A0']},
+      {name: 'data',  wave: 'x5x.|....', data: ["D0"]},
+      {name: 'rw',    wave: 'x1x.|....'},
+      {name: 'valid', wave: '010.|....'}, 
+    ],
+
+     {}, {},
+
+    ['output port', 
+      {name: 'addr',  wave: 'x...|.3x.', data: ['A0']},
+      {name: 'data',  wave: 'x...|.5x.', data: ['D0']},
+      {name: 'rw',    wave: 'x...|.1x.'},
+      {name: 'valid', wave: '0...|.10.'}, 
+    ],
+
+     {}, {},
+
+  ],
+  head: {text: 'Write Transaction'},
+  config: {hscale: 1}
+}
