@@ -1,0 +1,20 @@
+---
+cores:
+  my_memory:
+    type: memory
+    mode: host_to_fpga
+    width: 12
+    depth: 16384
+
+ethernet:
+  phy: LiteEthPHYRMII
+  device: xc7a
+  vendor: xilinx
+  toolchain: vivado
+
+  refclk_freq: 50e6
+  clk_freq: 50e6
+
+  fpga_ip_addr: "192.168.0.110"
+  host_ip_addr: "192.168.0.100"
+  udp_port: 2000

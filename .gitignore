@@ -15,6 +15,7 @@ build/
 *.vcd
 *.out
 *.csv
+*.npy
 
 # Vivado files
 *.log
