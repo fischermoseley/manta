@@ -83,6 +83,17 @@ class EthernetInterface(Elaboratable):
             if not 0 <= int(byte) <= 255:
                 raise ValueError(f"Invalid byte in FPGA IP: {byte}")
 
+    def _get_socket(self):
+        """
+        Return an open socket if one exists, otherwise, open one and return
+        it.
+        """
+
+        if not hasattr(self, "_socket"):
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        return self._socket
+
     def get_top_level_ports(self):
         """
         Return the Amaranth signals that should be included as ports in the
@@ -261,10 +272,18 @@ class EthernetInterface(Elaboratable):
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Read address must be an integer or list of integers.")
 
-        # Send read requests, and get responses
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Send read requests in chunks, such that each chunk of write requests
+        # is sent as a single UDP packet, and isn't fragmented into multiple
+        # UDP packets. Right now each read request is 8 bytes on the wire, so
+        # we can pack ~180 of them into a single packet to fit within the
+        # Ethernet MTU. We'll only send 128 at a time instead, just to be safe.
+
+        # Listen for incoming packets from FPGA
+        sock = self._get_socket()
         sock.bind((self._host_ip_addr, self._udp_port))
-        chunk_size = 64  # 128
+
+        # Send read requests, and get responses
+        chunk_size = 128
         addr_chunks = split_into_chunks(addrs, chunk_size)
         datas = []
 
@@ -309,19 +328,26 @@ class EthernetInterface(Elaboratable):
         if not all(isinstance(d, int) for d in datas):
             raise TypeError("Write data must all be integers.")
 
-        # Since the FPGA doesn't issue any responses to write requests, we
-        # the host's input buffer isn't written to, and we don't need to
-        # send the data as chunks as the to avoid overflowing the input buffer.
+        # Send write requests in chunks, such that each chunk of write requests
+        # is sent as a single UDP packet, and isn't fragmented into multiple
+        # UDP packets. Right now each write request is 8 bytes on the wire, so
+        # we can pack ~180 of them into a single packet to fit within the
+        # Ethernet MTU. We'll only send 128 at a time instead, just to be safe.
 
-        # Encode addrs and datas into write requests
-        bytes_out = b""
-        for addr, data in zip(addrs, datas):
-            bytes_out += int(1).to_bytes(4, byteorder="little")
-            bytes_out += int(addr).to_bytes(2, byteorder="little")
-            bytes_out += int(data).to_bytes(2, byteorder="little")
+        chunk_size = 128
+        addr_chunks = split_into_chunks(addrs, chunk_size)
+        data_chunks = split_into_chunks(datas, chunk_size)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
+        for addr_chunk, data_chunk in zip(addr_chunks, data_chunks):
+            bytes_out = b""
+            for addr, data in zip(addr_chunk, data_chunk):
+                # Encode addrs and datas into write requests
+                bytes_out += int(1).to_bytes(4, byteorder="little")
+                bytes_out += int(addr).to_bytes(2, byteorder="little")
+                bytes_out += int(data).to_bytes(2, byteorder="little")
+
+            sock = self._get_socket()
+            sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
 
     def generate_liteeth_core(self):
         """

@@ -43,9 +43,11 @@ class MemoryCore(MantaCore):
         elif self._mode == "host_to_fpga":
             self.user_addr = Signal(range(self._depth))
             self.user_data_out = Signal(self._width)
+            self.user_clk = Signal()
             self._top_level_ports = [
                 self.user_addr,
                 self.user_data_out,
+                self.user_clk,
             ]
 
         elif self._mode == "bidirectional":
@@ -202,7 +204,10 @@ class MemoryCore(MantaCore):
         if self._mode in ["host_to_fpga", "bidirectional"]:
             read_datas = []
             for i, mem in enumerate(self._mems):
-                read_port = mem.read_port()
+                m.domains.user = user_cd = ClockDomain(local=True)
+                m.d.comb += user_cd.clk.eq(self.user_clk)
+
+                read_port = mem.read_port(domain="user")
                 m.d.comb += read_port.addr.eq(self.user_addr)
                 m.d.comb += read_port.en.eq(1)
                 read_datas.append(read_port.data)
