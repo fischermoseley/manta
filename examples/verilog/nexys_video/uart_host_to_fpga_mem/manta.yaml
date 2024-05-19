@@ -1,0 +1,12 @@
+---
+cores:
+  my_memory:
+    type: memory
+    mode: host_to_fpga
+    width: 8
+    depth: 256
+
+uart:
+  port: "/dev/ttyUSB1"
+  baudrate: 115200
+  clock_freq: 100000000

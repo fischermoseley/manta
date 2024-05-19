@@ -1,0 +1,21 @@
+---
+cores:
+  my_io_core:
+    type: io
+
+    inputs:
+      btnu: 1
+      btnd: 1
+      btnl: 1
+      btnr: 1
+      btnc: 1
+      cpu_resetn: 1
+      sw: 8
+
+    outputs:
+      led: 8
+
+uart:
+  port: "/dev/ttyUSB1"
+  baudrate: 115200
+  clock_freq: 100000000
