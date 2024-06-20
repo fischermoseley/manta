@@ -23,91 +23,91 @@ class MemoryCoreTests:
         # A model of what each bus address contains
         self.model = {i: 0 for i in self.bus_addrs}
 
-    def bus_addrs_all_zero(self):
+    async def bus_addrs_all_zero(self):
         for addr in self.bus_addrs:
-            yield from self.verify_bus_side(addr)
+            await self.verify_bus_side(addr)
 
-    def user_addrs_all_zero(self):
+    async def user_addrs_all_zero(self):
         for addr in self.user_addrs:
-            yield from self.verify_user_side(addr)
+            await self.verify_user_side(addr)
 
-    def bus_to_bus_functionality(self):
+    async def bus_to_bus_functionality(self):
         # yield from self.one_bus_write_then_one_bus_read()
         # yield from self.multi_bus_writes_then_multi_bus_reads()
-        yield from self.rand_bus_writes_rand_bus_reads()
+        await self.rand_bus_writes_rand_bus_reads()
 
-    def user_to_bus_functionality(self):
+    async def user_to_bus_functionality(self):
         # yield from self.one_user_write_then_one_bus_read()
         # yield from self.multi_user_write_then_multi_bus_reads()
-        yield from self.rand_user_writes_rand_bus_reads()
+        await self.rand_user_writes_rand_bus_reads()
 
-    def bus_to_user_functionality(self):
+    async def bus_to_user_functionality(self):
         # yield from self.one_bus_write_then_one_user_read()
         # yield from self.multi_bus_write_then_multi_user_reads()
-        yield from self.rand_bus_writes_rand_user_reads()
+        await self.rand_bus_writes_rand_user_reads()
 
-    def user_to_user_functionality(self):
+    async def user_to_user_functionality(self):
         # yield from self.one_user_write_then_one_user_read()
         # yield from self.multi_user_write_then_multi_user_read()
-        yield from self.rand_user_write_rand_user_read()
+        await self.rand_user_write_rand_user_read()
 
-    def one_bus_write_then_one_bus_read(self):
+    async def one_bus_write_then_one_bus_read(self):
         for addr in self.bus_addrs:
             data_width = self.get_data_width(addr)
             data = getrandbits(data_width)
 
-            yield from self.write_bus_side(addr, data)
-            yield from self.verify_bus_side(addr)
+            await self.write_bus_side(addr, data)
+            await self.verify_bus_side(addr)
 
-    def multi_bus_writes_then_multi_bus_reads(self):
+    async def multi_bus_writes_then_multi_bus_reads(self):
         # write-write-write then read-read-read
         for addr in jumble(self.bus_addrs):
             data_width = self.get_data_width(addr)
             data = getrandbits(data_width)
 
-            yield from self.write_bus_side(addr, data)
+            await self.write_bus_side(addr, data)
 
         for addr in jumble(self.bus_addrs):
-            yield from self.verify_bus_side(addr)
+            await self.verify_bus_side(addr)
 
-    def rand_bus_writes_rand_bus_reads(self):
+    async def rand_bus_writes_rand_bus_reads(self):
         # random reads and writes in random orders
         for _ in range(5):
             for addr in jumble(self.bus_addrs):
 
                 operation = choice(["read", "write"])
                 if operation == "read":
-                    yield from self.verify_bus_side(addr)
+                    await self.verify_bus_side(addr)
 
                 elif operation == "write":
                     data_width = self.get_data_width(addr)
                     data = getrandbits(data_width)
-                    yield from self.write_bus_side(addr, data)
+                    await self.write_bus_side(addr, data)
 
-    def one_user_write_then_one_bus_read(self):
+    async def one_user_write_then_one_bus_read(self):
         for user_addr in self.user_addrs:
             # write to user side
             data = getrandbits(self.width)
-            yield from self.write_user_side(user_addr, data)
+            await self.write_user_side(user_addr, data)
 
             # verify contents when read out from the bus
             for i in range(self.n_mems):
                 bus_addr = self.base_addr + user_addr + (i * self.depth)
-                yield from self.verify_bus_side(bus_addr)
+                await self.verify_bus_side(bus_addr)
 
-    def multi_user_write_then_multi_bus_reads(self):
+    async def multi_user_write_then_multi_bus_reads(self):
         # write-write-write then read-read-read
         for user_addr in jumble(self.user_addrs):
 
             # write a random number to the user side
             data = getrandbits(self.width)
-            yield from self.write_user_side(user_addr, data)
+            await self.write_user_side(user_addr, data)
 
         # read out every bus_addr in random order
         for bus_addr in jumble(self.bus_addrs):
-            yield from self.verify_bus_side(bus_addr)
+            await self.verify_bus_side(bus_addr)
 
-    def rand_user_writes_rand_bus_reads(self):
+    async def rand_user_writes_rand_bus_reads(self):
         # random reads and writes in random orders
         for _ in range(5):
             for user_addr in jumble(self.user_addrs):
@@ -121,14 +121,14 @@ class MemoryCoreTests:
                 # read from bus side
                 if operation == "read":
                     for bus_addr in bus_addrs:
-                        yield from self.verify_bus_side(bus_addr)
+                        await self.verify_bus_side(bus_addr)
 
                 # write to user side
                 elif operation == "write":
                     data = getrandbits(self.width)
-                    yield from self.write_user_side(user_addr, data)
+                    await self.write_user_side(user_addr, data)
 
-    def one_bus_write_then_one_user_read(self):
+    async def one_bus_write_then_one_user_read(self):
         for user_addr in self.user_addrs:
             # Try and set the value at the user address to a given value,
             # by writing to the appropriate memory locaitons on the bus side
@@ -138,22 +138,22 @@ class MemoryCoreTests:
 
             for i, word in enumerate(words):
                 bus_addr = self.base_addr + user_addr + (i * self.depth)
-                yield from self.write_bus_side(bus_addr, word)
+                await self.write_bus_side(bus_addr, word)
 
-            yield from self.verify_user_side(user_addr)
+            await self.verify_user_side(user_addr)
 
-    def multi_bus_write_then_multi_user_reads(self):
+    async def multi_bus_write_then_multi_user_reads(self):
         # write-write-write then read-read-read
         for bus_addr in jumble(self.bus_addrs):
             data_width = self.get_data_width(bus_addr)
             data = getrandbits(data_width)
 
-            yield from self.write_bus_side(bus_addr, data)
+            await self.write_bus_side(bus_addr, data)
 
         for user_addr in jumble(self.user_addrs):
-            yield from self.verify_user_side(user_addr)
+            await self.verify_user_side(user_addr)
 
-    def rand_bus_writes_rand_user_reads(self):
+    async def rand_bus_writes_rand_user_reads(self):
         for _ in range(5 * self.depth):
             operation = choice(["read", "write"])
 
@@ -163,41 +163,41 @@ class MemoryCoreTests:
                 data_width = self.get_data_width(bus_addr)
                 data = getrandbits(data_width)
 
-                yield from self.write_bus_side(bus_addr, data)
+                await self.write_bus_side(bus_addr, data)
 
             # read from random user_addr
             if operation == "read":
                 user_addr = randint(0, self.depth - 1)
-                yield from self.verify_user_side(user_addr)
+                await self.verify_user_side(user_addr)
 
-    def one_user_write_then_one_user_read(self):
+    async def one_user_write_then_one_user_read(self):
         for addr in self.user_addrs:
             data = getrandbits(self.width)
 
-            yield from self.write_user_side(addr, data)
-            yield from self.verify_user_side(addr)
+            await self.write_user_side(addr, data)
+            await self.verify_user_side(addr)
 
-    def multi_user_write_then_multi_user_read(self):
+    async def multi_user_write_then_multi_user_read(self):
         # write-write-write then read-read-read
         for user_addr in jumble(self.user_addrs):
             data = getrandbits(self.width)
-            yield from self.write_user_side(user_addr, data)
+            await self.write_user_side(user_addr, data)
 
         for user_addr in jumble(self.user_addrs):
-            yield from self.verify_user_side(user_addr)
+            await self.verify_user_side(user_addr)
 
-    def rand_user_write_rand_user_read(self):
+    async def rand_user_write_rand_user_read(self):
         # random reads and writes in random orders
         for _ in range(5):
             for user_addr in jumble(self.user_addrs):
 
                 operation = choice(["read", "write"])
                 if operation == "read":
-                    yield from self.verify_user_side(user_addr)
+                    await self.verify_user_side(user_addr)
 
                 elif operation == "write":
                     data = getrandbits(self.width)
-                    yield from self.write_user_side(user_addr, data)
+                    await self.write_user_side(user_addr, data)
 
     def get_data_width(self, addr):
         # this part is a little hard to check since we might have a
@@ -210,18 +210,16 @@ class MemoryCoreTests:
         else:
             return self.width % 16
 
-    def verify_bus_side(self, addr):
-        yield from verify_register(self.mem_core, addr, self.model[addr])
-        for _ in range(4):
-            yield
+    async def verify_bus_side(self, ctx, addr):
+        await verify_register(self.mem_core, ctx, addr, self.model[addr])
+        await ctx.tick().repeat(4)
 
-    def write_bus_side(self, addr, data):
+    async def write_bus_side(self, ctx, addr, data):
         self.model[addr] = data
-        yield from write_register(self.mem_core, addr, data)
-        for _ in range(4):
-            yield
+        await write_register(self.mem_core, addr, data)
+        await ctx.tick().repeat(4)
 
-    def verify_user_side(self, addr):
+    async def verify_user_side(self, ctx, addr):
         # Determine the expected value on the user side by looking
         # up the appropriate bus addresses in the model
 
@@ -233,30 +231,29 @@ class MemoryCoreTests:
 
         expected_data = words_to_value(bus_words)
 
-        yield self.mem_core.user_addr.eq(addr)
-        yield
-        yield
+        await self.mem_core.user_addr.eq(addr)
+        await ctx.tick().repeat(2)
 
-        data = yield (self.mem_core.user_data_out)
+        data = ctx.get(self.mem_core.user_data_out)
         if data != expected_data:
             raise ValueError(
                 f"Read from {addr} yielded {data} instead of {expected_data}"
             )
 
-    def write_user_side(self, addr, data):
+    async def write_user_side(self, ctx, addr, data):
         # convert value to words, and save to self.model
         words = value_to_words(data, self.n_mems)
         for i, word in enumerate(words):
             bus_addr = self.base_addr + addr + (i * self.depth)
             self.model[bus_addr] = word
 
-        yield self.mem_core.user_addr.eq(addr)
-        yield self.mem_core.user_data_in.eq(data)
-        yield self.mem_core.user_write_enable.eq(1)
-        yield
-        yield self.mem_core.user_addr.eq(0)
-        yield self.mem_core.user_data_in.eq(0)
-        yield self.mem_core.user_write_enable.eq(0)
+        ctx.set(self.mem_core.user_addr, addr)
+        ctx.set(self.mem_core.user_data_in, data)
+        ctx.set(self.mem_core.user_write_enable, 1)
+        await ctx.tick()
+        ctx.set(self.mem_core.user_addr, 0)
+        ctx.set(self.mem_core.user_data_in, 0)
+        ctx.set(self.mem_core.user_write_enable, 0)
 
 
 modes = ["bidirectional", "fpga_to_host", "host_to_fpga"]
@@ -276,22 +273,22 @@ def test_mem_core(mode, width, depth, base_addr):
     tests = MemoryCoreTests(mem_core)
 
     @simulate(mem_core)
-    def testbench():
+    async def testbench():
         if mode == "bidirectional":
-            yield from tests.bus_addrs_all_zero()
-            yield from tests.user_addrs_all_zero()
+            await tests.bus_addrs_all_zero()
+            await tests.user_addrs_all_zero()
 
-            yield from tests.bus_to_bus_functionality()
-            yield from tests.user_to_bus_functionality()
-            yield from tests.bus_to_user_functionality()
-            yield from tests.user_to_user_functionality()
+            await tests.bus_to_bus_functionality()
+            await tests.user_to_bus_functionality()
+            await tests.bus_to_user_functionality()
+            await tests.user_to_user_functionality()
 
         if mode == "fpga_to_host":
-            yield from tests.bus_addrs_all_zero()
-            yield from tests.user_to_bus_functionality()
+            await tests.bus_addrs_all_zero()
+            await tests.user_to_bus_functionality()
 
         if mode == "host_to_fpga":
-            yield from tests.user_addrs_all_zero()
-            yield from tests.bus_to_user_functionality()
+            await tests.user_addrs_all_zero()
+            await tests.bus_to_user_functionality()
 
     testbench()

@@ -7,18 +7,19 @@ from random import sample
 uart_tx = UARTTransmitter(clocks_per_baud=10)
 
 
-def verify_bit_sequence(byte):
+async def verify_bit_sequence(ctx, byte):
     """
     Request a byte to be transmitted, and verify that the sequence of bits is correct.
     """
 
     # Request byte to be transmitted
-    yield uart_tx.data_i.eq(byte)
-    yield uart_tx.start_i.eq(1)
-    yield
-    yield uart_tx.data_i.eq(0)
-    yield uart_tx.start_i.eq(0)
-    yield
+    ctx.set(uart_tx.data_i, byte)
+    ctx.set(uart_tx.start_i, 1)
+    await ctx.tick()
+
+    ctx.set(uart_tx.data_i, 0)
+    ctx.set(uart_tx.start_i, 0)
+    await ctx.tick()
 
     # Check that data bit is correct on every clock baud period
 
@@ -29,25 +30,25 @@ def verify_bit_sequence(byte):
     for i in range(10 * uart_tx._clocks_per_baud):
         bit_index = i // uart_tx._clocks_per_baud
 
-        if (yield uart_tx.tx) != data_bits[bit_index]:
+        if ctx.get(uart_tx.tx) != data_bits[bit_index]:
             raise ValueError("Wrong bit in sequence!")
 
-        if (yield uart_tx.done_o) and (bit_index != 9):
+        if ctx.get(uart_tx.done_o) and (bit_index != 9):
             raise ValueError("Done asserted too early!")
 
-        yield
+        await ctx.tick()
 
-    if not (yield uart_tx.done_o):
+    if not ctx.get(uart_tx.done_o):
         raise ValueError("Done not asserted at end of transmission!")
 
 
 @simulate(uart_tx)
-def test_all_possible_bytes():
+async def test_all_possible_bytes(ctx):
     for i in range(0xFF):
-        yield from verify_bit_sequence(i)
+        await verify_bit_sequence(ctx, i)
 
 
 @simulate(uart_tx)
-def test_bytes_random_sample():
+async def test_bytes_random_sample(ctx):
     for i in jumble(range(0xFF)):
-        yield from verify_bit_sequence(i)
+        await verify_bit_sequence(ctx, i)

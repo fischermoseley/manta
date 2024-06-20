@@ -7,31 +7,34 @@ source_bridge = UDPSourceBridge()
 
 
 @simulate(source_bridge)
-def test_normie_ops():
-    yield source_bridge.data_i.eq(0)
-    yield source_bridge.last_i.eq(0)
-    yield source_bridge.valid_i.eq(0)
-    yield
-    yield
+async def test_normie_ops(ctx):
+    ctx.set(source_bridge.data_i, 0)
+    ctx.set(source_bridge.last_i, 0)
+    ctx.set(source_bridge.valid_i, 0)
+    await ctx.tick()
 
-    yield source_bridge.data_i.eq(0x0000_0001)
-    yield source_bridge.valid_i.eq(1)
-    yield
-    yield source_bridge.data_i.eq(0x1234_5678)
-    yield
-    yield source_bridge.valid_i.eq(0)
-    yield
-    yield
+    ctx.set(source_bridge.data_i, 0x0000_0001)
+    ctx.set(source_bridge.valid_i, 1)
+    await ctx.tick()
 
-    yield source_bridge.valid_i.eq(1)
-    yield source_bridge.data_i.eq(0x0000_0001)
-    yield
-    yield source_bridge.data_i.eq(0x90AB_CDEF)
-    yield
-    yield source_bridge.data_i.eq(0x0000_0000)
-    yield
-    yield source_bridge.data_i.eq(0x1234_5678)
-    yield
-    yield source_bridge.valid_i.eq(0)
-    yield
-    yield
+    ctx.set(source_bridge.data_i, 0x1234_5678)
+    await ctx.tick()
+
+    ctx.set(source_bridge.valid_i, 0)
+    await ctx.tick().repeat(2)
+
+    ctx.set(source_bridge.valid_i, 1)
+    ctx.set(source_bridge.data_i, 0x0000_0001)
+    await ctx.tick()
+
+    ctx.set(source_bridge.data_i, 0x90AB_CDEF)
+    await ctx.tick()
+
+    ctx.set(source_bridge.data_i, 0x0000_0000)
+    await ctx.tick()
+
+    ctx.set(source_bridge.data_i, 0x1234_5678)
+    await ctx.tick()
+
+    ctx.set(source_bridge.valid_i, 0)
+    await ctx.tick().repeat(2)
