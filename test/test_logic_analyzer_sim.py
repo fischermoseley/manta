@@ -15,86 +15,86 @@ config = {
 la = LogicAnalyzerCore(config, base_addr=0, interface=None)
 
 
-def print_data_at_addr(addr):
+async def print_data_at_addr(ctx, addr):
     # place read transaction on the bus
-    yield la.bus_i.addr.eq(addr)
-    yield la.bus_i.data.eq(0)
-    yield la.bus_i.rw.eq(0)
-    yield la.bus_i.valid.eq(1)
-    yield
-    yield la.bus_i.addr.eq(0)
-    yield la.bus_i.valid.eq(0)
+    ctx.set(la.bus_i.addr, addr)
+    ctx.set(la.bus_i.data, 0)
+    ctx.set(la.bus_i.rw, 0)
+    ctx.set(la.bus_i.valid, True)
+
+    await ctx.tick()
+
+    ctx.set(la.bus_i.addr, 0)
+    ctx.set(la.bus_i.valid, 0)
 
     # wait for output to be valid
-    while not (yield la.bus_o.valid):
-        yield
+    while not ctx.get(la.bus_o.valid):
+        await ctx.tick()
 
-    print(f"addr: {hex(addr)} data: {hex((yield la.bus_o.data))}")
+    print(f"addr: {hex(addr)} data: {hex(ctx.get(la.bus_o.data))}")
 
 
-def set_fsm_register(name, data):
+async def set_fsm_register(ctx, name, data):
     addr = la._fsm.registers._memory_map[name]["addrs"][0]
     strobe_addr = la._fsm.registers._base_addr
 
-    yield from write_register(la, strobe_addr, 0)
-    yield from write_register(la, addr, data)
-    yield from write_register(la, strobe_addr, 1)
-    yield from write_register(la, strobe_addr, 0)
+    await write_register(la, ctx, strobe_addr, 0)
+    await write_register(la, ctx, addr, data)
+    await write_register(la, ctx, strobe_addr, 1)
+    await write_register(la, ctx, strobe_addr, 0)
 
 
-def set_trig_blk_register(name, data):
+async def set_trig_blk_register(ctx, name, data):
     addr = la._trig_blk.registers._memory_map[name]["addrs"][0]
     strobe_addr = la._trig_blk.registers._base_addr
 
-    yield from write_register(la, strobe_addr, 0)
-    yield from write_register(la, addr, data)
-    yield from write_register(la, strobe_addr, 1)
-    yield from write_register(la, strobe_addr, 0)
+    await write_register(la, ctx, strobe_addr, 0)
+    await write_register(la, ctx, addr, data)
+    await write_register(la, ctx, strobe_addr, 1)
+    await write_register(la, ctx, strobe_addr, 0)
 
 
-def set_probe(name, value):
+async def set_probe(ctx, name, value):
     probe = None
     for p in la._probes:
         if p.name == name:
             probe = p
 
-    yield probe.eq(value)
+    ctx.set(probe, value)
 
 
 @simulate(la)
-def test_single_shot_capture():
-    # # ok nice what happens if we try to run the core, which includes:
-    yield from set_fsm_register("request_stop", 1)
-    yield from set_fsm_register("request_stop", 0)
+async def test_single_shot_capture(ctx):
+    # request FSM to stop
+    await set_fsm_register(ctx, "request_stop", 1)
+    await set_fsm_register(ctx, "request_stop", 0)
 
     # setting triggers
-    yield from set_trig_blk_register("curly_op", Operations.EQ)
-    yield from set_trig_blk_register("curly_arg", 4)
+    await set_trig_blk_register(ctx, "curly_op", Operations.EQ)
+    await set_trig_blk_register(ctx, "curly_arg", 4)
 
     # setting trigger mode
-    yield from set_fsm_register("trigger_mode", 0)
+    await set_fsm_register(ctx, "trigger_mode", 0)
 
     # setting trigger location
-    yield from set_fsm_register("trigger_location", 511)
+    await set_fsm_register(ctx, "trigger_location", 511)
 
     # starting capture
-    yield from set_fsm_register("request_start", 1)
-    yield from set_fsm_register("request_start", 0)
+    await set_fsm_register(ctx, "request_start", 1)
+    await set_fsm_register(ctx, "request_start", 0)
 
     # wait a few hundred clock cycles, see what happens
-    for _ in range(700):
-        yield
+    await ctx.tick().repeat(700)
 
     # provide the trigger condition
-    yield from set_probe("curly", 4)
+    await set_probe(ctx, "curly", 4)
 
-    for _ in range(700):
-        yield
+    await ctx.tick().repeat(700)
 
     # dump sample memory contents
-    yield from write_register(la, 0, 0)
-    yield from write_register(la, 0, 1)
-    yield from write_register(la, 0, 0)
+    await write_register(la, ctx, 0, 0)
+    await write_register(la, ctx, 0, 1)
+    await write_register(la, ctx, 0, 0)
 
     for addr in range(la.max_addr):
-        yield from print_data_at_addr(addr)
+        await print_data_at_addr(ctx, addr)

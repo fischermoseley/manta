@@ -138,7 +138,7 @@ def simulate(top):
         def wrapper(*args, **kwargs):
             sim = Simulator(top)
             sim.add_clock(1e-6)  # 1 MHz
-            sim.add_sync_process(testbench)
+            sim.add_testbench(testbench)
 
             vcd_path = "build/" + testbench.__name__ + ".vcd"
 
@@ -159,7 +159,7 @@ def jumble(iterable):
     return sample(iterable, len(iterable))
 
 
-def verify_register(module, addr, expected_data):
+async def verify_register(module, ctx, addr, expected_data):
     """
     Read the contents of a register out over a module's bus connection, and
     verify that it contains the expected data.
@@ -173,40 +173,40 @@ def verify_register(module, addr, expected_data):
     """
 
     # Place read transaction on the bus
-    yield module.bus_i.addr.eq(addr)
-    yield module.bus_i.data.eq(0)
-    yield module.bus_i.rw.eq(0)
-    yield module.bus_i.valid.eq(1)
-    yield
-    yield module.bus_i.addr.eq(0)
-    yield module.bus_i.valid.eq(0)
+    ctx.set(module.bus_i.addr, addr)
+    ctx.set(module.bus_i.data, 0)
+    ctx.set(module.bus_i.valid, True)
+    ctx.set(module.bus_i.rw, 0)
+    await ctx.tick()
+    ctx.set(module.bus_i.addr, 0)
+    ctx.set(module.bus_i.valid, 0)
 
     # Wait for output to be valid
-    while not (yield module.bus_o.valid):
-        yield
+    while not ctx.get(module.bus_o.valid):
+        await ctx.tick()
 
     # Compare returned value with expected
-    data = yield (module.bus_o.data)
+    data = ctx.get(module.bus_o.data)
     if data != expected_data:
         raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")
 
 
-def write_register(module, addr, data):
+async def write_register(module, ctx, addr, data):
     """
     Write to a register over a module's bus connection, placing the contents of `data`
     at `addr`.
     """
 
-    yield module.bus_i.addr.eq(addr)
-    yield module.bus_i.data.eq(data)
-    yield module.bus_i.rw.eq(1)
-    yield module.bus_i.valid.eq(1)
-    yield
-    yield module.bus_i.addr.eq(0)
-    yield module.bus_i.data.eq(0)
-    yield module.bus_i.valid.eq(0)
-    yield module.bus_i.rw.eq(0)
-    yield
+    ctx.set(module.bus_i.addr, addr)
+    ctx.set(module.bus_i.data, data)
+    ctx.set(module.bus_i.rw, 1)
+    ctx.set(module.bus_i.valid, True)
+    await ctx.tick()
+    ctx.set(module.bus_i.addr, 0)
+    ctx.set(module.bus_i.data, 0)
+    ctx.set(module.bus_i.rw, 0)
+    ctx.set(module.bus_i.valid, False)
+    await ctx.tick()
 
 
 def xilinx_tools_installed():

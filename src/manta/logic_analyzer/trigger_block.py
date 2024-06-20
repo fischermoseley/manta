@@ -96,7 +96,7 @@ class LogicAnalyzerTrigger(Elaboratable):
     def __init__(self, signal):
         self.signal = signal
         self.op = Signal(Operations, name=signal.name + "_op")
-        self.arg = Signal(signal.width, name=signal.name + "_arg")
+        self.arg = Signal(len(signal), name=signal.name + "_arg")
         self.triggered = Signal()
 
     def elaborate(self, platform):

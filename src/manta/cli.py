@@ -1,7 +1,7 @@
 from manta.manta import Manta
 from manta.utils import *
 from sys import argv
-from pkg_resources import get_distribution
+from importlib.metadata import distribution
 
 
 logo = f"""
@@ -26,7 +26,7 @@ logo = f"""
 
 
 Manta - An In-Situ Debugging Tool for Programmable Hardware
-Version {get_distribution("manta").version}
+Version {distribution("manta").version}
 https://github.com/fischermoseley/manta
 """
 

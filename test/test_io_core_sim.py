@@ -10,75 +10,75 @@ probe2 = Signal(8)
 probe3 = Signal(20)
 inputs = [probe0, probe1, probe2, probe3]
 
-probe4 = Signal(1, reset=1)
-probe5 = Signal(2, reset=2)
+probe4 = Signal(1, init=1)
+probe5 = Signal(2, init=2)
 probe6 = Signal(8)
-probe7 = Signal(20, reset=65538)
+probe7 = Signal(20, init=65538)
 outputs = [probe4, probe5, probe6, probe7]
 
 io_core = IOCore(base_addr=0, interface=None, inputs=inputs, outputs=outputs)
 
 
-def pulse_strobe_register():
+async def pulse_strobe_register(ctx):
     strobe_addr = io_core._memory_map["strobe"]["addrs"][0]
-    yield from write_register(io_core, strobe_addr, 0)
-    yield from write_register(io_core, strobe_addr, 1)
-    yield from write_register(io_core, strobe_addr, 0)
+    await write_register(io_core, ctx, strobe_addr, 0)
+    await write_register(io_core, ctx, strobe_addr, 1)
+    await write_register(io_core, ctx, strobe_addr, 0)
 
 
 @simulate(io_core)
-def test_input_probe_buffer_initial_value():
+async def test_input_probe_buffer_initial_value(ctx):
     # Verify all input probe buffers initialize to zero
     for i in inputs:
         addrs = io_core._memory_map[i.name]["addrs"]
 
         for addr in addrs:
-            yield from verify_register(io_core, addr, 0)
+            await verify_register(io_core, ctx, addr, 0)
 
 
 @simulate(io_core)
-def test_output_probe_buffer_initial_value():
+async def test_output_probe_buffer_initial_value(ctx):
     # Verify all output probe buffers initialize to the values in the config
     for o in outputs:
         addrs = io_core._memory_map[o.name]["addrs"]
         datas = value_to_words(o.reset, len(addrs))
 
         for addr, data in zip(addrs, datas):
-            yield from verify_register(io_core, addr, data)
+            await verify_register(io_core, ctx, addr, data)
 
 
 @simulate(io_core)
-def test_output_probes_are_writeable():
+async def test_output_probes_are_writeable(ctx):
     for o in outputs:
         addrs = io_core._memory_map[o.name]["addrs"]
-        test_value = getrandbits(o.width)
+        test_value = getrandbits(len(o))
         datas = value_to_words(test_value, len(addrs))
 
         # write value to registers
         for addr, data in zip(addrs, datas):
-            yield from write_register(io_core, addr, data)
+            await write_register(io_core, ctx, addr, data)
 
         # read value back from registers
         for addr, data in zip(addrs, datas):
-            yield from verify_register(io_core, addr, data)
+            await verify_register(io_core, ctx, addr, data)
 
 
 @simulate(io_core)
-def test_output_probes_update():
+async def test_output_probes_update(ctx):
     for o in outputs:
         addrs = io_core._memory_map[o.name]["addrs"]
-        test_value = getrandbits(o.width)
+        test_value = getrandbits(len(o))
         datas = value_to_words(test_value, len(addrs))
 
         # write value to registers
         for addr, data in zip(addrs, datas):
-            yield from write_register(io_core, addr, data)
+            await write_register(io_core, ctx, addr, data)
 
         # pulse strobe register
-        yield from pulse_strobe_register()
+        await pulse_strobe_register(ctx)
 
         # check that outputs took updated value
-        value = yield (o)
+        value = ctx.get(o)
 
         if value != test_value:
             raise ValueError(
@@ -90,18 +90,18 @@ def test_output_probes_update():
 
 
 @simulate(io_core)
-def test_input_probes_update():
+async def test_input_probes_update(ctx):
     for i in inputs:
         # set input probe value
-        test_value = getrandbits(i.width)
-        yield i.eq(test_value)
+        test_value = getrandbits(len(i))
+        ctx.set(i, test_value)
 
         # pulse strobe register
-        yield from pulse_strobe_register()
+        await pulse_strobe_register(ctx)
 
         # check that values are as expected once read back
         addrs = io_core._memory_map[i.name]["addrs"]
         datas = value_to_words(test_value, len(addrs))
 
         for addr, data in zip(addrs, datas):
-            yield from verify_register(io_core, addr, data)
+            await verify_register(io_core, ctx, addr, data)

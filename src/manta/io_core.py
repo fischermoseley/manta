@@ -27,9 +27,9 @@ class IOCore(MantaCore):
 
         # Internal Signals
         self._strobe = Signal()
-        self._input_bufs = [Signal(p.width, name=p.name + "_buf") for p in self._inputs]
+        self._input_bufs = [Signal(len(p), name=p.name + "_buf") for p in self._inputs]
         self._output_bufs = [
-            Signal(p.width, name=p.name + "_buf", reset=p.reset) for p in self._outputs
+            Signal(len(p), name=p.name + "_buf", reset=p.reset) for p in self._outputs
         ]
 
         self._make_memory_map()
@@ -118,7 +118,7 @@ class IOCore(MantaCore):
                     check_value_fits_in_bits(attrs["initial_value"], width)
                     initial_value = attrs["initial_value"]
 
-            output_signals += [Signal(width, name=name, reset=initial_value)]
+            output_signals += [Signal(width, name=name, init=initial_value)]
 
         return cls(base_addr, interface, inputs=input_signals, outputs=output_signals)
 
@@ -136,7 +136,7 @@ class IOCore(MantaCore):
         last_used_addr = self._base_addr
 
         for io, io_buf in zip(ios, io_bufs):
-            n_slices = ceil(io.width / 16)
+            n_slices = ceil(len(io) / 16)
             signals = split_into_chunks(io_buf, 16)
             addrs = [i + last_used_addr + 1 for i in range(n_slices)]
 

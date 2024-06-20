@@ -7,7 +7,7 @@ from random import randint, sample
 bridge_tx = TransmitBridge()
 
 
-def verify_encoding(data, bytes):
+async def verify_encoding(ctx, data, bytes):
     """
     Place a read response on the internal bus, and verify that the sequence of bytes
     sent from TransmitBridge matches the provided bytestring `bytes`.
@@ -17,18 +17,16 @@ def verify_encoding(data, bytes):
     """
 
     # Place a read response on the internal bus
-    yield bridge_tx.data_i.eq(data)
-    yield bridge_tx.valid_i.eq(1)
-    yield bridge_tx.rw_i.eq(0)
-    yield bridge_tx.done_i.eq(1)
+    ctx.set(bridge_tx.data_i, data)
+    ctx.set(bridge_tx.valid_i, True)
+    ctx.set(bridge_tx.rw_i, 0)
+    ctx.set(bridge_tx.done_i, True)
 
-    yield
+    await ctx.tick()
 
-    yield bridge_tx.data_i.eq(0)
-    yield bridge_tx.valid_i.eq(0)
-    yield bridge_tx.rw_i.eq(0)
-
-    yield
+    ctx.set(bridge_tx.data_i, 0)
+    ctx.set(bridge_tx.valid_i, False)
+    ctx.set(bridge_tx.rw_i, 0)
 
     # Model the UARTTransmitter
     sent_bytes = b""
@@ -36,16 +34,15 @@ def verify_encoding(data, bytes):
 
     while len(sent_bytes) < len(bytes):
         # If start_o is asserted, set done_i to zero, then delay, then set it back to one
-        if (yield bridge_tx.start_o):
-            yield bridge_tx.done_i.eq(0)
-            sent_bytes += (yield bridge_tx.data_o).to_bytes(1, "big")
+        if ctx.get(bridge_tx.start_o):
+            sent_bytes += ctx.get(bridge_tx.data_o).to_bytes(1, "big")
+            ctx.set(bridge_tx.done_i, 0)
 
-            yield bridge_tx.done_i.eq(0)
             for _ in range(10):
-                yield
+                await ctx.tick()
 
-            yield bridge_tx.done_i.eq(1)
-            yield
+            ctx.set(bridge_tx.done_i, 1)
+            await ctx.tick()
 
         # Time out if not enough bytes after trying to get bytes 15 times
         iters += 1
@@ -58,8 +55,7 @@ def verify_encoding(data, bytes):
 
 
 @simulate(bridge_tx)
-def test_some_random_values():
+async def test_some_random_values(ctx):
     for i in sample(range(0xFFFF), k=5000):
         expected = f"D{i:04X}\r\n".encode("ascii")
-        print(i)
-        yield from verify_encoding(i, expected)
+        await verify_encoding(ctx, i, expected)
