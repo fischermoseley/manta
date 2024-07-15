@@ -13,9 +13,9 @@ class UARTTransmitter(Elaboratable):
         # Top-Level Ports
         self.data_i = Signal(8)
         self.start_i = Signal()
-        self.done_o = Signal(reset=1)
+        self.done_o = Signal(init=1)
 
-        self.tx = Signal(reset=1)
+        self.tx = Signal(init=1)
 
         # Internal Signals
         self._baud_counter = Signal(range(self._clocks_per_baud))

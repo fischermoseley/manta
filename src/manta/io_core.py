@@ -29,7 +29,7 @@ class IOCore(MantaCore):
         self._strobe = Signal()
         self._input_bufs = [Signal(len(p), name=p.name + "_buf") for p in self._inputs]
         self._output_bufs = [
-            Signal(len(p), name=p.name + "_buf", reset=p.reset) for p in self._outputs
+            Signal(len(p), name=p.name + "_buf", init=p.init) for p in self._outputs
         ]
 
         self._make_memory_map()

@@ -23,6 +23,9 @@ class MemoryCoreTests:
         # A model of what each bus address contains
         self.model = {i: 0 for i in self.bus_addrs}
 
+    def set_simulation_context(self, ctx):
+        self.ctx = ctx
+
     async def bus_addrs_all_zero(self):
         for addr in self.bus_addrs:
             await self.verify_bus_side(addr)
@@ -32,23 +35,23 @@ class MemoryCoreTests:
             await self.verify_user_side(addr)
 
     async def bus_to_bus_functionality(self):
-        # yield from self.one_bus_write_then_one_bus_read()
-        # yield from self.multi_bus_writes_then_multi_bus_reads()
+        await self.one_bus_write_then_one_bus_read()
+        await self.multi_bus_writes_then_multi_bus_reads()
         await self.rand_bus_writes_rand_bus_reads()
 
     async def user_to_bus_functionality(self):
-        # yield from self.one_user_write_then_one_bus_read()
-        # yield from self.multi_user_write_then_multi_bus_reads()
+        await self.one_user_write_then_one_bus_read()
+        await self.multi_user_write_then_multi_bus_reads()
         await self.rand_user_writes_rand_bus_reads()
 
     async def bus_to_user_functionality(self):
-        # yield from self.one_bus_write_then_one_user_read()
-        # yield from self.multi_bus_write_then_multi_user_reads()
+        await self.one_bus_write_then_one_user_read()
+        await self.multi_bus_write_then_multi_user_reads()
         await self.rand_bus_writes_rand_user_reads()
 
     async def user_to_user_functionality(self):
-        # yield from self.one_user_write_then_one_user_read()
-        # yield from self.multi_user_write_then_multi_user_read()
+        await self.one_user_write_then_one_user_read()
+        await self.multi_user_write_then_multi_user_read()
         await self.rand_user_write_rand_user_read()
 
     async def one_bus_write_then_one_bus_read(self):
@@ -210,16 +213,16 @@ class MemoryCoreTests:
         else:
             return self.width % 16
 
-    async def verify_bus_side(self, ctx, addr):
-        await verify_register(self.mem_core, ctx, addr, self.model[addr])
-        await ctx.tick().repeat(4)
+    async def verify_bus_side(self, addr):
+        await verify_register(self.mem_core, self.ctx, addr, self.model[addr])
+        await self.ctx.tick().repeat(4)
 
-    async def write_bus_side(self, ctx, addr, data):
+    async def write_bus_side(self, addr, data):
         self.model[addr] = data
-        await write_register(self.mem_core, addr, data)
-        await ctx.tick().repeat(4)
+        await write_register(self.mem_core, self.ctx, addr, data)
+        await self.ctx.tick().repeat(4)
 
-    async def verify_user_side(self, ctx, addr):
+    async def verify_user_side(self, addr):
         # Determine the expected value on the user side by looking
         # up the appropriate bus addresses in the model
 
@@ -231,29 +234,29 @@ class MemoryCoreTests:
 
         expected_data = words_to_value(bus_words)
 
-        await self.mem_core.user_addr.eq(addr)
-        await ctx.tick().repeat(2)
+        self.ctx.set(self.mem_core.user_addr, addr)
+        await self.ctx.tick().repeat(2)
 
-        data = ctx.get(self.mem_core.user_data_out)
+        data = self.ctx.get(self.mem_core.user_data_out)
         if data != expected_data:
             raise ValueError(
                 f"Read from {addr} yielded {data} instead of {expected_data}"
             )
 
-    async def write_user_side(self, ctx, addr, data):
+    async def write_user_side(self, addr, data):
         # convert value to words, and save to self.model
         words = value_to_words(data, self.n_mems)
         for i, word in enumerate(words):
             bus_addr = self.base_addr + addr + (i * self.depth)
             self.model[bus_addr] = word
 
-        ctx.set(self.mem_core.user_addr, addr)
-        ctx.set(self.mem_core.user_data_in, data)
-        ctx.set(self.mem_core.user_write_enable, 1)
-        await ctx.tick()
-        ctx.set(self.mem_core.user_addr, 0)
-        ctx.set(self.mem_core.user_data_in, 0)
-        ctx.set(self.mem_core.user_write_enable, 0)
+        self.ctx.set(self.mem_core.user_addr, addr)
+        self.ctx.set(self.mem_core.user_data_in, data)
+        self.ctx.set(self.mem_core.user_write_enable, 1)
+        await self.ctx.tick()
+        self.ctx.set(self.mem_core.user_addr, 0)
+        self.ctx.set(self.mem_core.user_data_in, 0)
+        self.ctx.set(self.mem_core.user_write_enable, 0)
 
 
 modes = ["bidirectional", "fpga_to_host", "host_to_fpga"]
@@ -273,7 +276,9 @@ def test_mem_core(mode, width, depth, base_addr):
     tests = MemoryCoreTests(mem_core)
 
     @simulate(mem_core)
-    async def testbench():
+    async def testbench(ctx):
+        tests.set_simulation_context(ctx)
+
         if mode == "bidirectional":
             await tests.bus_addrs_all_zero()
             await tests.user_addrs_all_zero()

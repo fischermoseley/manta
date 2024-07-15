@@ -1,5 +1,6 @@
 from amaranth import *
 from manta.utils import *
+from amaranth.lib.memory import Memory
 from math import ceil
 
 
@@ -67,12 +68,12 @@ class MemoryCore(MantaCore):
         n_partial = self._width % 16
 
         self._mems = [
-            Memory(width=16, depth=self._depth, init=[0] * self._depth)
+            Memory(shape=16, depth=self._depth, init=[0] * self._depth)
             for _ in range(n_full)
         ]
         if n_partial > 0:
             self._mems += [
-                Memory(width=n_partial, depth=self._depth, init=[0] * self._depth)
+                Memory(shape=n_partial, depth=self._depth, init=[0] * self._depth)
             ]
 
     @property
@@ -204,10 +205,7 @@ class MemoryCore(MantaCore):
         if self._mode in ["host_to_fpga", "bidirectional"]:
             read_datas = []
             for i, mem in enumerate(self._mems):
-                m.domains.user = user_cd = ClockDomain(local=True)
-                m.d.comb += user_cd.clk.eq(self.user_clk)
-
-                read_port = mem.read_port(domain="user")
+                read_port = mem.read_port()
                 m.d.comb += read_port.addr.eq(self.user_addr)
                 m.d.comb += read_port.en.eq(1)
                 read_datas.append(read_port.data)

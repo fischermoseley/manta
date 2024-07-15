@@ -41,7 +41,7 @@ async def test_output_probe_buffer_initial_value(ctx):
     # Verify all output probe buffers initialize to the values in the config
     for o in outputs:
         addrs = io_core._memory_map[o.name]["addrs"]
-        datas = value_to_words(o.reset, len(addrs))
+        datas = value_to_words(o.init, len(addrs))
 
         for addr, data in zip(addrs, datas):
             await verify_register(io_core, ctx, addr, data)
