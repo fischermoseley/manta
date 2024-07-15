@@ -1,4 +1,3 @@
-from amaranth.sim import Simulator
 from manta.logic_analyzer import *
 from manta.utils import *
 
