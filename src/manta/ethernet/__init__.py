@@ -35,7 +35,7 @@ class EthernetInterface(Elaboratable):
         self._phy_io = self._define_phy_io()
 
         self._dhcp_start = Signal()
-        self._dhcp_timer = Signal(range(self._clk_freq + 1), reset=self._clk_freq)
+        self._dhcp_timer = Signal(range(self._clk_freq + 1), init=self._clk_freq)
 
         self._source_data = Signal(32)
         self._source_last = Signal()

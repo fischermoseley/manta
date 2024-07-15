@@ -19,7 +19,6 @@ async def verify_bit_sequence(ctx, byte):
 
     ctx.set(uart_tx.data_i, 0)
     ctx.set(uart_tx.start_i, 0)
-    await ctx.tick()
 
     # Check that data bit is correct on every clock baud period
 

@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
@@ -57,7 +58,9 @@ class IOCoreLoopbackTest(Elaboratable):
         m = Module()
         m.submodules.manta = self.manta
 
-        uart_pins = platform.request("uart")
+        uart_pins = platform.request("uart", dir={"tx": "-", "rx": "-"})
+        m.submodules.uart_rx = uart_rx = io.Buffer("i", uart_pins.rx)
+        m.submodules.uart_tx = uart_tx = io.Buffer("o", uart_pins.tx)
 
         probe0 = self.get_probe("probe0")
         probe1 = self.get_probe("probe1")
@@ -73,8 +76,8 @@ class IOCoreLoopbackTest(Elaboratable):
             probe1.eq(probe5),
             probe2.eq(probe6),
             probe3.eq(probe7),
-            self.manta.interface.rx.eq(uart_pins.rx.i),
-            uart_pins.tx.o.eq(self.manta.interface.tx),
+            self.manta.interface.rx.eq(uart_rx.i),
+            uart_tx.o.eq(self.manta.interface.tx),
         ]
 
         return m
