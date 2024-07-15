@@ -1,7 +1,5 @@
-from amaranth.sim import Simulator
 from manta.uart import UARTTransmitter
 from manta.utils import *
-from random import sample
 
 
 uart_tx = UARTTransmitter(clocks_per_baud=10)

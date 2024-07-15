@@ -1,5 +1,4 @@
 from manta.cli import gen
-from manta import Manta
 import tempfile
 import os
 

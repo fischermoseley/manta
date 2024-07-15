@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
@@ -35,7 +36,10 @@ class LogicAnalyzerCounterTest(Elaboratable):
     def elaborate(self, platform):
         m = Module()
         m.submodules.manta = self.manta
-        uart_pins = platform.request("uart")
+
+        uart_pins = platform.request("uart", dir={"tx": "-", "rx": "-"})
+        m.submodules.uart_rx = uart_rx = io.Buffer("i", uart_pins.rx)
+        m.submodules.uart_tx = uart_tx = io.Buffer("o", uart_pins.tx)
 
         larry = self.manta.la._probes[0]
         curly = self.manta.la._probes[1]
@@ -46,8 +50,8 @@ class LogicAnalyzerCounterTest(Elaboratable):
         m.d.sync += moe.eq(moe + 1)
 
         m.d.comb += [
-            self.manta.interface.rx.eq(uart_pins.rx.i),
-            uart_pins.tx.o.eq(self.manta.interface.tx),
+            self.manta.interface.rx.eq(uart_rx.i),
+            uart_tx.o.eq(self.manta.interface.tx),
         ]
 
         return m

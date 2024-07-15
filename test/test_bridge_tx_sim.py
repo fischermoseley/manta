@@ -1,7 +1,6 @@
-from amaranth.sim import Simulator
 from manta.uart import TransmitBridge
 from manta.utils import *
-from random import randint, sample
+from random import sample
 
 
 bridge_tx = TransmitBridge()

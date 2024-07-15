@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
@@ -65,15 +66,17 @@ class MemoryCoreLoopbackTest(Elaboratable):
         m = Module()
         m.submodules.manta = self.manta
 
-        uart_pins = platform.request("uart")
+        uart_pins = platform.request("uart", dir={"tx": "-", "rx": "-"})
+        m.submodules.uart_rx = uart_rx = io.Buffer("i", uart_pins.rx)
+        m.submodules.uart_tx = uart_tx = io.Buffer("o", uart_pins.tx)
 
         user_addr = self.get_probe("user_addr")
         user_data_in = self.get_probe("user_data_in")
         user_data_out = self.get_probe("user_data_out")
         user_write_enable = self.get_probe("user_write_enable")
 
-        m.d.comb += self.manta.interface.rx.eq(uart_pins.rx.i)
-        m.d.comb += uart_pins.tx.o.eq(self.manta.interface.tx)
+        m.d.comb += self.manta.interface.rx.eq(uart_rx.i)
+        m.d.comb += uart_tx.o.eq(self.manta.interface.tx)
         m.d.comb += self.manta.mem_core.user_addr.eq(user_addr)
 
         if self.mode in ["bidirectional", "fpga_to_host"]:
@@ -136,7 +139,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
 # Omit the bidirectional mode for now, pending completion of:
 # https://github.com/amaranth-lang/amaranth/issues/1011
-modes = ["fpga_to_host", "host_to_fpga"]
+modes = ["fpga_to_host", "host_to_fpga", "bidirectional"]
 widths = [1, 8, 14, 16, 33]
 depths = [2, 512, 1024]
 nexys4ddr_cases = [(m, w, d) for m in modes for w in widths for d in depths]

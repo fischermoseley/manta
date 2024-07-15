@@ -1,4 +1,3 @@
-from amaranth.sim import Simulator
 from manta.uart import ReceiveBridge
 from manta.utils import *
 

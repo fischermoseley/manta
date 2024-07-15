@@ -1,5 +1,4 @@
 from amaranth import *
-from amaranth.sim import Simulator
 from manta.io_core import IOCore
 from manta.utils import *
 from random import getrandbits
