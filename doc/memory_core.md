@@ -29,9 +29,6 @@ There's a few parameters that get configured here, including:
 
 Manta won't impose any limit on the width or depth of the memory you instantiate, but since Manta instantiates BRAM primitives on the FPGA, you will be limited by what your FPGA can support. It helps to know your particular FPGA's architecture here.
 
-!!! warning "Bidirectional memories are currently broken on Xilinx platforms."
-    Due to a bug in Amaranth, trying to use a bidirectional memory on a Xilinx platform will cause Vivado to throw an `Unable to infer RAMs due to unsupported pattern.` error. This is a known issue, and has been reported [here](https://github.com/amaranth-lang/amaranth/issues/1011). In the meantime, if you have a Xilinx device, consider if your data flow is unidirectional, and you could use the `host_to_fpga` or `fpga_to_host` modes. Other platforms with dual-port RAM capability (such as the Lattice ECP5) appear to not be affected by this issue.
-
 ### On-Chip Implementation
 
 For most use cases, Manta will choose to implement the memory in Block RAM, if it is available on the device. However, the Verilog produced by Manta may be inferred to a number of memory types, including FF RAM or LUT (Distributed) RAM. For more information on how this is chosen, please refer to the [Yosys documentation](https://yosyshq.readthedocs.io/projects/yosys/en/latest/CHAPTER_Memorymap.html).
