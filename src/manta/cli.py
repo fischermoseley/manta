@@ -97,6 +97,8 @@ def capture(config_path, logic_analyzer_name, export_paths):
     for path in export_paths:
         if ".vcd" in path:
             cap.export_vcd(path)
+        elif ".csv" in path:
+            cap.export_csv(path)
         elif ".v" in path:
             cap.export_playback_verilog(path)
         else:
