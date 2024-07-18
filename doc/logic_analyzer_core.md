@@ -87,21 +87,20 @@ Most logic analyzers use a single-shot capture by default, so Manta will do the 
 Once you have your Logic Analyzer core on the FPGA, you can capture data with:
 
 ```bash
-manta capture [config file] [LA core] [path] [path]
+manta capture [config file] [LA core] [output filename] [[additional output filenames]...]
 ```
-
-If the file `manta.yaml` contained the configuration above, and you wanted to export a .vcd and .mem of the captured data, you would execute:
+The capture may be exported as either a VCD or CSV file. If `manta.yaml` contained the configuration at the top of this page, then the following would export a .vcd file containing the captured waveform:
 
 ```bash
-manta capture manta.yaml my_logic_analyzer capture.vcd capture.v
+manta capture manta.yaml my_logic_analyzer capture.vcd
 ```
 
-This will reset your logic analyzer, configure it with the triggers specified in `manta.yaml`, and perform a capture. The resulting .vcd file can be opened in a waveform viewer like [GTKWave](https://gtkwave.sourceforge.net/). Manta will stuff the capture data into as many files as you provide it on the command line, so if you don't want the `.mem` or `.vcd` file, just omit their paths.
+This will reset your logic analyzer, configure it with the triggers specified in `manta.yaml`, perform a capture, and create the file. Additional output files may be passed as well - Manta will detect the file format based on the extension (`.vcd`, `.csv`). Verilog (`.v`) files are also supported, and will follow the playback mechanism [described below](#playback).
 
 
 ### Playback
 
-Manta has the ability to generate a module that _plays back_ a set of data captured from a Logic Analyzer core. This module has a set of outputs matching the inputs of the Logic Analyzer, which when enabled, will take the exact values captured by the logic analyzer. This module is synthesizable, and can either be used in simulation or included in the FPGA design. This is handy for
+Manta has the ability to generate a module that _plays back_ a set of data captured from a Logic Analyzer core. This module has a set of outputs matching the inputs of the Logic Analyzer, which when enabled, will take the exact values captured by the logic analyzer. This module is synthesizable, and can either be used in simulation or included in the FPGA design.
 
 If the file `manta.yaml` contained the configuration above, then running:
 ```bash
@@ -114,7 +113,7 @@ This is useful for two situations in particular:
 
 - _Input Verification._ Designs will often work in simulation, but fail in hardware. In the absence of any build errors, this usually means that the inputs being applied to the logic in simulation don't accurately represent those being applied to the logic in the real world. Playing signals back in simulation allows for easy comparison between simulated and measured input, and provides a nice way to check that the logic downstream is behaves properly.
 
-- _Sparse Sampling_ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more efficient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less FPGA resources than sampling the entire pattern history table.
+- _Sparse Sampling._ Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more efficient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less FPGA resources than sampling the entire pattern history table.
 
 ## Python API
 The Logic Analyzer core functionality is stored in the `Manta.LogicAnalyzerCore` class in [src/manta/logic_analyzer/\_\_init\_\_.py](https://github.com/fischermoseley/manta/blob/main/src/manta/logic_analyzer/__init__.py). This class contains methods for capturing data, exporting it as `.vcd`, `.v` or `.csv` files, or as a Python list.
