@@ -4,7 +4,7 @@ version = "1.0.1"
 authors = [
   { name="Fischer Moseley", email="fischer.moseley@gmail.com" },
 ]
-description = "An In-Situ Debugging Tool for Programmable Hardware"
+description = "A configurable and approachable tool for FPGA debugging and rapid prototyping"
 readme = "README.md"
 dependencies = [
   "amaranth[builtin-yosys]==0.5.0",
