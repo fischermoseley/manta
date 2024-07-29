@@ -83,6 +83,9 @@ class EthernetInterface(Elaboratable):
             if not 0 <= int(byte) <= 255:
                 raise ValueError(f"Invalid byte in FPGA IP: {byte}")
 
+    def to_config(self):
+        return self._config
+
     def get_top_level_ports(self):
         """
         Return the Amaranth signals that should be included as ports in the

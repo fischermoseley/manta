@@ -41,9 +41,9 @@ Usage:
             Generate a copy-pasteable Verilog snippet to instantiate Manta
             in your design.
 
-    capture [config_file] [la_core_name] [vcd_file] [verilog_file]
-            Start a capture on the specified core, and save the results to a .vcd
-            or .v file at the provided path(s).
+    capture [config_file] [la_core_name] [output path] [[additional output paths]...]
+            Start a capture on the specified core, and save the results to a .vcd,
+            .csv, or .v file at the provided path(s).
 
     ports
             List all available serial ports.
@@ -70,9 +70,7 @@ def wrong_args():
 
 def gen(config_path, output_path):
     m = Manta(config_path)
-
-    with open(output_path, "w") as f:
-        f.write(m.generate_verilog())
+    m.generate_verilog(output_path)
 
 
 def inst(config_path):
@@ -103,10 +101,6 @@ def capture(config_path, logic_analyzer_name, export_paths):
             cap.export_playback_verilog(path)
         else:
             warn(f"Unrecognized file type, skipping {path}.")
-
-
-def mmap(config_path):
-    print(Manta(config_path).mmap())
 
 
 def ports():

@@ -87,7 +87,7 @@ Most logic analyzers use a single-shot capture by default, so Manta will do the 
 Once you have your Logic Analyzer core on the FPGA, you can capture data with:
 
 ```bash
-manta capture [config file] [LA core] [output filename] [[additional output filenames]...]
+manta capture [config_file] [la_core_name] [output path] [[additional output paths]...]
 ```
 The capture may be exported as either a VCD or CSV file. If `manta.yaml` contained the configuration at the top of this page, then the following would export a .vcd file containing the captured waveform:
 

@@ -8,6 +8,12 @@ import os
 
 
 class MantaCore(ABC, Elaboratable):
+    # These attributes are meant to be settable and gettable, but max_addr and
+    # top_level_ports are indended to be only gettable. Do not implement
+    # setters for them in subclasses.
+
+    base_addr = None
+    interface = None
 
     @property
     @abstractmethod
@@ -29,12 +35,48 @@ class MantaCore(ABC, Elaboratable):
         pass
 
     @abstractmethod
+    def to_config(self):
+        """
+        Return a dictionary containing the core's configuration (i.e., the
+        content of the core's section of the `manta.yaml` file).
+        """
+        pass
+
+    @abstractmethod
     def elaborate(self, platform):
         pass
 
-    # @abstractclassmethod
-    # def from_config(cls):
-    #     pass
+    @classmethod
+    @abstractmethod
+    def from_config(cls, config):
+        """
+        Return an instance of the core, given the section of the Manta
+        configuration file (as a Python dictionary) that contains the core's
+        specification.
+        """
+        pass
+
+
+class CoreContainer:
+    def __init__(self, manta):
+        self._manta = manta
+        self._cores = {}
+        self._base_addr = 0
+        self._last_used_addr = 0
+
+    def __getattr__(self, name):
+        if name in self._cores:
+            return self._cores[name]
+        raise AttributeError(f"No such core: {name}")
+
+    def __setattr__(self, name, value):
+        if name in {"_manta", "_cores", "_base_addr", "_last_used_addr"}:
+            super().__setattr__(name, value)
+        else:
+            self._cores[name] = value
+            value.interface = self._manta.interface
+            value.base_addr = self._last_used_addr
+            self._last_used_addr = value.max_addr + 1
 
 
 class InternalBus(data.StructLayout):
