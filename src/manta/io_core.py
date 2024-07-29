@@ -15,9 +15,7 @@ class IOCore(MantaCore):
     https://fischermoseley.github.io/manta/io_core/
     """
 
-    def __init__(self, base_addr, interface, inputs=[], outputs=[]):
-        self._base_addr = base_addr
-        self._interface = interface
+    def __init__(self, inputs=[], outputs=[]):
         self._inputs = inputs
         self._outputs = outputs
 
@@ -32,14 +30,13 @@ class IOCore(MantaCore):
             Signal(len(p), name=p.name + "_buf", init=p.init) for p in self._outputs
         ]
 
-        self._make_memory_map()
-
     @property
     def top_level_ports(self):
         return self._inputs + self._outputs
 
     @property
     def max_addr(self):
+        self._make_memory_map()
         return self._max_addr
 
     @classmethod
@@ -122,18 +119,32 @@ class IOCore(MantaCore):
 
         return cls(base_addr, interface, inputs=input_signals, outputs=output_signals)
 
+    def to_config(self):
+        config = {}
+        config["type"] = "io"
+
+        if self._inputs:
+            config["inputs"] = {s.name: len(s) for s in self._inputs}
+
+        if self._outputs:
+            config["outputs"] = {}
+            for s in self._outputs:
+                config["outputs"][s.name] = {"width": len(s), "initial_value": s.init}
+
+        return config
+
     def _make_memory_map(self):
         self._memory_map = {}
 
         # Add strobe register
         self._memory_map["strobe"] = dict(
-            signals=[self._strobe], addrs=[self._base_addr]
+            signals=[self._strobe], addrs=[self.base_addr]
         )
 
         # Assign memory to all inputs and outputs
         ios = self._inputs + self._outputs
         io_bufs = self._input_bufs + self._output_bufs
-        last_used_addr = self._base_addr
+        last_used_addr = self.base_addr
 
         for io, io_buf in zip(ios, io_bufs):
             n_slices = ceil(len(io) / 16)
@@ -204,12 +215,12 @@ class IOCore(MantaCore):
         # Write value to core
         addrs = probe["addrs"]
         datas = value_to_words(value, len(addrs))
-        self._interface.write(addrs, datas)
+        self.interface.write(addrs, datas)
 
         # Pulse strobe register
-        self._interface.write(self._base_addr, 0)
-        self._interface.write(self._base_addr, 1)
-        self._interface.write(self._base_addr, 0)
+        self.interface.write(self.base_addr, 0)
+        self.interface.write(self.base_addr, 1)
+        self.interface.write(self.base_addr, 0)
 
     def get_probe(self, name):
         """
@@ -225,10 +236,10 @@ class IOCore(MantaCore):
             raise KeyError(f"Probe with name {name} not found in IO core.")
 
         # Pulse strobe register
-        self._interface.write(self._base_addr, 0)
-        self._interface.write(self._base_addr, 1)
-        self._interface.write(self._base_addr, 0)
+        self.interface.write(self.base_addr, 0)
+        self.interface.write(self.base_addr, 1)
+        self.interface.write(self.base_addr, 0)
 
         # Get value from buffer
-        datas = self._interface.read(probe["addrs"])
+        datas = self.interface.read(probe["addrs"])
         return words_to_value(datas)

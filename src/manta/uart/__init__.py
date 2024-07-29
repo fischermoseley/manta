@@ -53,6 +53,14 @@ class UARTInterface(Elaboratable):
         else:
             return cls(port, baudrate, clock_freq)
 
+    def to_config(self):
+        return {
+            "port": self._port,
+            "baudrate": self._baudrate,
+            "clock_freq": self._clock_freq,
+            "chunk_size": self._chunk_size,
+        }
+
     def _check_config(self):
         # Ensure a serial port has been given
         if self._port is None:

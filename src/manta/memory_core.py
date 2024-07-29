@@ -16,15 +16,12 @@ class MemoryCore(MantaCore):
     https://fischermoseley.github.io/manta/memory_core/
     """
 
-    def __init__(self, mode, width, depth, base_addr, interface):
+    def __init__(self, mode, width, depth):
         self._mode = mode
         self._width = width
         self._depth = depth
-        self._base_addr = base_addr
-        self._interface = interface
 
         self._n_mems = ceil(self._width / 16)
-        self._max_addr = self._base_addr + (self._depth * self._n_mems)
 
         # Bus Connections
         self.bus_i = Signal(InternalBus())
@@ -44,11 +41,9 @@ class MemoryCore(MantaCore):
         elif self._mode == "host_to_fpga":
             self.user_addr = Signal(range(self._depth))
             self.user_data_out = Signal(self._width)
-            self.user_clk = Signal()
             self._top_level_ports = [
                 self.user_addr,
                 self.user_data_out,
-                self.user_clk,
             ]
 
         elif self._mode == "bidirectional":
@@ -82,7 +77,15 @@ class MemoryCore(MantaCore):
 
     @property
     def max_addr(self):
-        return self._max_addr
+        return self.base_addr + (self._depth * self._n_mems)
+
+    def to_config(self):
+        return {
+            "type": "memory",
+            "mode": self._mode,
+            "width": self._width,
+            "depth": self._depth
+        }
 
     @classmethod
     def from_config(cls, config, base_addr, interface):
@@ -127,7 +130,7 @@ class MemoryCore(MantaCore):
     def _tie_mems_to_bus(self, m):
         for i, mem in enumerate(self._mems):
             # Compute address range corresponding to this chunk of memory
-            start_addr = self._base_addr + (i * self._depth)
+            start_addr = self.base_addr + (i * self._depth)
             stop_addr = start_addr + self._depth - 1
 
             if self._mode == "fpga_to_host":
@@ -245,7 +248,7 @@ class MemoryCore(MantaCore):
         bus_addrs = []
         for addr in addrs:
             for i in range(len(self._mems)):
-                bus_addrs.append(self._base_addr + addr + (i * self._depth))
+                bus_addrs.append(self.base_addr + addr + (i * self._depth))
 
         return bus_addrs
 
@@ -264,7 +267,7 @@ class MemoryCore(MantaCore):
             raise TypeError("Read address must be an integer or list of integers.")
 
         bus_addrs = self._convert_user_to_bus_addr(addrs)
-        datas = self._interface.read(bus_addrs)
+        datas = self.interface.read(bus_addrs)
         data_chunks = split_into_chunks(datas, self._n_mems)
         return [words_to_value(chunk) for chunk in data_chunks]
 
@@ -292,4 +295,4 @@ class MemoryCore(MantaCore):
 
         bus_addrs = self._convert_user_to_bus_addr(addrs)
         bus_datas = [word for d in datas for word in value_to_words(d, self._n_mems)]
-        self._interface.write(bus_addrs, bus_datas)
+        self.interface.write(bus_addrs, bus_datas)
