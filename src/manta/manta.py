@@ -4,122 +4,138 @@ from manta.ethernet import EthernetInterface
 from manta.io_core import IOCore
 from manta.memory_core import MemoryCore
 from manta.logic_analyzer import LogicAnalyzerCore
+from manta.utils import *
 
 
 class Manta(Elaboratable):
-    def __init__(self, config):
-        # Load config from either a configuration file or a dictionary.
-        # Users primarily use the config file, but the dictionary is
-        # included for internal tests.
+    def __init__(self):
+        self._interface = None
+        self.cores = CoreContainer(self)
 
-        if isinstance(config, str):
-            self._config = self._read_config_file(config)
+    # This treats the `interface` attribute as a property, which allows the
+    # setter to update the interfaces of all the cores in self.cores whenever
+    # the user assigns to Manta's `interface` object.
+    @property
+    def interface(self):
+        return self._interface
 
-        if isinstance(config, dict):
-            self._config = config
+    @interface.setter
+    def interface(self, value):
+        self._interface = value
+        for core in self.cores._cores.values():
+            core.interface = value
 
-        self._check_config()
+    # def __init__(self, config):
+    #     # Load config from either a configuration file or a dictionary.
+    #     # Users primarily use the config file, but the dictionary is
+    #     # included for internal tests.
 
-        self._get_interface()
-        self._get_cores()
-        self._add_friendly_core_names()
+    #     if isinstance(config, str):
+    #         self._config = self._read_config_file(config)
 
-    def _read_config_file(self, path):
-        """
-        Takes a path to configuration file, and return the configuration as a
-        python dictionary.
-        """
+    #     if isinstance(config, dict):
+    #         self._config = config
 
-        extension = path.split(".")[-1]
+    #     self._check_config()
 
-        if "json" in extension:
-            with open(path, "r") as f:
-                import json
+    #     self._get_interface()
+    #     self._get_cores()
+    #     self._add_friendly_core_names()
 
-                return json.load(f)
+    # def _read_config_file(self, path):
+    #     """
+    #     Takes a path to configuration file, and return the configuration as a
+    #     python dictionary.
+    #     """
 
-        elif "yaml" in extension or "yml" in extension:
-            with open(path, "r") as f:
-                import yaml
+    #     extension = path.split(".")[-1]
 
-                return yaml.safe_load(f)
+    #     if "json" in extension:
+    #         import json
+    #         with open(path, "r") as f:
+    #             return json.load(f)
 
-        else:
-            raise ValueError("Unable to recognize configuration file extension.")
+    #     elif "yaml" in extension or "yml" in extension:
+    #         import yaml
+    #         with open(path, "r") as f:
+    #             return yaml.safe_load(f)
 
-    def _check_config(self):
-        if "cores" not in self._config:
-            raise ValueError("No cores specified in configuration file.")
+    #     else:
+    #         raise ValueError("Unable to recognize configuration file extension.")
 
-        if not len(self._config["cores"]) > 0:
-            raise ValueError("Must specify at least one core.")
+    # def _check_config(self):
+    #     if "cores" not in self._config:
+    #         raise ValueError("No cores specified in configuration file.")
 
-        for name, attrs in self._config["cores"].items():
-            # Make sure core type is specified
-            if "type" not in attrs:
-                raise ValueError(f"No type specified for core {name}.")
+    #     if not len(self._config["cores"]) > 0:
+    #         raise ValueError("Must specify at least one core.")
 
-            if attrs["type"] not in ["logic_analyzer", "io", "memory"]:
-                raise ValueError(f"Unrecognized core type specified for {name}.")
+    #     for name, attrs in self._config["cores"].items():
+    #         # Make sure core type is specified
+    #         if "type" not in attrs:
+    #             raise ValueError(f"No type specified for core {name}.")
 
-    def _get_interface(self):
-        """
-        Returns an instance of an interface object (UARTInterface or
-        EthernetInterface) configured with the parameters in the
-        config file.
-        """
-        if "uart" in self._config:
-            self.interface = UARTInterface.from_config(self._config["uart"])
+    #         if attrs["type"] not in ["logic_analyzer", "io", "memory"]:
+    #             raise ValueError(f"Unrecognized core type specified for {name}.")
 
-        elif "ethernet" in self._config:
-            self.interface = EthernetInterface(self._config["ethernet"])
+    # def _get_interface(self):
+    #     """
+    #     Returns an instance of an interface object (UARTInterface or
+    #     EthernetInterface) configured with the parameters in the
+    #     config file.
+    #     """
+    #     if "uart" in self._config:
+    #         self.interface = UARTInterface.from_config(self._config["uart"])
 
-        else:
-            raise ValueError("No recognized interface specified.")
+    #     elif "ethernet" in self._config:
+    #         self.interface = EthernetInterface(self._config["ethernet"])
 
-    def _get_cores(self):
-        """
-        Creates instances of the cores (IOCore, LogicAnalyzerCore, MemoryCore)
-        specified in the user's configuration, and returns them as a list.
-        """
+    #     else:
+    #         raise ValueError("No recognized interface specified.")
 
-        self._cores = {}
-        base_addr = 0
-        for name, attrs in self._config["cores"].items():
-            if attrs["type"] == "io":
-                core = IOCore.from_config(attrs, base_addr, self.interface)
+    # def _get_cores(self):
+    #     """
+    #     Creates instances of the cores (IOCore, LogicAnalyzerCore, MemoryCore)
+    #     specified in the user's configuration, and returns them as a list.
+    #     """
 
-            elif attrs["type"] == "logic_analyzer":
-                core = LogicAnalyzerCore(attrs, base_addr, self.interface)
+    #     self._cores = {}
+    #     base_addr = 0
+    #     for name, attrs in self._config["cores"].items():
+    #         if attrs["type"] == "io":
+    #             core = IOCore.from_config(attrs, base_addr, self.interface)
 
-            elif attrs["type"] == "memory":
-                core = MemoryCore.from_config(attrs, base_addr, self.interface)
+    #         elif attrs["type"] == "logic_analyzer":
+    #             core = LogicAnalyzerCore(attrs, base_addr, self.interface)
 
-            # Make sure we're not out of address space
-            if core.max_addr > (2**16) - 1:
-                raise ValueError(
-                    f"Ran out of address space to allocate to core {name}."
-                )
+    #         elif attrs["type"] == "memory":
+    #             core = MemoryCore.from_config(attrs, base_addr, self.interface)
 
-            # Make the next core's base address start one address after the previous one's
-            base_addr = core.max_addr + 1
-            self._cores[name] = core
+    #         # Make sure we're not out of address space
+    #         if core.max_addr > (2**16) - 1:
+    #             raise ValueError(
+    #                 f"Ran out of address space to allocate to core {name}."
+    #             )
 
-    def _add_friendly_core_names(self):
-        """
-        Add cores to the instance under a friendly name - ie, a core named `my_core` belonging
-        to a Manta instance `m` could be obtained with `m.cores["my_core"]`, but this allows
-        it to be obtained with `m.my_core`. Which is way nicer.
-        """
+    #         # Make the next core's base address start one address after the previous one's
+    #         base_addr = core.max_addr + 1
+    #         self._cores[name] = core
 
-        for name, instance in self._cores.items():
-            if not hasattr(self, name):
-                setattr(self, name, instance)
+    # def _add_friendly_core_names(self):
+    #     """
+    #     Add cores to the instance under a friendly name - ie, a core named `my_core` belonging
+    #     to a Manta instance `m` could be obtained with `m.cores["my_core"]`, but this allows
+    #     it to be obtained with `m.my_core`. Which is way nicer.
+    #     """
 
-            else:
-                raise ValueError(
-                    "Cannot add object to Manta instance - name is already taken!"
-                )
+    #     for name, instance in self._cores.items():
+    #         if not hasattr(self, name):
+    #             setattr(self, name, instance)
+
+    #         else:
+    #             raise ValueError(
+    #                 "Cannot add object to Manta instance - name is already taken!"
+    #             )
 
     def elaborate(self, platform):
         m = Module()
@@ -128,11 +144,11 @@ class Manta(Elaboratable):
         m.submodules.interface = self.interface
 
         # Add all cores as submodules
-        for name, instance in self._cores.items():
+        for name, instance in self.cores._cores.items():
             m.submodules[name] = instance
 
         # Connect first/last cores to interface output/input respectively
-        core_instances = list(self._cores.values())
+        core_instances = list(self.cores._cores.values())
         first_core = core_instances[0]
         last_core = core_instances[-1]
 
@@ -155,12 +171,12 @@ class Manta(Elaboratable):
         """
         ports = self.interface.get_top_level_ports()
 
-        for name, instance in self._cores.items():
+        for name, instance in self.cores._cores.items():
             ports += instance.top_level_ports
 
         return ports
 
-    def generate_verilog(self, strip_internal_attrs=False):
+    def generate_verilog(self, path, strip_internal_attrs=False):
         from amaranth.back import verilog
 
         output = verilog.convert(
@@ -180,4 +196,27 @@ class Manta(Elaboratable):
         if isinstance(self.interface, EthernetInterface):
             output += self.interface.generate_liteeth_core()
 
-        return output
+        with open(path, "w") as f:
+            f.write(output)
+
+    def export_config(self, path):
+        "Export a YAML file containing all the configuration of the core"
+
+        config = {}
+
+        if self.cores._cores:
+            config["cores"] = {}
+            for name, instance in self.cores._cores.items():
+                config["cores"][name] = instance.to_config()
+
+        if self.interface:
+            if isinstance(self.interface, UARTInterface):
+                config["uart"] = self.interface.to_config()
+
+            if isinstance(self.interface, EthernetInterface):
+                config["ethernet"] = self.interface.to_config()
+
+        import yaml
+
+        with open(path, "w") as f:
+            yaml.dump(config, f)
