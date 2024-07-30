@@ -84,7 +84,7 @@ class MemoryCore(MantaCore):
             "type": "memory",
             "mode": self._mode,
             "width": self._width,
-            "depth": self._depth
+            "depth": self._depth,
         }
 
     @classmethod

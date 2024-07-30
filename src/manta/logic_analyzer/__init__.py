@@ -2,8 +2,8 @@ from amaranth import *
 from manta.utils import *
 from manta.memory_core import MemoryCore
 from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
-from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States, TriggerModes
-from manta.logic_analyzer.playback import LogicAnalyzerPlayback
+from manta.logic_analyzer.fsm import LogicAnalyzerFSM, TriggerModes
+from manta.logic_analyzer.capture import LogicAnalyzerCapture
 
 
 class LogicAnalyzerCore(MantaCore):
@@ -18,41 +18,37 @@ class LogicAnalyzerCore(MantaCore):
     https://fischermoseley.github.io/manta/logic_analyzer_core/
     """
 
-    def __init__(self, config, base_addr, interface):
-        self._config = config
-        self._check_config()
+    def __init__(self, sample_depth, probes):
+        self._sample_depth = sample_depth
+        self._probes = probes
+        self.trigger_location = sample_depth // 2
+        self.trigger_mode = TriggerModes.SINGLE_SHOT
+        self.triggers = []
 
         # Bus Input/Output
         self.bus_i = Signal(InternalBus())
         self.bus_o = Signal(InternalBus())
 
-        self._probes = [
-            Signal(width, name=name) for name, width in self._config["probes"].items()
-        ]
-
-        # Submodules
-        self._fsm = LogicAnalyzerFSM(self._config, base_addr, interface)
-        self._trig_blk = LogicAnalyzerTriggerBlock(
-            self._probes, self._fsm.get_max_addr() + 1, interface
-        )
-
-        self._sample_mem = MemoryCore(
-            mode="fpga_to_host",
-            width=sum(self._config["probes"].values()),
-            depth=self._config["sample_depth"],
-            base_addr=self._trig_blk.get_max_addr() + 1,
-            interface=interface,
-        )
-
     @property
     def max_addr(self):
+        self.define_submodules()
         return self._sample_mem.max_addr
 
     @property
     def top_level_ports(self):
         return self._probes
 
-    def _check_config(self):
+    def to_config(self):
+        return {
+            "type": "logic_analyzer",
+            "sample_depth": self._sample_depth,
+            "trigger_location": self.trigger_location,
+            "probes": {p.name: len(p) for p in self._probes},
+            "triggers": self.triggers,
+        }
+
+    @classmethod
+    def from_config(cls, config):
         # Check for unrecognized options
         valid_options = [
             "type",
@@ -62,12 +58,12 @@ class LogicAnalyzerCore(MantaCore):
             "trigger_location",
             "trigger_mode",
         ]
-        for option in self._config:
+        for option in config:
             if option not in valid_options:
                 warn(f"Ignoring unrecognized option '{option}' in Logic Analyzer.")
 
         # Check sample depth is provided and positive
-        sample_depth = self._config.get("sample_depth")
+        sample_depth = config.get("sample_depth")
         if not sample_depth:
             raise ValueError("Logic Analyzer must have sample_depth specified.")
 
@@ -75,35 +71,35 @@ class LogicAnalyzerCore(MantaCore):
             raise ValueError("Logic Analyzer sample_depth must be a positive integer.")
 
         # Check probes
-        if "probes" not in self._config or len(self._config["probes"]) == 0:
+        if "probes" not in config or len(config["probes"]) == 0:
             raise ValueError("Logic Analyzer must have at least one probe specified.")
 
-        for name, width in self._config["probes"].items():
+        for name, width in config["probes"].items():
             if width < 0:
                 raise ValueError(f"Width of probe {name} must be positive.")
 
         # Check trigger mode, if provided
-        trigger_mode = self._config.get("trigger_mode")
+        trigger_mode = config.get("trigger_mode")
         valid_modes = ["single_shot", "incremental", "immediate"]
         if trigger_mode and trigger_mode not in valid_modes:
             raise ValueError(
-                f"Unrecognized trigger mode {self._config['trigger_mode']} provided."
+                f"Unrecognized trigger mode {config['trigger_mode']} provided."
             )
 
         # Check triggers
         if trigger_mode and trigger_mode != "immediate":
-            if "triggers" not in self._config or self._config["triggers"] == 0:
+            if "triggers" not in config or config["triggers"] == 0:
                 raise ValueError(
                     "Logic Analyzer must have at least one trigger specified if not running in immediate mode."
                 )
 
         # Check trigger location
-        trigger_location = self._config.get("trigger_location")
+        trigger_location = config.get("trigger_location")
         if trigger_location:
             if not isinstance(trigger_location, int) or trigger_location < 0:
                 raise ValueError("Trigger location must be a positive integer.")
 
-            if trigger_location >= self._config["sample_depth"]:
+            if trigger_location >= config["sample_depth"]:
                 raise ValueError("Trigger location must be less than sample depth.")
 
             if trigger_mode == "immediate":
@@ -113,16 +109,16 @@ class LogicAnalyzerCore(MantaCore):
 
         # Check triggers themselves
         if trigger_mode == "immediate":
-            if "triggers" in self._config:
+            if "triggers" in config:
                 warn(
                     "Ignoring triggers as 'trigger_mode' is set to immediate, and there are no triggers to specify."
                 )
 
         else:
-            if ("triggers" not in self._config) or (len(self._config["triggers"]) == 0):
+            if ("triggers" not in config) or (len(config["triggers"]) == 0):
                 raise ValueError("At least one trigger must be specified.")
 
-            for trigger in self._config.get("triggers"):
+            for trigger in config.get("triggers"):
                 if not isinstance(trigger, str):
                     raise ValueError("Trigger must be specified with a string.")
 
@@ -153,8 +149,34 @@ class LogicAnalyzerCore(MantaCore):
                     )
 
                 # Check probe names
-                if components[0] not in self._config["probes"]:
+                if components[0] not in config["probes"]:
                     raise ValueError(f"Unknown probe name '{components[0]}' specified.")
+
+        # Checks complete, create LogicAnalyzerCore
+        probes = [Signal(width, name=name) for name, width in config["probes"].items()]
+
+        return cls(config["sample_depth"], probes)
+
+    def define_submodules(self):
+        self._fsm = LogicAnalyzerFSM(
+            sample_depth=self._sample_depth,
+            base_addr=self.base_addr,
+            interface=self.interface,
+        )
+
+        self._trig_blk = LogicAnalyzerTriggerBlock(
+            probes=self._probes,
+            base_addr=self._fsm.max_addr + 1,
+            interface=self.interface,
+        )
+
+        self._sample_mem = MemoryCore(
+            mode="fpga_to_host",
+            width=sum([len(p) for p in self._probes]),
+            depth=self._sample_depth,
+        )
+        self._sample_mem.base_addr = self._trig_blk.max_addr + 1
+        self._sample_mem.interface = self.interface
 
     def elaborate(self, platform):
         m = Module()
@@ -184,225 +206,41 @@ class LogicAnalyzerCore(MantaCore):
 
         return m
 
-    def capture(self, verbose=False):
+    def capture(self):
         """
         Performs a capture, recording the state of all input probes to the
         FPGA's memory, and then returns that as a LogicAnalyzerCapture class
         on the host.
         """
-        print_if_verbose = lambda x: print(x) if verbose else None
 
-        # If core is not in IDLE state, request that it return to IDLE
-        print_if_verbose(" -> Resetting core...")
-        state = self._fsm.registers.get_probe("state")
-        if state != States.IDLE:
-            self._fsm.registers.set_probe("request_start", 0)
-            self._fsm.registers.set_probe("request_stop", 0)
-            self._fsm.registers.set_probe("request_stop", 1)
-            self._fsm.registers.set_probe("request_stop", 0)
+        print(" -> Resetting core...")
+        self._fsm.stop_capture()
 
-            if self._fsm.registers.get_probe("state") != States.IDLE:
-                raise ValueError("Logic analyzer did not reset to IDLE state.")
+        print(" -> Setting triggers...")
+        self._trig_blk.set_triggers(self.triggers)
 
-        # Set triggers
-        print_if_verbose(" -> Setting triggers...")
-        self._trig_blk.clear_triggers()
+        print(" -> Setting trigger mode...")
+        self._fsm.write_register("trigger_mode", self.trigger_mode)
 
-        if self._config.get("trigger_mode") != "immediate":
-            self._trig_blk.set_triggers(self._config)
+        print(" -> Setting trigger location...")
+        self._fsm.write_register("trigger_location", self.trigger_location)
 
-        # Set trigger mode, default to single-shot if user didn't specify a mode
-        print_if_verbose(" -> Setting trigger mode...")
-        if "trigger_mode" in self._config:
-            mode = self._config["trigger_mode"].upper()
-            self._fsm.registers.set_probe("trigger_mode", TriggerModes[mode])
+        print(" -> Starting capture...")
+        self._fsm.start_capture()
 
-        else:
-            self._fsm.registers.set_probe("trigger_mode", TriggerModes.SINGLE_SHOT)
+        print(" -> Waiting for capture to complete...")
+        self._fsm.wait_for_capture()
 
-        # Set trigger location
-        print_if_verbose(" -> Setting trigger location...")
-        if "trigger_location" in self._config:
-            self._fsm.registers.set_probe(
-                "trigger_location", self._config["trigger_location"]
-            )
-
-        else:
-            self._fsm.registers.set_probe(
-                "trigger_location", self._config["sample_depth"] // 2
-            )
-
-        # Send a start request to the state machine
-        print_if_verbose(" -> Starting capture...")
-        self._fsm.registers.set_probe("request_start", 0)
-        self._fsm.registers.set_probe("request_start", 1)
-        self._fsm.registers.set_probe("request_start", 0)
-
-        # Poll the state machine's state, and wait for the capture to complete
-        print_if_verbose(" -> Waiting for capture to complete...")
-        while self._fsm.registers.get_probe("state") != States.CAPTURED:
-            pass
-
-        # Read out the entirety of the sample memory
-        print_if_verbose(" -> Reading sample memory contents...")
-        addrs = list(range(self._config["sample_depth"]))
+        print(" -> Reading sample memory contents...")
+        addrs = list(range(self._sample_depth))
         raw_capture = self._sample_mem.read(addrs)
 
         # Revolve the memory around the read_pointer, such that all the beginning
         # of the caputure is at the first element
-        print_if_verbose(" -> Checking read pointer and revolving memory...")
-        read_pointer = self._fsm.registers.get_probe("read_pointer")
+        print(" -> Checking read pointer and revolving memory...")
+        read_pointer = self._fsm.read_register("read_pointer")
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]
-        return LogicAnalyzerCapture(data, self._config)
-
-
-class LogicAnalyzerCapture:
-    """
-    A container class for the data collected by a LogicAnalyzerCore. Contains
-    methods for exporting the data as a VCD waveform file, a Python list, a
-    CSV file, or a Verilog module.
-    """
-
-    def __init__(self, data, config):
-        self._data = data
-        self._config = config
-
-    def get_trigger_location(self):
-        """
-        Gets the location of the trigger in the capture. This will match the
-        value of "trigger_location" provided in the configuration file at the
-        time of capture.
-        """
-
-        if "trigger_location" in self._config:
-            return self._config["trigger_location"]
-
-        else:
-            return self._config["sample_depth"] // 2
-
-    def get_trace(self, probe_name):
-        """
-        Gets the value of a single probe over the capture.
-        """
-
-        # Sum up the widths of all the probes below this one
-        lower = 0
-        for name, width in self._config["probes"].items():
-            if name == probe_name:
-                break
-
-            lower += width
-
-        # Add the width of the probe we'd like
-        upper = lower + self._config["probes"][probe_name]
-
-        total_probe_width = sum(self._config["probes"].values())
-        binary = [f"{d:0{total_probe_width}b}" for d in self._data]
-        return [int(b[lower:upper], 2) for b in binary]
-
-    def export_csv(self, path):
-        """
-        Export the capture to a CSV file, containing the data of all probes in
-        the core.
-        """
-
-        names = list(self._config["probes"].keys())
-        values = [self.get_trace(n) for n in names]
-
-        # Transpose list of lists so that data flows top-to-bottom instead of
-        # left-to-right
-        values_t = [list(x) for x in zip(*values)]
-
-        import csv
-
-        with open(path, "w") as f:
-            writer = csv.writer(f)
-
-            writer.writerow(names)
-            writer.writerows(values_t)
-
-    def export_vcd(self, path):
-        """
-        Export the capture to a VCD file, containing the data of all probes in
-        the core.
-        """
-
-        from vcd import VCDWriter
-        from datetime import datetime
-
-        # Use the same datetime format that iVerilog uses
-        timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
-        vcd_file = open(path, "w")
-
-        with VCDWriter(vcd_file, "10 ns", timestamp, "manta") as writer:
-            # Each probe has a name, width, and writer associated with it
-            signals = []
-            for name, width in self._config["probes"].items():
-                signal = {
-                    "name": name,
-                    "width": width,
-                    "data": self.get_trace(name),
-                    "var": writer.register_var("manta", name, "wire", size=width),
-                }
-                signals.append(signal)
-
-            clock = writer.register_var("manta", "clk", "wire", size=1)
-
-            # Include a trigger signal such would be meaningful (ie, we didn't trigger immediately)
-            if (
-                "trigger_mode" not in self._config
-                or self._config["trigger_mode"] == "single_shot"
-            ):
-                trigger = writer.register_var("manta", "trigger", "wire", size=1)
-
-            # Add the data to each probe in the vcd file
-            for timestamp in range(0, 2 * len(self._data)):
-                # Run the clock
-                writer.change(clock, timestamp, timestamp % 2 == 0)
-
-                # Set the trigger (if there is one)
-                if (
-                    "trigger_mode" not in self._config
-                    or self._config["trigger_mode"] == "single_shot"
-                ):
-                    triggered = (timestamp // 2) >= self.get_trigger_location()
-                    writer.change(trigger, timestamp, triggered)
-
-                # Add other signals
-                for signal in signals:
-                    var = signal["var"]
-                    sample = signal["data"][timestamp // 2]
-
-                    writer.change(var, timestamp, sample)
-
-        vcd_file.close()
-
-    def get_playback_module(self):
-        """
-        Returns an Amaranth module that will playback the captured data. This
-        module is synthesizable, so it may be used in either simulation or
-        on the FPGA directly by including it your build process.
-        """
-
-        return LogicAnalyzerPlayback(self._data, self._config)
-
-    def export_playback_verilog(self, path):
-        """
-        Exports a Verilog module that will playback the captured data. This
-        module is synthesizable, so it may be used in either simulation or
-        on the FPGA directly by including it your build process.
-        """
-
-        lap = self.get_playback_module()
-        from amaranth.back import verilog
-
-        with open(path, "w") as f:
-            f.write(
-                verilog.convert(
-                    lap,
-                    name="logic_analyzer_playback",
-                    ports=lap.get_top_level_ports(),
-                    strip_internal_attrs=True,
-                )
-            )
+        return LogicAnalyzerCapture(
+            self._probes, self.trigger_location, self.trigger_mode, data
+        )
