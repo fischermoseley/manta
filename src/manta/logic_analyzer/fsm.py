@@ -24,8 +24,8 @@ class LogicAnalyzerFSM(Elaboratable):
     memory in each trigger mode (immediate, incremental, single-shot).
     """
 
-    def __init__(self, config, base_addr, interface):
-        self._sample_depth = config["sample_depth"]
+    def __init__(self, sample_depth, base_addr, interface):
+        self._sample_depth = sample_depth
 
         # Outputs to rest of Logic Analyzer
         self.trigger = Signal(1)
@@ -53,18 +53,16 @@ class LogicAnalyzerFSM(Elaboratable):
             self.request_stop,
         ]
 
-        self.registers = IOCore(base_addr, interface, inputs, outputs)
+        self.registers = IOCore(inputs, outputs)
+        self.registers.base_addr = base_addr
+        self.registers.interface = interface
 
         # Bus Input/Output
         self.bus_i = self.registers.bus_i
         self.bus_o = self.registers.bus_o
 
-    def get_max_addr(self):
-        """
-        Return the maximum addresses in memory used by the core. The address
-        space used by the core extends from `base_addr` to the number returned
-        by this function (including the endpoints).
-        """
+    @property
+    def max_addr(self):
         return self.registers.max_addr
 
     def elaborate(self, platform):
@@ -171,3 +169,32 @@ class LogicAnalyzerFSM(Elaboratable):
             m.d.sync += state.eq(States.IDLE)
 
         return m
+
+    def stop_capture(self):
+        # If core is not in IDLE state, request that it return to IDLE
+        state = self.registers.get_probe("state")
+        if state != States.IDLE:
+            self.registers.set_probe("request_start", 0)
+            self.registers.set_probe("request_stop", 0)
+            self.registers.set_probe("request_stop", 1)
+            self.registers.set_probe("request_stop", 0)
+
+            if self.registers.get_probe("state") != States.IDLE:
+                raise ValueError("Logic analyzer did not reset to IDLE state.")
+
+    def start_capture(self):
+        # Send a start request to the state machine
+        self.registers.set_probe("request_start", 0)
+        self.registers.set_probe("request_start", 1)
+        self.registers.set_probe("request_start", 0)
+
+    def wait_for_capture(self):
+        # Poll the state machine, and wait for the capture to complete
+        while self.registers.get_probe("state") != States.CAPTURED:
+            pass
+
+    def read_register(self, name):
+        return self.registers.get_probe(name)
+
+    def write_register(self, name, value):
+        return self.registers.set_probe(name, value)

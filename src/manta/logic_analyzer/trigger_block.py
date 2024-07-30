@@ -19,7 +19,9 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         # Make IO core for everything
         ops = [t.op for t in self._triggers]
         args = [t.arg for t in self._triggers]
-        self.registers = IOCore(base_addr, interface, outputs=ops + args)
+        self.registers = IOCore(outputs=ops + args)
+        self.registers.base_addr = base_addr
+        self.registers.interface = interface
 
         # Bus Input/Output
         self.bus_i = self.registers.bus_i
@@ -28,23 +30,18 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
         # Global trigger. High if any probe is triggered.
         self.trig = Signal()
 
-    def get_max_addr(self):
-        """
-        Return the maximum addresses in memory used by the core. The address
-        space used by the core extends from `base_addr` to the number returned
-        by this function (including the endpoints).
-        """
+    @property
+    def max_addr(self):
         return self.registers.max_addr
 
-    def clear_triggers(self):
+    def set_triggers(self, triggers):
         # Reset all triggers to disabled with no argument
         for p in self._probes:
             self.registers.set_probe(p.name + "_op", Operations.DISABLE)
             self.registers.set_probe(p.name + "_arg", 0)
 
-    def set_triggers(self, config):
         # Set triggers
-        for trigger in config["triggers"]:
+        for trigger in triggers:
             components = trigger.strip().split(" ")
 
             # Handle triggers that don't need an argument
