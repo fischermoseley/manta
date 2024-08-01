@@ -25,6 +25,11 @@ jobs:
           # Install Manta, with optional dev-only dependencies
           python3 -m pip install ".[dev]"
 
+      - name: Check formatting
+        run: |
+          source venv/bin/activate
+          python3 -m black . --check
+
       - name: Run tests
         run: |
           source ./environment.sh
