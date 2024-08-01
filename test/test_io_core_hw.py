@@ -2,6 +2,8 @@ from manta import Manta
 from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
+from manta.io_core import IOCore
+from manta.uart import UARTInterface
 from manta.utils import *
 import pytest
 from random import getrandbits
@@ -13,70 +15,44 @@ class IOCoreLoopbackTest(Elaboratable):
         self.platform = platform
         self.port = port
 
-        self.config = self.platform_specific_config()
-        self.manta = Manta(self.config)
-
-    def platform_specific_config(self):
-        return {
-            "cores": {
-                "io_core": {
-                    "type": "io",
-                    "inputs": {"probe0": 1, "probe1": 2, "probe2": 8, "probe3": 20},
-                    "outputs": {
-                        "probe4": {"width": 1, "initial_value": 1},
-                        "probe5": {
-                            "width": 2,
-                            "initial_value": 2,
-                        },
-                        "probe6": 8,
-                        "probe7": {"width": 20, "initial_value": 65538},
-                    },
-                }
-            },
-            "uart": {
-                "port": self.port,
-                "baudrate": 3e6,
-                "clock_freq": self.platform.default_clk_frequency,
-            },
-        }
-
-    def get_probe(self, name):
-        # This is a hack! And should be removed once the full Amaranth-native
-        # API is built out
-        for i in self.manta.io_core._inputs:
-            if i.name == name:
-                return i
-
-        for o in self.manta.io_core._outputs:
-            if o.name == name:
-                return o
-
-        return None
-
     def elaborate(self, platform):
+        # Since we know that all the tests will be called only after the FPGA
+        # is programmed, we can just push all the wiring into the elaborate
+        # method, instead of needing to define Manta in the __init__() method
+
+        probe0 = Signal()
+        probe1 = Signal(2)
+        probe2 = Signal(8)
+        probe3 = Signal(20)
+
+        probe4 = Signal(init=1)
+        probe5 = Signal(2, init=2)
+        probe6 = Signal(8)
+        probe7 = Signal(20, init=65538)
+
+        self.manta = manta = Manta()
+        manta.cores.io = IOCore(
+            inputs=[probe0, probe1, probe2, probe3],
+            outputs=[probe4, probe5, probe6, probe7],
+        )
+        manta.interface = UARTInterface(
+            port=self.port, baudrate=3e6, clock_freq=platform.default_clk_frequency
+        )
+
         m = Module()
-        m.submodules.manta = self.manta
+        m.submodules.manta = manta
 
         uart_pins = platform.request("uart", dir={"tx": "-", "rx": "-"})
         m.submodules.uart_rx = uart_rx = io.Buffer("i", uart_pins.rx)
         m.submodules.uart_tx = uart_tx = io.Buffer("o", uart_pins.tx)
-
-        probe0 = self.get_probe("probe0")
-        probe1 = self.get_probe("probe1")
-        probe2 = self.get_probe("probe2")
-        probe3 = self.get_probe("probe3")
-        probe4 = self.get_probe("probe4")
-        probe5 = self.get_probe("probe5")
-        probe6 = self.get_probe("probe6")
-        probe7 = self.get_probe("probe7")
 
         m.d.comb += [
             probe0.eq(probe4),
             probe1.eq(probe5),
             probe2.eq(probe6),
             probe3.eq(probe7),
-            self.manta.interface.rx.eq(uart_rx.i),
-            uart_tx.o.eq(self.manta.interface.tx),
+            manta.interface.rx.eq(uart_rx.i),
+            uart_tx.o.eq(manta.interface.tx),
         ]
 
         return m
@@ -91,23 +67,11 @@ class IOCoreLoopbackTest(Elaboratable):
         strobe register pulses every time the get_probe() method is called.
         """
 
-        # Test that all output probes take their initial values
-        inputs = self.config["cores"]["io_core"]["inputs"]
-        outputs = self.config["cores"]["io_core"]["outputs"]
-
-        for name, attrs in outputs.items():
-            actual = self.manta.io_core.get_probe(name)
-
-            if isinstance(attrs, dict):
-                if "initial_value" in attrs:
-                    expected = attrs["initial_value"]
-
-            else:
-                expected = 0
-
-            if actual != expected:
+        for p in self.manta.cores.io._outputs:
+            measured = self.manta.cores.io.get_probe(p)
+            if measured != p.init:
                 raise ValueError(
-                    f"Output probe {name} took initial value of {actual} instead of {expected}."
+                    f"Output probe {p.name} took initial value of {measured} instead of {p.init}."
                 )
 
     def verify_probes_update(self):
@@ -115,27 +79,26 @@ class IOCoreLoopbackTest(Elaboratable):
         This design ties all the output probes to input probes, so this
         test sets the outputs to random values, and verifies the inputs match
         """
-        inputs = self.config["cores"]["io_core"]["inputs"]
-        outputs = self.config["cores"]["io_core"]["outputs"]
+        inputs = self.manta.cores.io._inputs
+        outputs = self.manta.cores.io._outputs
 
         # The config is specified in such a way that the first output is
         # connected to the first output, the second output is connected
         # to the second input, and so on...
-        for input, output in zip(inputs, outputs):
-            width = self.config["cores"]["io_core"]["inputs"][input]
-            value = getrandbits(width)
+        for i, o in zip(inputs, outputs):
+            value = getrandbits(len(i))
 
-            self.manta.io_core.set_probe(output, value)
-            readback = self.manta.io_core.get_probe(input)
+            self.manta.cores.io.set_probe(o, value)
+            readback = self.manta.cores.io.get_probe(i)
 
             if readback != value:
                 raise ValueError(
-                    f"Reading {output} through {input} yielded {readback} instead of {value}!"
+                    f"Reading {o.name} through {i.name} yielded {readback} instead of {value}!"
                 )
 
             else:
                 print(
-                    f"Reading {output} through {input} yielded {readback} as expected."
+                    f"Reading {o.name} through {i.name} yielded {readback} as expected."
                 )
 
     def verify(self):

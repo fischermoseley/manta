@@ -15,7 +15,9 @@ probe6 = Signal(8)
 probe7 = Signal(20, init=65538)
 outputs = [probe4, probe5, probe6, probe7]
 
-io_core = IOCore(base_addr=0, interface=None, inputs=inputs, outputs=outputs)
+io_core = IOCore(inputs=inputs, outputs=outputs)
+io_core.base_addr = 0
+_ = io_core.max_addr
 
 
 async def pulse_strobe_register(ctx):
