@@ -57,7 +57,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
             m.d.comb += self.manta.cores.mem.user_write_enable.eq(user_write_enable)
 
         if self.mode in ["bidirectional", "host_to_fpga"]:
-            m.d.comb += user_data_out.eq(self.manta.mem_core.user_data_out)
+            m.d.comb += user_data_out.eq(self.manta.cores.mem.user_data_out)
 
         return m
 
