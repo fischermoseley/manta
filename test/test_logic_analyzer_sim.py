@@ -10,6 +10,7 @@ moe = Signal(9)
 
 la = LogicAnalyzerCore(1024, [larry, curly, moe])
 la.base_addr = 0
+_ = la.max_addr
 
 
 async def print_data_at_addr(ctx, addr):
@@ -33,7 +34,7 @@ async def print_data_at_addr(ctx, addr):
 
 async def set_fsm_register(ctx, name, data):
     addr = la._fsm.registers._memory_map[name]["addrs"][0]
-    strobe_addr = la._fsm.registers._base_addr
+    strobe_addr = la._fsm.registers.base_addr
 
     await write_register(la, ctx, strobe_addr, 0)
     await write_register(la, ctx, addr, data)
@@ -43,7 +44,7 @@ async def set_fsm_register(ctx, name, data):
 
 async def set_trig_blk_register(ctx, name, data):
     addr = la._trig_blk.registers._memory_map[name]["addrs"][0]
-    strobe_addr = la._trig_blk.registers._base_addr
+    strobe_addr = la._trig_blk.registers.base_addr
 
     await write_register(la, ctx, strobe_addr, 0)
     await write_register(la, ctx, addr, data)
