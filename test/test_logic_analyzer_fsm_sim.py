@@ -1,8 +1,10 @@
-from manta.logic_analyzer import *
+from manta.logic_analyzer import TriggerModes
+from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States
 from manta.utils import *
 
-config = {"sample_depth": 8}
-fsm = LogicAnalyzerFSM(config, base_addr=0, interface=None)
+sample_depth = 8
+fsm = LogicAnalyzerFSM(sample_depth, base_addr=0, interface=None)
+_ = fsm.max_addr
 
 
 @simulate(fsm)
@@ -97,7 +99,7 @@ async def test_single_shot_wait_for_trigger(ctx):
     # Check that write_pointer points to the end of memory
     rp = ctx.get(fsm.read_pointer)
     wp = ctx.get(fsm.write_pointer)
-    if (wp + 1) % config["sample_depth"] != rp:
+    if (wp + 1) % sample_depth != rp:
         raise ValueError
 
     # Check that state is CAPTURED
@@ -116,7 +118,7 @@ async def test_immediate(ctx):
     if not ctx.get(fsm.write_enable):
         raise ValueError
 
-    for i in range(config["sample_depth"]):
+    for i in range(sample_depth):
         rp = ctx.get(fsm.read_pointer)
         wp = ctx.get(fsm.write_pointer)
 
@@ -219,7 +221,7 @@ async def test_immediate_write_enable(ctx):
     ctx.set(fsm.request_start, 1)
     await ctx.tick()
 
-    for _ in range(config["sample_depth"]):
+    for _ in range(sample_depth):
         if not ctx.get(fsm.write_enable):
             raise ValueError
 
