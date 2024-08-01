@@ -15,8 +15,6 @@ class LogicAnalyzerCapture:
         self._trigger_mode = trigger_mode
         self._data = data
 
-        print(self._trigger_mode)
-
     def get_trigger_location(self):
         """
         Returns the location of the trigger in the capture. This will match the

@@ -59,7 +59,7 @@ class IOCore(MantaCore):
         for name, width in inputs.items():
             if not isinstance(name, str):
                 raise ValueError(
-                    f'Input probe "{name}" has invalid name, names must be strings.'
+                    f"Input probe '{name}' has invalid name, names must be strings."
                 )
 
             if not isinstance(width, int):
@@ -75,15 +75,15 @@ class IOCore(MantaCore):
         for name, attrs in outputs.items():
             if not isinstance(name, str):
                 raise ValueError(
-                    f'Output probe "{name}" has invalid name, names must be strings.'
+                    f"Output probe '{name}' has invalid name, names must be strings."
                 )
 
             if not isinstance(attrs, int) and not isinstance(attrs, dict):
-                raise ValueError(f'Unrecognized format for output probe "{name}".')
+                raise ValueError(f"Unrecognized format for output probe '{name}'.")
 
             if isinstance(attrs, int):
                 if not attrs > 0:
-                    raise ValueError(f'Output probe "{name}" must have positive width.')
+                    raise ValueError(f"Output probe '{name}' must have positive width.")
 
                 width = attrs
                 initial_value = 0
@@ -93,17 +93,17 @@ class IOCore(MantaCore):
                 valid_options = ["width", "initial_value"]
                 for option in attrs:
                     if option not in valid_options:
-                        warn(f'Ignoring unrecognized option "{option}" in IO core.')
+                        warn(f"Ignoring unrecognized option '{option}' in IO core.")
 
                 # Check that widths are appropriate
                 if "width" not in attrs:
-                    raise ValueError(f"No width specified for output probe {name}.")
+                    raise ValueError(f"No width specified for output probe '{name}'.")
 
                 if not isinstance(attrs["width"], int):
-                    raise ValueError(f'Output probe "{name}" must have integer width.')
+                    raise ValueError(f"Output probe '{name}' must have integer width.")
 
                 if not attrs["width"] > 0:
-                    raise ValueError(f'Input probe "{name}" must have positive width.')
+                    raise ValueError(f"Input probe '{name}' must have positive width.")
 
                 width = attrs["width"]
 
@@ -192,28 +192,42 @@ class IOCore(MantaCore):
 
         return m
 
-    def set_probe(self, name, value):
+    def set_probe(self, probe, value):
         """
         Set the value of an output probe on the FPGA. The value may be either
         an unsigned or signed integer, but must fit within the width of the
         probe.
         """
 
-        # Check that probe exists in memory map
-        probe = self._memory_map.get(name)
-        if not probe:
-            raise KeyError(f"Probe '{name}' not found in IO core.")
+        # This function accepts either the name of an output probe, or a
+        # Signal() object that is the output probe itself.
+
+        if isinstance(probe, str):
+            # The name passed should occur exactly once in the output probes
+            probes = [o for o in self._outputs if o.name == probe]
+            if len(probes) == 0:
+                raise ValueError(f"Probe '{probe}' is not an output of the IO core.")
+
+            if len(probes) > 1:
+                raise ValueError(f"Multiple probes found in IO core for name {probe}.")
+
+            return self.set_probe(probes[0], value)
 
         # Check that the probe is an output
-        if not any([o.name == name for o in self._outputs]):
-            raise KeyError(f"Probe '{name}' is not an output of the IO core.")
+        probes = [o for o in self._outputs if probe is o]
+        if len(probes) == 0:
+            raise KeyError(f"Probe '{probe.name}' is not an output of the IO core.")
+
+        if len(probes) > 1:
+            raise ValueError(
+                f"Multiple output probes found in IO core for name '{probe.name}'."
+            )
 
         # Check that value isn't too big for the register
-        n_bits = sum([len(s) for s in probe["signals"]])
-        check_value_fits_in_bits(value, n_bits)
+        check_value_fits_in_bits(value, len(probe))
 
         # Write value to core
-        addrs = probe["addrs"]
+        addrs = self._memory_map[probe.name]["addrs"]
         datas = value_to_words(value, len(addrs))
         self.interface.write(addrs, datas)
 
@@ -222,7 +236,7 @@ class IOCore(MantaCore):
         self.interface.write(self.base_addr, 1)
         self.interface.write(self.base_addr, 0)
 
-    def get_probe(self, name):
+    def get_probe(self, probe):
         """
         Get the present value of a probe on the FPGA, which is returned as an
         unsigned integer. This function may be called on both input and output
@@ -230,10 +244,35 @@ class IOCore(MantaCore):
         (or their initial value, if no value has been written to them yet).
         """
 
-        # Check that probe exists in memory map
-        probe = self._memory_map.get(name)
-        if not probe:
-            raise KeyError(f"Probe with name {name} not found in IO core.")
+        # This function accepts either the name of an output probe, or a
+        # Signal() object that is the output probe itself.
+
+        if isinstance(probe, str):
+            # The name passed should occur exactly once in the probes
+            probes = [o for o in self._outputs if o.name == probe]
+            probes += [i for i in self._inputs if i.name == probe]
+
+            if len(probes) == 0:
+                raise ValueError(f"Probe with name '{probe}' not found in IO core.")
+
+            if len(probes) > 1:
+                raise ValueError(
+                    f"Multiple probes found in IO core for name '{probe}'."
+                )
+
+            return self.get_probe(probes[0])
+
+        # Check that probe exists in core
+        probes = [o for o in self._outputs if probe is o]
+        probes += [i for i in self._inputs if probe is i]
+
+        if len(probes) == 0:
+            raise KeyError(f"Probe with name '{probe.name}' not found in IO core.")
+
+        if len(probes) > 1:
+            raise ValueError(
+                f"Multiple probes found in IO core for name '{probe.name}'."
+            )
 
         # Pulse strobe register
         self.interface.write(self.base_addr, 0)
@@ -241,5 +280,5 @@ class IOCore(MantaCore):
         self.interface.write(self.base_addr, 0)
 
         # Get value from buffer
-        datas = self.interface.read(probe["addrs"])
+        datas = self.interface.read(self._memory_map[probe.name]["addrs"])
         return words_to_value(datas)

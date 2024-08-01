@@ -3,6 +3,8 @@ from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
 from manta import Manta
+from manta.logic_analyzer import LogicAnalyzerCore
+from manta.uart import UARTInterface
 from manta.utils import *
 import pytest
 import os
@@ -13,41 +15,33 @@ class LogicAnalyzerCounterTest(Elaboratable):
         self.platform = platform
         self.port = port
 
-        self.config = self.platform_specific_config()
-        self.manta = Manta(self.config)
-
-    def platform_specific_config(self):
-        return {
-            "cores": {
-                "la": {
-                    "type": "logic_analyzer",
-                    "sample_depth": 1024,
-                    "trigger_mode": "immediate",
-                    "probes": {"larry": 1, "curly": 3, "moe": 9},
-                },
-            },
-            "uart": {
-                "port": self.port,
-                "baudrate": 3e6,
-                "clock_freq": self.platform.default_clk_frequency,
-            },
-        }
-
     def elaborate(self, platform):
+        # Since we know that all the tests will be called only after the FPGA
+        # is programmed, we can just push all the wiring into the elaborate
+        # method, instead of needing to define Manta in the __init__() method
+
+        probe0 = Signal()
+        probe1 = Signal(3)
+        probe2 = Signal(9)
+
+        self.manta = manta = Manta()
+        manta.interface = UARTInterface(
+            port=self.port, baudrate=3e6, clock_freq=platform.default_clk_frequency
+        )
+        manta.cores.la = LogicAnalyzerCore(
+            sample_depth=1024, probes=[probe0, probe1, probe2]
+        )
+
         m = Module()
-        m.submodules.manta = self.manta
+        m.submodules.manta = manta
 
         uart_pins = platform.request("uart", dir={"tx": "-", "rx": "-"})
         m.submodules.uart_rx = uart_rx = io.Buffer("i", uart_pins.rx)
         m.submodules.uart_tx = uart_tx = io.Buffer("o", uart_pins.tx)
 
-        larry = self.manta.la._probes[0]
-        curly = self.manta.la._probes[1]
-        moe = self.manta.la._probes[2]
-
-        m.d.sync += larry.eq(larry + 1)
-        m.d.sync += curly.eq(curly + 1)
-        m.d.sync += moe.eq(moe + 1)
+        m.d.sync += probe0.eq(probe0 + 1)
+        m.d.sync += probe1.eq(probe1 + 1)
+        m.d.sync += probe2.eq(probe2 + 1)
 
         m.d.comb += [
             self.manta.interface.rx.eq(uart_rx.i),
@@ -61,7 +55,9 @@ class LogicAnalyzerCounterTest(Elaboratable):
 
     def verify(self):
         self.build_and_program()
-        cap = self.manta.la.capture()
+
+        self.manta.cores.la.triggers = ["probe0 EQ 0"]
+        cap = self.manta.cores.la.capture()
 
         make_build_dir_if_it_does_not_exist_already()
 
@@ -75,11 +71,11 @@ class LogicAnalyzerCounterTest(Elaboratable):
         cap.export_playback_verilog("build/logic_analzyer_capture_playback.v")
 
         # verify that each signal is just a counter modulo the width of the signal
-        for name, width in self.manta.la._config["probes"].items():
-            trace = cap.get_trace(name)
+        for p in self.manta.cores.la._probes:
+            trace = cap.get_trace(p.name)
 
             for i in range(len(trace) - 1):
-                if trace[i + 1] != (trace[i] + 1) % (2**width):
+                if trace[i + 1] != (trace[i] + 1) % (2 ** len(p)):
                     raise ValueError("Bad counter!")
 
 

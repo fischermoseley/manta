@@ -4,15 +4,12 @@ from manta.logic_analyzer.trigger_block import Operations
 from manta.utils import *
 from random import sample
 
-config = {
-    "type": "logic_analyzer",
-    "sample_depth": 1024,
-    "trigger_location": 512,
-    "probes": {"larry": 1, "curly": 3, "moe": 9},
-    "triggers": ["moe RISING"],
-}
+larry = Signal(1)
+curly = Signal(3)
+moe = Signal(9)
 
-la = LogicAnalyzerCore(config, base_addr=0, interface=None)
+la = LogicAnalyzerCore(1024, [larry, curly, moe])
+la.base_addr = 0
 
 
 async def print_data_at_addr(ctx, addr):
