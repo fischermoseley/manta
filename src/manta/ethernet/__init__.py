@@ -17,16 +17,13 @@ class EthernetInterface(Elaboratable):
     https://fischermoseley.github.io/manta/ethernet_interface/
     """
 
-    def __init__(self, config):
-        self._config = config
-        self._fpga_ip_addr = config.get("fpga_ip_addr")
-        self._host_ip_addr = config.get("host_ip_addr")
-        self._udp_port = config.get("udp_port")
-        self._phy = config.get("phy")
-
-        # Convert to float first because Python considers scientific notation
-        # to only represent floats, not ints.
-        self._clk_freq = int(float(config.get("clk_freq")))
+    def __init__(self, fpga_ip_addr, host_ip_addr, udp_port, phy, clk_freq, **kwargs):
+        self._fpga_ip_addr = fpga_ip_addr
+        self._host_ip_addr = host_ip_addr
+        self._udp_port = udp_port
+        self._phy = phy
+        self._clk_freq = clk_freq
+        self._additional_config = kwargs
         self._check_config()
 
         self.bus_i = Signal(InternalBus())
@@ -34,8 +31,9 @@ class EthernetInterface(Elaboratable):
 
         self._phy_io = self._define_phy_io()
 
+        clk_freq_rounded = round(self._clk_freq)
         self._dhcp_start = Signal()
-        self._dhcp_timer = Signal(range(self._clk_freq + 1), init=self._clk_freq)
+        self._dhcp_timer = Signal(range(clk_freq_rounded + 1), init=clk_freq_rounded)
 
         self._source_data = Signal(32)
         self._source_last = Signal()
@@ -84,7 +82,15 @@ class EthernetInterface(Elaboratable):
                 raise ValueError(f"Invalid byte in FPGA IP: {byte}")
 
     def to_config(self):
-        return self._config
+        config = {
+            "fpga_ip_addr": self._fpga_ip_addr,
+            "host_ip_addr": self._host_ip_addr,
+            "udp_port": self._udp_port,
+            "phy": self._phy,
+            "clk_freq": self._clk_freq,
+        }
+
+        return {**config, **self._additional_config}
 
     def get_top_level_ports(self):
         """
@@ -333,12 +339,11 @@ class EthernetInterface(Elaboratable):
         'ethernet' section of the Manta configuration file to LiteEth, after
         modifying it slightly.
         """
-        liteeth_config = self._config.copy()
+        liteeth_config = self.to_config()
 
         # Randomly assign a MAC address if one is not specified in the
         # configuration. This will choose a MAC address in the Locally
-        # Administered, Administratively Assigned group. For more information,
-        # please reference:
+        # Administered, Administratively Assigned group. Please reference:
         # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
 
         if "mac_address" not in liteeth_config:

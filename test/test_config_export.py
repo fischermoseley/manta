@@ -109,8 +109,6 @@ def test_logic_analyzer_core_dump():
     with open(tf.name, "r") as f:
         data = yaml.safe_load(f)
 
-    print(tf.name)
-
     # Verify that exported YAML matches configuration
     expected = {
         "cores": {
@@ -168,8 +166,11 @@ def test_ethernet_interface_dump():
         fpga_ip_addr="192.168.0.101",
         host_ip_addr="192.168.0.100",
         udp_port=2000,
-        phy="",
-        clk_freq=0,
+        phy="LiteEthPHYRMII",
+        clk_freq=50e6,
+        refclk_freq=50e6,
+        vendor="xilinx",
+        toolchain="vivado",
     )
 
     # Create Temporary File
@@ -196,6 +197,7 @@ def test_ethernet_interface_dump():
             "refclk_freq": 50000000.0,
             "fpga_ip_addr": "192.168.0.101",
             "host_ip_addr": "192.168.0.100",
+            "udp_port": 2000,
         }
     }
 
