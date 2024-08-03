@@ -1,4 +1,4 @@
-from amaranth import *
+from amaranth import Elaboratable
 from amaranth.lib import data
 from amaranth.sim import Simulator
 from abc import ABC, abstractmethod

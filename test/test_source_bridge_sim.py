@@ -1,4 +1,3 @@
-from amaranth.sim import Simulator
 from manta.ethernet import UDPSourceBridge
 from manta.utils import *
 
