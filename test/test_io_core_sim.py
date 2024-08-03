@@ -1,5 +1,5 @@
 from amaranth import *
-from manta.io_core import IOCore
+from manta import *
 from manta.utils import *
 from random import getrandbits
 

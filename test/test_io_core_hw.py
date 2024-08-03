@@ -1,9 +1,8 @@
-from manta import Manta
+from amaranth import *
 from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
-from manta.io_core import IOCore
-from manta.uart import UARTInterface
+from manta import *
 from manta.utils import *
 import pytest
 from random import getrandbits

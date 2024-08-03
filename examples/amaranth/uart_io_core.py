@@ -1,8 +1,6 @@
 from amaranth import *
 from amaranth.lib import io
 from manta import *
-from manta.io_core import IOCore
-from manta.uart import UARTInterface
 from time import sleep
 
 
