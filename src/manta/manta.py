@@ -219,4 +219,4 @@ class Manta(Elaboratable):
         import yaml
 
         with open(path, "w") as f:
-            yaml.dump(config, f)
+            yaml.dump(config, f, default_flow_style=False)
