@@ -77,7 +77,7 @@ class CoreContainer:
             value.interface = self._manta.interface
             value.base_addr = self._last_used_addr
 
-            if value.max_addr > (2**16)-1:
+            if value.max_addr > (2**16) - 1:
                 raise ValueError(f"Ran out of address space while allocating core.")
 
             self._last_used_addr = value.max_addr + 1
