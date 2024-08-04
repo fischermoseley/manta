@@ -33,7 +33,9 @@ class Manta(Elaboratable):
         # Load config from either YAML or JSON
         extension = config_path.split(".")[-1]
         if extension not in ["yaml", "yml", "json"]:
-            raise ValueError(f"Configuration file {config_path} has unrecognized file type.")
+            raise ValueError(
+                f"Configuration file {config_path} has unrecognized file type."
+            )
 
         with open(config_path, "r") as f:
             if extension in ["yaml", "yml"]:
@@ -81,7 +83,6 @@ class Manta(Elaboratable):
             setattr(manta.cores, name, core)
 
         return manta
-
 
     def elaborate(self, platform):
         m = Module()
