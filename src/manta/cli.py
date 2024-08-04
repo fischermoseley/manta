@@ -69,13 +69,13 @@ def wrong_args():
 
 
 def gen(config_path, output_path):
-    m = Manta(config_path)
-    m.generate_verilog(output_path)
+    manta = Manta.from_config(config_path)
+    manta.generate_verilog(output_path)
 
 
 def inst(config_path):
-    m = Manta(config_path)
-    ports = m.get_top_level_ports()
+    manta = Manta.from_config(config_path)
+    ports = manta.get_top_level_ports()
     hdl = ",\n    ".join([f".{p.name}({p.name})" for p in ports])
 
     foo = """
@@ -88,8 +88,8 @@ manta manta_inst(
 
 
 def capture(config_path, logic_analyzer_name, export_paths):
-    m = Manta(config_path)
-    la = getattr(m, logic_analyzer_name)
+    manta = Manta.from_config(config_path)
+    la = getattr(manta.cores, logic_analyzer_name)
     cap = la.capture()
 
     for path in export_paths:
