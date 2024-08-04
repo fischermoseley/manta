@@ -22,7 +22,7 @@ class EthernetInterface(Elaboratable):
         self._host_ip_addr = host_ip_addr
         self._udp_port = udp_port
         self._phy = phy
-        self._clk_freq = clk_freq
+        self._clk_freq = float(clk_freq)
         self._additional_config = kwargs
         self._check_config()
 
@@ -80,6 +80,10 @@ class EthernetInterface(Elaboratable):
         for byte in self._fpga_ip_addr.split("."):
             if not 0 <= int(byte) <= 255:
                 raise ValueError(f"Invalid byte in FPGA IP: {byte}")
+
+    @classmethod
+    def from_config(cls, config):
+        return EthernetInterface(**config)
 
     def to_config(self):
         config = {

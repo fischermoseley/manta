@@ -5,6 +5,8 @@ from manta.io_core import IOCore
 from manta.memory_core import MemoryCore
 from manta.logic_analyzer import LogicAnalyzerCore
 from manta.utils import *
+import yaml
+import json
 
 
 class Manta(Elaboratable):
@@ -25,117 +27,61 @@ class Manta(Elaboratable):
         for core in self.cores._cores.values():
             core.interface = value
 
-    # def __init__(self, config):
-    #     # Load config from either a configuration file or a dictionary.
-    #     # Users primarily use the config file, but the dictionary is
-    #     # included for internal tests.
+    @classmethod
+    def from_config(cls, config_path):
 
-    #     if isinstance(config, str):
-    #         self._config = self._read_config_file(config)
+        # Load config from either YAML or JSON
+        extension = config_path.split(".")[-1]
+        if extension not in ["yaml", "yml", "json"]:
+            raise ValueError(f"Configuration file {config_path} has unrecognized file type.")
 
-    #     if isinstance(config, dict):
-    #         self._config = config
+        with open(config_path, "r") as f:
+            if extension in ["yaml", "yml"]:
+                config = yaml.safe_load(f)
 
-    #     self._check_config()
+            elif extension in ["json"]:
+                config = json.load(f)
 
-    #     self._get_interface()
-    #     self._get_cores()
-    #     self._add_friendly_core_names()
+        # Validate config
+        if "cores" not in config:
+            raise ValueError("No cores specified in configuration file.")
 
-    # def _read_config_file(self, path):
-    #     """
-    #     Takes a path to configuration file, and return the configuration as a
-    #     python dictionary.
-    #     """
+        if not len(config["cores"]) > 0:
+            raise ValueError("Must specify at least one core.")
 
-    #     extension = path.split(".")[-1]
+        for name, attrs in config["cores"].items():
+            # Make sure core type is specified
+            if "type" not in attrs:
+                raise ValueError(f"No type specified for core {name}.")
 
-    #     if "json" in extension:
-    #         import json
-    #         with open(path, "r") as f:
-    #             return json.load(f)
+            if attrs["type"] not in ["logic_analyzer", "io", "memory"]:
+                raise ValueError(f"Unrecognized core type specified for {name}.")
 
-    #     elif "yaml" in extension or "yml" in extension:
-    #         import yaml
-    #         with open(path, "r") as f:
-    #             return yaml.safe_load(f)
+        # Make Manta object, and configure it
+        manta = Manta()
 
-    #     else:
-    #         raise ValueError("Unable to recognize configuration file extension.")
+        # Add interface
+        if "uart" in config:
+            manta.interface = UARTInterface.from_config(config["uart"])
 
-    # def _check_config(self):
-    #     if "cores" not in self._config:
-    #         raise ValueError("No cores specified in configuration file.")
+        elif "ethernet" in config:
+            manta.interface = EthernetInterface.from_config(config["ethernet"])
 
-    #     if not len(self._config["cores"]) > 0:
-    #         raise ValueError("Must specify at least one core.")
+        # Add cores
+        for name, attrs in config["cores"].items():
+            if attrs["type"] == "io":
+                core = IOCore.from_config(attrs)
 
-    #     for name, attrs in self._config["cores"].items():
-    #         # Make sure core type is specified
-    #         if "type" not in attrs:
-    #             raise ValueError(f"No type specified for core {name}.")
+            elif attrs["type"] == "logic_analyzer":
+                core = LogicAnalyzerCore.from_config(attrs)
 
-    #         if attrs["type"] not in ["logic_analyzer", "io", "memory"]:
-    #             raise ValueError(f"Unrecognized core type specified for {name}.")
+            elif attrs["type"] == "memory":
+                core = MemoryCore.from_config(attrs)
 
-    # def _get_interface(self):
-    #     """
-    #     Returns an instance of an interface object (UARTInterface or
-    #     EthernetInterface) configured with the parameters in the
-    #     config file.
-    #     """
-    #     if "uart" in self._config:
-    #         self.interface = UARTInterface.from_config(self._config["uart"])
+            setattr(manta.cores, name, core)
 
-    #     elif "ethernet" in self._config:
-    #         self.interface = EthernetInterface(self._config["ethernet"])
+        return manta
 
-    #     else:
-    #         raise ValueError("No recognized interface specified.")
-
-    # def _get_cores(self):
-    #     """
-    #     Creates instances of the cores (IOCore, LogicAnalyzerCore, MemoryCore)
-    #     specified in the user's configuration, and returns them as a list.
-    #     """
-
-    #     self._cores = {}
-    #     base_addr = 0
-    #     for name, attrs in self._config["cores"].items():
-    #         if attrs["type"] == "io":
-    #             core = IOCore.from_config(attrs, base_addr, self.interface)
-
-    #         elif attrs["type"] == "logic_analyzer":
-    #             core = LogicAnalyzerCore(attrs, base_addr, self.interface)
-
-    #         elif attrs["type"] == "memory":
-    #             core = MemoryCore.from_config(attrs, base_addr, self.interface)
-
-    #         # Make sure we're not out of address space
-    #         if core.max_addr > (2**16) - 1:
-    #             raise ValueError(
-    #                 f"Ran out of address space to allocate to core {name}."
-    #             )
-
-    #         # Make the next core's base address start one address after the previous one's
-    #         base_addr = core.max_addr + 1
-    #         self._cores[name] = core
-
-    # def _add_friendly_core_names(self):
-    #     """
-    #     Add cores to the instance under a friendly name - ie, a core named `my_core` belonging
-    #     to a Manta instance `m` could be obtained with `m.cores["my_core"]`, but this allows
-    #     it to be obtained with `m.my_core`. Which is way nicer.
-    #     """
-
-    #     for name, instance in self._cores.items():
-    #         if not hasattr(self, name):
-    #             setattr(self, name, instance)
-
-    #         else:
-    #             raise ValueError(
-    #                 "Cannot add object to Manta instance - name is already taken!"
-    #             )
 
     def elaborate(self, platform):
         m = Module()

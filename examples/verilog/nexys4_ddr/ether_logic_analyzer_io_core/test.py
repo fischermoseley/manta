@@ -1,6 +1,6 @@
-from manta import Manta
+from manta import *
 
-m = Manta("manta.yaml")
+manta = Manta.from_config("manta.yaml")
 
-print(m.my_io_core.get_probe("sw"))
-m.my_io_core.set_probe("led", 4)
+print(manta.cores.my_io_core.get_probe("sw"))
+manta.cores.my_io_core.set_probe("led", 4)

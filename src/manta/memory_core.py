@@ -88,7 +88,7 @@ class MemoryCore(MantaCore):
         }
 
     @classmethod
-    def from_config(cls, config, base_addr, interface):
+    def from_config(cls, config):
         # Check for unrecognized options
         valid_options = ["type", "depth", "width", "mode"]
         for option in config:
@@ -125,7 +125,7 @@ class MemoryCore(MantaCore):
         if mode not in ["fpga_to_host", "host_to_fpga", "bidirectional"]:
             raise ValueError("Unrecognized mode provided to memory core.")
 
-        return cls(mode, width, depth, base_addr, interface)
+        return cls(mode, width, depth)
 
     def _tie_mems_to_bus(self, m):
         for i, mem in enumerate(self._mems):
