@@ -1,8 +1,8 @@
-from manta import Manta
+from manta import *
 
-m = Manta("manta.yaml")
+manta = Manta.from_config("manta.yaml")
 
 # Memory addresses can be written to in Python, and then be read out by
 # flipping the switches on the FPGA, and watching the LEDs update!
 
-m.my_memory.write(0, 1)
+manta.cores.my_memory.write(0, 1)

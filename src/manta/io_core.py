@@ -40,7 +40,7 @@ class IOCore(MantaCore):
         return self._max_addr
 
     @classmethod
-    def from_config(cls, config, base_addr, interface):
+    def from_config(cls, config):
         inputs = config.get("inputs", {})
         outputs = config.get("outputs", {})
 
@@ -117,7 +117,7 @@ class IOCore(MantaCore):
 
             output_signals += [Signal(width, name=name, init=initial_value)]
 
-        return cls(base_addr, interface, inputs=input_signals, outputs=output_signals)
+        return cls(inputs=input_signals, outputs=output_signals)
 
     def to_config(self):
         config = {}
