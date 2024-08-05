@@ -63,9 +63,10 @@ class UARTMemoryCoreExample(Elaboratable):
 # board. This means that by changing which platform you pass UARTIOCoreExample
 # below, you can port this example to any FPGA board!
 
-from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
+if __name__ == "__main__":
+    from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
-UARTMemoryCoreExample(
-    platform=Nexys4DDRPlatform(),
-    port="auto",
-).test()
+    UARTMemoryCoreExample(
+        platform=Nexys4DDRPlatform(),
+        port="auto",
+    ).test()

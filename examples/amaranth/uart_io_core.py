@@ -65,6 +65,7 @@ class UARTIOCoreExample(Elaboratable):
 # board. This means that by changing which platform you pass UARTIOCoreExample
 # below, you can port this example to any FPGA board!
 
-from amaranth_boards.icestick import ICEStickPlatform
+if __name__ == "__main__":
+    from amaranth_boards.icestick import ICEStickPlatform
 
-UARTIOCoreExample(platform=ICEStickPlatform(), port="auto").test()
+    UARTIOCoreExample(platform=ICEStickPlatform(), port="auto").test()
