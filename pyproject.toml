@@ -10,7 +10,7 @@ dependencies = [
   "amaranth[builtin-yosys]==0.5.0",
   "PyYAML",
   "pyserial",
-  "liteeth@git+https://github.com/enjoy-digital/liteeth@2023.12",
+  "liteeth==2023.12",
   "pyvcd",
 ]
 
