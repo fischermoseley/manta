@@ -68,9 +68,7 @@ class UARTLogicAnalyzerExample(Elaboratable):
 # board. This means that by changing which platform you pass UARTIOCoreExample
 # below, you can port this example to any FPGA board!
 
-from amaranth_boards.icestick import ICEStickPlatform
+if __name__ == "__main__":
+    from amaranth_boards.icestick import ICEStickPlatform
 
-UARTLogicAnalyzerExample(
-    platform=ICEStickPlatform(),
-    port="/dev/serial/by-id/usb-Lattice_Lattice_FTUSB_Interface_Cable-if01-port0",
-).test()
+    UARTLogicAnalyzerExample(platform=ICEStickPlatform(), port="auto").test()
