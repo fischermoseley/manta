@@ -78,13 +78,13 @@ def inst(config_path):
     ports = manta.get_top_level_ports()
     hdl = ",\n    ".join([f".{p.name}({p.name})" for p in ports])
 
-    foo = """
+    header = """
 manta manta_inst(
     .clk(clk),
     .rst(rst),
     """
 
-    print(foo + hdl + ");\n")
+    return header + hdl + ");\n"
 
 
 def capture(config_path, logic_analyzer_name, export_paths):
@@ -139,7 +139,7 @@ def main():
         if len(argv) != 3:
             wrong_args()
 
-        inst(argv[2])
+        print(inst(argv[2]))
 
     elif argv[1] == "capture":
         if len(argv) < 5:

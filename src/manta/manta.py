@@ -6,7 +6,6 @@ from manta.memory_core import MemoryCore
 from manta.logic_analyzer import LogicAnalyzerCore
 from manta.utils import *
 import yaml
-import json
 
 
 class Manta(Elaboratable):
@@ -30,19 +29,15 @@ class Manta(Elaboratable):
     @classmethod
     def from_config(cls, config_path):
 
-        # Load config from either YAML or JSON
+        # Load config from YAML
         extension = config_path.split(".")[-1]
-        if extension not in ["yaml", "yml", "json"]:
+        if extension not in ["yaml", "yml"]:
             raise ValueError(
                 f"Configuration file {config_path} has unrecognized file type."
             )
 
         with open(config_path, "r") as f:
-            if extension in ["yaml", "yml"]:
-                config = yaml.safe_load(f)
-
-            elif extension in ["json"]:
-                config = json.load(f)
+            config = yaml.safe_load(f)
 
         # Validate config
         if "cores" not in config:
