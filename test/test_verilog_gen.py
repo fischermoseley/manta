@@ -1,4 +1,4 @@
-from manta.cli import gen
+from manta.cli import gen, inst
 import tempfile
 import os
 
@@ -11,3 +11,10 @@ def test_verilog_gen():
 
         if not os.path.isfile(tmp_dir + "/manta.v"):
             raise ValueError("No Verilog file generated!")
+
+
+def test_inst_gen():
+    inst_string = inst("test/test_verilog_gen.yaml")
+
+    if not inst_string:
+        raise ValueError("No Verilog instantiation generated!")
