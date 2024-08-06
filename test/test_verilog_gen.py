@@ -1,6 +1,7 @@
-from manta.cli import gen, inst
-import tempfile
 import os
+import tempfile
+
+from manta.cli import gen, inst
 
 
 def test_verilog_gen():

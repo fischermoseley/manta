@@ -1,10 +1,11 @@
 from amaranth import *
-from manta.utils import *
-from manta.uart.receiver import UARTReceiver
-from manta.uart.receive_bridge import ReceiveBridge
-from manta.uart.transmitter import UARTTransmitter
-from manta.uart.transmit_bridge import TransmitBridge
 from serial import Serial
+
+from manta.uart.receive_bridge import ReceiveBridge
+from manta.uart.receiver import UARTReceiver
+from manta.uart.transmit_bridge import TransmitBridge
+from manta.uart.transmitter import UARTTransmitter
+from manta.utils import *
 
 
 class UARTInterface(Elaboratable):
@@ -127,7 +128,7 @@ class UARTInterface(Elaboratable):
 
         if ports[0].serial_number != ports[1].serial_number:
             raise ValueError(
-                f"Serial numbers should be the same on both FT2232 ports - probably somehow grabbed ports on two different devices."
+                "Serial numbers should be the same on both FT2232 ports - probably somehow grabbed ports on two different devices."
             )
 
         if ports[0].location > ports[1].location:

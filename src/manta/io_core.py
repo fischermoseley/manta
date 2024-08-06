@@ -1,6 +1,8 @@
-from amaranth import *
-from manta.utils import *
 from math import ceil
+
+from amaranth import *
+
+from manta.utils import *
 
 
 class IOCore(MantaCore):

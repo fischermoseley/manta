@@ -1,7 +1,8 @@
-import subprocess
-import pytest
-import sys
 import os
+import subprocess
+import sys
+
+import pytest
 
 verilog_root_dirs = [
     "examples/verilog/icestick/uart_io_core",
@@ -28,13 +29,13 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 
 # Import Examples
-from examples.amaranth.uart_io_core import UARTIOCoreExample
-from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
-from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
-
 # Import Platforms
 from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
+
+from examples.amaranth.uart_io_core import UARTIOCoreExample
+from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
+from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
 
 # Manually specify a list of examples/platforms to test.
 

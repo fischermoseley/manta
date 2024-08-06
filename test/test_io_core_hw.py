@@ -1,12 +1,13 @@
+import os
+from random import getrandbits
+
+import pytest
 from amaranth import *
 from amaranth.lib import io
-from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
+from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from manta import *
 from manta.utils import *
-import pytest
-from random import getrandbits
-import os
 
 
 class IOCoreLoopbackTest(Elaboratable):

@@ -1,13 +1,13 @@
+import os
+from random import getrandbits
+
+import pytest
 from amaranth import *
 from amaranth.lib import io
-from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.icestick import ICEStickPlatform
+from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from manta import *
 from manta.utils import *
-import pytest
-from random import getrandbits
-from math import ceil, log2
-import os
 
 
 class MemoryCoreLoopbackTest(Elaboratable):
