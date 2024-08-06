@@ -52,7 +52,6 @@ class LogicAnalyzerPlayback(Elaboratable):
         # Assign the probe values by part-selecting from the data port
         lower = 0
         for p in reversed(self._probes):
-
             # Set output probe to zero if we're not
             with m.If(self.valid):
                 m.d.comb += p.eq(read_port.data[lower : lower + len(p)])

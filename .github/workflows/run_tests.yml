@@ -28,7 +28,7 @@ jobs:
       - name: Check formatting
         run: |
           source venv/bin/activate
-          python3 -m black . --check
+          python3 -m ruff format --check
 
       - name: Run tests
         run: |
