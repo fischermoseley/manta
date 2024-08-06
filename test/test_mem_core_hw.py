@@ -78,7 +78,6 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
         if self.mode in ["bidirectional", "host_to_fpga"]:
             for addr in jumble(range(self.depth)):
-
                 # Write a random balue to a random bus address
                 data = getrandbits(self.width)
                 self.manta.cores.mem.write(addr, data)
@@ -92,7 +91,6 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
         if self.mode in ["bidirectional", "fpga_to_host"]:
             for addr in jumble(range(self.depth)):
-
                 # Write a random value to a random user address
                 data = getrandbits(self.width)
                 self.write_user_side(addr, data)
