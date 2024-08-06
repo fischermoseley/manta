@@ -77,7 +77,6 @@ class MemoryCoreTests:
         # random reads and writes in random orders
         for _ in range(5):
             for addr in jumble(self.bus_addrs):
-
                 operation = choice(["read", "write"])
                 if operation == "read":
                     await self.verify_bus_side(addr)
@@ -101,7 +100,6 @@ class MemoryCoreTests:
     async def multi_user_write_then_multi_bus_reads(self):
         # write-write-write then read-read-read
         for user_addr in jumble(self.user_addrs):
-
             # write a random number to the user side
             data = getrandbits(self.width)
             await self.write_user_side(user_addr, data)
@@ -193,7 +191,6 @@ class MemoryCoreTests:
         # random reads and writes in random orders
         for _ in range(5):
             for user_addr in jumble(self.user_addrs):
-
                 operation = choice(["read", "write"])
                 if operation == "read":
                     await self.verify_user_side(user_addr)

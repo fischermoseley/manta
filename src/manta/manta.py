@@ -28,7 +28,6 @@ class Manta(Elaboratable):
 
     @classmethod
     def from_config(cls, config_path):
-
         # Load config from YAML
         extension = config_path.split(".")[-1]
         if extension not in ["yaml", "yml"]:
