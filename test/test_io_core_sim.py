@@ -1,7 +1,8 @@
+from random import getrandbits
+
 from amaranth import *
 from manta import *
 from manta.utils import *
-from random import getrandbits
 
 probe0 = Signal(1)
 probe1 = Signal(2)

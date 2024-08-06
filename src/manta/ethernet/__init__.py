@@ -1,9 +1,11 @@
-from amaranth import *
-from manta.utils import *
-from manta.ethernet.source_bridge import UDPSourceBridge
-from manta.ethernet.sink_bridge import UDPSinkBridge
-from random import getrandbits
 import socket
+from random import getrandbits
+
+from amaranth import *
+
+from manta.ethernet.sink_bridge import UDPSinkBridge
+from manta.ethernet.source_bridge import UDPSourceBridge
+from manta.utils import *
 
 
 class EthernetInterface(Elaboratable):

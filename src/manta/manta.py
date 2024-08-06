@@ -1,11 +1,12 @@
+import yaml
 from amaranth import *
-from manta.uart import UARTInterface
+
 from manta.ethernet import EthernetInterface
 from manta.io_core import IOCore
-from manta.memory_core import MemoryCore
 from manta.logic_analyzer import LogicAnalyzerCore
+from manta.memory_core import MemoryCore
+from manta.uart import UARTInterface
 from manta.utils import *
-import yaml
 
 
 class Manta(Elaboratable):

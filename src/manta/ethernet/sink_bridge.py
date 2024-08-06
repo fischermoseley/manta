@@ -1,4 +1,5 @@
 from amaranth import *
+
 from manta.utils import *
 
 

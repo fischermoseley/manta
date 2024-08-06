@@ -1,6 +1,7 @@
-from manta import *
-from time import sleep
 from random import randint
+from time import sleep
+
+from manta import *
 
 manta = Manta.from_config("manta.yaml")
 

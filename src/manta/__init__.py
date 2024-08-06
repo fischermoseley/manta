@@ -1,10 +1,10 @@
-from manta.manta import Manta
-from manta.uart import UARTInterface
-from manta.ethernet import EthernetInterface
-from manta.logic_analyzer import LogicAnalyzerCore, TriggerModes
-from manta.io_core import IOCore
-from manta.memory_core import MemoryCore
 from manta.cli import main
+from manta.ethernet import EthernetInterface
+from manta.io_core import IOCore
+from manta.logic_analyzer import LogicAnalyzerCore, TriggerModes
+from manta.manta import Manta
+from manta.memory_core import MemoryCore
+from manta.uart import UARTInterface
 
 __all__ = [
     "Manta",

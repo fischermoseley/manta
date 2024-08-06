@@ -1,7 +1,9 @@
-from amaranth import *
-from manta.utils import *
-from amaranth.lib.memory import Memory
 from math import ceil
+
+from amaranth import *
+from amaranth.lib.memory import Memory
+
+from manta.utils import *
 
 
 class MemoryCore(MantaCore):

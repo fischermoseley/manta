@@ -1,5 +1,6 @@
 from amaranth import *
 from amaranth.lib.enum import IntEnum
+
 from manta.io_core import IOCore
 
 

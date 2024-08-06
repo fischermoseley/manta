@@ -1,7 +1,7 @@
-from manta.uart import TransmitBridge
-from manta.utils import *
 from random import sample
 
+from manta.uart import TransmitBridge
+from manta.utils import *
 
 bridge_tx = TransmitBridge()
 
