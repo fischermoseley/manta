@@ -3,6 +3,7 @@ test:
 	python3 -m pytest --cov
 
 format:
+	python3 -m ruff check --select I --fix
 	python3 -m ruff format
 
 clean:

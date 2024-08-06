@@ -37,31 +37,24 @@
 # Copyright (c) 2023 LumiGuide Fietsdetectie B.V. <goemansrowan@gmail.com>
 # SPDX-License-Identifier: BSD-2-Clause
 
-from migen import *
-
-from litex.gen import *
-
-from litex.build.generic_platform import *
-from litex.build.xilinx.platform import XilinxPlatform
-from litex.build.lattice.platform import LatticePlatform
-
-from litex.soc.interconnect import wishbone
-from litex.soc.interconnect import axi
-from litex.soc.integration.soc_core import *
-from litex.soc.integration.builder import *
-from litex.soc.integration.soc import SoCRegion
-
-from liteeth.common import *
+from tempfile import TemporaryDirectory
 
 from liteeth import phy as liteeth_phys
-from liteeth.mac import LiteEthMAC
+from liteeth.common import *
 from liteeth.core import LiteEthUDPIPCore
 from liteeth.core.dhcp import LiteEthDHCP
-
-from liteeth.frontend.stream import LiteEthUDPStreamer
 from liteeth.frontend.etherbone import LiteEthEtherbone
-
-from tempfile import TemporaryDirectory
+from liteeth.frontend.stream import LiteEthUDPStreamer
+from liteeth.mac import LiteEthMAC
+from litex.build.generic_platform import *
+from litex.build.lattice.platform import LatticePlatform
+from litex.build.xilinx.platform import XilinxPlatform
+from litex.gen import *
+from litex.soc.integration.builder import *
+from litex.soc.integration.soc import SoCRegion
+from litex.soc.integration.soc_core import *
+from litex.soc.interconnect import axi, wishbone
+from migen import *
 
 # IOs ----------------------------------------------------------------------------------------------
 
@@ -320,7 +313,7 @@ class PHYCore(SoCMini):
             if phy in [liteeth_phys.A7_1000BASEX, liteeth_phys.A7_2500BASEX]:
                 refclk_freq = core_config.get("refclk_freq", 0)
                 assert refclk_freq in [125e6, 156.25e6]
-                from liteeth.phy.a7_gtp import QPLLSettings, QPLL
+                from liteeth.phy.a7_gtp import QPLL, QPLLSettings
 
                 qpll_settings = QPLLSettings(
                     refclksel=0b001,

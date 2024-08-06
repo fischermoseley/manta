@@ -1,5 +1,5 @@
-from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 from manta.logic_analyzer import TriggerModes
+from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 
 class LogicAnalyzerCapture:
@@ -78,8 +78,9 @@ class LogicAnalyzerCapture:
         the core.
         """
 
-        from vcd import VCDWriter
         from datetime import datetime
+
+        from vcd import VCDWriter
 
         # Use the same datetime format that iVerilog uses
         timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")

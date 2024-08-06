@@ -1,8 +1,8 @@
+from importlib.metadata import distribution
+from sys import argv
+
 from manta.manta import Manta
 from manta.utils import *
-from sys import argv
-from importlib.metadata import distribution
-
 
 logo = f"""
                                         .

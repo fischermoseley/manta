@@ -1,10 +1,11 @@
+import os
+from abc import ABC, abstractmethod
+from pathlib import Path
+from random import sample
+
 from amaranth import Elaboratable
 from amaranth.lib import data
 from amaranth.sim import Simulator
-from abc import ABC, abstractmethod
-from random import sample
-from pathlib import Path
-import os
 
 
 class MantaCore(ABC, Elaboratable):

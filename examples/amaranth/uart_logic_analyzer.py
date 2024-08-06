@@ -1,7 +1,8 @@
+from time import sleep
+
 from amaranth import *
 from amaranth.lib import io
 from manta import *
-from time import sleep
 
 
 class UARTLogicAnalyzerExample(Elaboratable):

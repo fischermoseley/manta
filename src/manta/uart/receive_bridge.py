@@ -1,6 +1,6 @@
 from amaranth import *
-from amaranth.lib.enum import IntEnum
 from amaranth.lib.data import ArrayLayout
+from amaranth.lib.enum import IntEnum
 
 
 class States(IntEnum):

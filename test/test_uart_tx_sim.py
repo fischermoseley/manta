@@ -1,7 +1,6 @@
 from manta.uart import UARTTransmitter
 from manta.utils import *
 
-
 uart_tx = UARTTransmitter(clocks_per_baud=10)
 
 

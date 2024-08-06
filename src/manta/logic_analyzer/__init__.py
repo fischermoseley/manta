@@ -1,9 +1,10 @@
 from amaranth import *
-from manta.utils import *
-from manta.memory_core import MemoryCore
-from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
-from manta.logic_analyzer.fsm import LogicAnalyzerFSM, TriggerModes
+
 from manta.logic_analyzer.capture import LogicAnalyzerCapture
+from manta.logic_analyzer.fsm import LogicAnalyzerFSM, TriggerModes
+from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
+from manta.memory_core import MemoryCore
+from manta.utils import *
 
 
 class LogicAnalyzerCore(MantaCore):

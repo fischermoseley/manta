@@ -1,8 +1,8 @@
+import tempfile
+
+import yaml
 from amaranth import *
 from manta import *
-import tempfile
-import os
-import yaml
 
 
 def test_io_core_dump():
