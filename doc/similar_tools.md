@@ -1,4 +1,8 @@
-There's quite a few FPGA debugging tools out there, and it may happen that your needs are better met by another tool! This section aims to provide a list of alternatives, in hopes that you're able to be confident in your debugging flow.
+This page contains a list of tools similar to Manta, either in function or intention. This is meant to provide a useful comparison to other tools that you may be more familiar with, in hopes of a smoother experience integrating Manta into your project.
+
+That said, Manta is by no means feature-complete, and there may be an alternative tool listed on this page that better fits your use case. If that is the case, we encourage you to use that tool (although do consider filing a [feature request](https://github.com/fischermoseley/manta/issues/new) - we’d love to hear about your workflow!). The goal of this project is to make working with FPGAs easier, and maintaining this list serves that end.
+
+If you're aware of a tool missing from this list, please [let us know](https://github.com/fischermoseley/manta/issues/new)!
 
 ## Open Source Tools
 
