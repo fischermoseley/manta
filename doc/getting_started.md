@@ -19,7 +19,7 @@ Although modern HDLs are rising in popularity, most existing FPGA designs use a 
 
 !!! success "VHDL works too!"
 
-    If your FPGA design is VHDL-based, fret not! Most synthesis tools support mixed-language projects, and will happily ingest both a Verilog-based Manta module inside of a VHDL-based design. Just take care to ensure that the interfaces match.
+    If your FPGA design is VHDL-based, fret not! Most synthesis tools support mixed-language projects, and will happily ingest both a Verilog-based Manta module inside of a VHDL-based design. Just take care to ensure that interfaces match between the VHDL and Verilog modules.
 
 ### Example
 
