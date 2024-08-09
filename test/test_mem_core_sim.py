@@ -270,7 +270,7 @@ cases = [
 @pytest.mark.parametrize("mode, width, depth, base_addr", cases)
 def test_mem_core(mode, width, depth, base_addr):
     mem_core = MemoryCore(mode, width, depth)
-    mem_core.base_addr = 0
+    mem_core.base_addr = base_addr
 
     tests = MemoryCoreTests(mem_core)
 
