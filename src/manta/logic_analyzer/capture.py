@@ -1,4 +1,4 @@
-from manta.logic_analyzer import TriggerModes
+from manta.logic_analyzer.fsm import TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
 
