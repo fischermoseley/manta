@@ -2,6 +2,7 @@ import socket
 from random import getrandbits
 
 from amaranth import *
+from amaranth.hdl import IOPort
 
 from manta.ethernet.sink_bridge import UDPSinkBridge
 from manta.ethernet.source_bridge import UDPSourceBridge
@@ -112,30 +113,30 @@ class EthernetInterface(Elaboratable):
     def _define_phy_io(self):
         if self._phy in ["LiteEthPHYMII"]:
             return [
-                ("i", "mii_clocks_tx", mii_clocks_tx := Signal()),
-                ("i", "mii_clocks_rx", mii_clocks_rx := Signal()),
-                ("o", "mii_rst_n", mii_rst_n := Signal()),
-                ("io", "mii_mdio", mii_mdio := Signal()),
-                ("o", "mii_mdc", mii_mdc := Signal()),
-                ("i", "mii_rx_dv", mii_rx_dv := Signal()),
+                ("i", "mii_clocks_tx", mii_clocks_tx := IOPort(1)),
+                ("i", "mii_clocks_rx", mii_clocks_rx := IOPort(1)),
+                ("o", "mii_rst_n", mii_rst_n := IOPort(1)),
+                ("io", "mii_mdio", mii_mdio := IOPort(1)),
+                ("o", "mii_mdc", mii_mdc := IOPort(1)),
+                ("i", "mii_rx_dv", mii_rx_dv := IOPort(1)),
                 ("i", "mii_rx_er", mii_rx_er := Signal()),
-                ("i", "mii_rx_data", mii_rx_data := Signal(4)),
-                ("o", "mii_tx_en", mii_tx_en := Signal()),
-                ("o", "mii_tx_data", mii_tx_data := Signal(4)),
-                ("i", "mii_col", mii_col := Signal()),
-                ("i", "mii_crs", mii_crs := Signal()),
+                ("i", "mii_rx_data", mii_rx_data := IOPort(4)),
+                ("o", "mii_tx_en", mii_tx_en := IOPort(1)),
+                ("o", "mii_tx_data", mii_tx_data := IOPort(4)),
+                ("i", "mii_col", mii_col := IOPort(1)),
+                ("i", "mii_crs", mii_crs := IOPort(1)),
             ]
 
         elif self._phy in ["LiteEthPHYRMII"]:
             return [
-                ("i", "rmii_clocks_ref_clk", rmii_clocks_ref_clk := Signal()),
-                ("o", "rmii_rst_n", rmii_rst_n := Signal()),
-                ("i", "rmii_rx_data", rmii_rx_data := Signal(2)),
-                ("i", "rmii_crs_dv", rmii_crs_dv := Signal()),
-                ("o", "rmii_tx_en", rmii_tx_en := Signal()),
-                ("o", "rmii_tx_data", rmii_tx_data := Signal(2)),
-                ("o", "rmii_mdc", rmii_mdc := Signal()),
-                ("io", "rmii_mdio", rmii_mdio := Signal()),
+                ("i", "rmii_clocks_ref_clk", rmii_clocks_ref_clk := IOPort(1)),
+                ("o", "rmii_rst_n", rmii_rst_n := IOPort(1)),
+                ("i", "rmii_rx_data", rmii_rx_data := IOPort(2)),
+                ("i", "rmii_crs_dv", rmii_crs_dv := IOPort(1)),
+                ("o", "rmii_tx_en", rmii_tx_en := IOPort(1)),
+                ("o", "rmii_tx_data", rmii_tx_data := IOPort(2)),
+                ("o", "rmii_mdc", rmii_mdc := IOPort(1)),
+                ("io", "rmii_mdio", rmii_mdio := IOPort(1)),
             ]
 
         elif self._phy in [
@@ -143,21 +144,21 @@ class EthernetInterface(Elaboratable):
             "LiteEthPHYGMIIMII",
         ]:
             return [
-                ("i", "gmii_clocks_tx", gmii_clocks_tx := Signal()),
-                ("o", "gmii_clocks_gtx", gmii_clocks_gtx := Signal()),
-                ("i", "gmii_clocks_rx", gmii_clocks_rx := Signal()),
-                ("o", "gmii_rst_n", gmii_rst_n := Signal()),
-                ("i", "gmii_int_n", gmii_int_n := Signal()),
-                ("io", "gmii_mdio", gmii_mdio := Signal()),
-                ("o", "gmii_mdc", gmii_mdc := Signal()),
-                ("i", "gmii_rx_dv", gmii_rx_dv := Signal()),
-                ("i", "gmii_rx_er", gmii_rx_er := Signal()),
-                ("i", "gmii_rx_data", gmii_rx_data := Signal(8)),
-                ("o", "gmii_tx_en", gmii_tx_en := Signal()),
-                ("o", "gmii_tx_er", gmii_tx_er := Signal()),
-                ("o", "gmii_tx_data", gmii_tx_data := Signal(8)),
-                ("i", "gmii_col", gmii_col := Signal()),
-                ("i", "gmii_crs", gmii_crs := Signal()),
+                ("i", "gmii_clocks_tx", gmii_clocks_tx := IOPort(1)),
+                ("o", "gmii_clocks_gtx", gmii_clocks_gtx := IOPort(1)),
+                ("i", "gmii_clocks_rx", gmii_clocks_rx := IOPort(1)),
+                ("o", "gmii_rst_n", gmii_rst_n := IOPort(1)),
+                ("i", "gmii_int_n", gmii_int_n := IOPort(1)),
+                ("io", "gmii_mdio", gmii_mdio := IOPort(1)),
+                ("o", "gmii_mdc", gmii_mdc := IOPort(1)),
+                ("i", "gmii_rx_dv", gmii_rx_dv := IOPort(1)),
+                ("i", "gmii_rx_er", gmii_rx_er := IOPort(1)),
+                ("i", "gmii_rx_data", gmii_rx_data := IOPort(8)),
+                ("o", "gmii_tx_en", gmii_tx_en := IOPort(1)),
+                ("o", "gmii_tx_er", gmii_tx_er := IOPort(1)),
+                ("o", "gmii_tx_data", gmii_tx_data := IOPort(8)),
+                ("i", "gmii_col", gmii_col := IOPort(1)),
+                ("i", "gmii_crs", gmii_crs := IOPort(1)),
             ]
 
         elif self._phy in [
@@ -165,16 +166,16 @@ class EthernetInterface(Elaboratable):
             "LiteEthECP5PHYRGMII",
         ]:
             return [
-                ("o", "rgmii_clocks_tx", rgmii_clocks_tx := Signal()),
-                ("i", "rgmii_clocks_rx", rgmii_clocks_rx := Signal()),
-                ("o", "rgmii_rst_n", rgmii_rst_n := Signal()),
-                ("i", "rgmii_int_n", rgmii_int_n := Signal()),
-                ("io", "rgmii_mdio", rgmii_mdio := Signal()),
-                ("o", "rgmii_mdc", rgmii_mdc := Signal()),
-                ("i", "rgmii_rx_ctl", rgmii_rx_ctl := Signal()),
-                ("i", "rgmii_rx_data", rgmii_rx_data := Signal(4)),
-                ("o", "rgmii_tx_ctl", rgmii_tx_ctl := Signal()),
-                ("o", "rgmii_tx_data", rgmii_tx_data := Signal(4)),
+                ("o", "rgmii_clocks_tx", rgmii_clocks_tx := IOPort(1)),
+                ("i", "rgmii_clocks_rx", rgmii_clocks_rx := IOPort(1)),
+                ("o", "rgmii_rst_n", rgmii_rst_n := IOPort(1)),
+                ("i", "rgmii_int_n", rgmii_int_n := IOPort(1)),
+                ("io", "rgmii_mdio", rgmii_mdio := IOPort(1)),
+                ("o", "rgmii_mdc", rgmii_mdc := IOPort(1)),
+                ("i", "rgmii_rx_ctl", rgmii_rx_ctl := IOPort(1)),
+                ("i", "rgmii_rx_data", rgmii_rx_data := IOPort(4)),
+                ("o", "rgmii_tx_ctl", rgmii_tx_ctl := IOPort(1)),
+                ("o", "rgmii_tx_data", rgmii_tx_data := IOPort(4)),
             ]
 
         elif self._phy in [
@@ -190,13 +191,13 @@ class EthernetInterface(Elaboratable):
             "USP_GTY_2500BASEX",
         ]:
             return [
-                ("i", "sgmii_refclk", sgmii_refclk := Signal()),
-                ("i", "sgmii_rst", sgmii_rst := Signal()),
-                ("o", "sgmii_txp", sgmii_txp := Signal()),
-                ("o", "sgmii_txn", sgmii_txn := Signal()),
-                ("i", "sgmii_rxp", sgmii_rxp := Signal()),
-                ("i", "sgmii_rxn", sgmii_rxn := Signal()),
-                ("o", "sgmii_link_up", sgmii_link_up := Signal()),
+                ("i", "sgmii_refclk", sgmii_refclk := IOPort(1)),
+                ("i", "sgmii_rst", sgmii_rst := IOPort(1)),
+                ("o", "sgmii_txp", sgmii_txp := IOPort(1)),
+                ("o", "sgmii_txn", sgmii_txn := IOPort(1)),
+                ("i", "sgmii_rxp", sgmii_rxp := IOPort(1)),
+                ("i", "sgmii_rxn", sgmii_rxn := IOPort(1)),
+                ("o", "sgmii_link_up", sgmii_link_up := IOPort(1)),
             ]
 
     def elaborate(self, platform):
