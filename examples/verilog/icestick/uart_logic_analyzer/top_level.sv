@@ -10,17 +10,14 @@ module top_level (
 	output logic rs232_tx_ttl
 	);
 
-    logic probe0;
-    logic [3:0] probe1;
-    logic [7:0] probe2;
-    logic [15:0] probe3;
+    logic [9:0] counter;
 
-    always @(posedge clk) begin
-        probe0 <= probe0 + 1;
-        probe1 <= probe1 + 1;
-        probe2 <= probe2 + 1;
-        probe3 <= probe3 + 1;
-    end
+    always @(posedge clk) counter <= counter + 1;
+
+    assign probe0 = counter[0];
+    assign probe1 = counter[2:1];
+    assign probe2 = counter[5:3];
+    assign probe4 = counter[9:6];
 
     manta manta_inst (
         .clk(clk),
