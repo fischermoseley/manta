@@ -2,13 +2,13 @@
 cores:
   my_logic_analyzer:
     type: logic_analyzer
-    sample_depth: 256
+    sample_depth: 2048
 
     probes:
       probe0: 1
-      probe1: 4
-      probe2: 8
-      probe3: 16
+      probe1: 2
+      probe2: 3
+      probe3: 4
 
     triggers:
       - probe2 EQ 3
