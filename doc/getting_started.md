@@ -62,4 +62,53 @@ More examples of Verilog-based designs can be found in the [examples/verilog](ht
 
 ## Usage in Amaranth Designs
 
-Manta is written in Python, which allows it to easily export a native Amaranth API.
+Since Manta itself is written in [Amaranth](https://github.com/amaranth-lang/amaranth), it’s very easy to use Manta in an Amaranth design. In this flow, the RTL build and generation are offloaded to Amaranth’s build system, such that you need only to configure and operate the core, which is done from Python.
+
+Configuration is done by creating a Manta object in Python, adding cores to it, and adding it to your design as an Amaranth submodule:
+
+```python
+from amaranth import *
+from manta import *
+
+class ExampleDesign(Elaborateable):
+	def __init__(self):
+		self.manta = Manta()
+		self.manta.interface = UARTInterface("auto", 2e6, 12e6)
+		self.manta.cores.my_io_core = IOCore(inputs=[], outputs=[])
+
+
+	def elaborate(self, platform):
+		m = Module()
+		m.submodules.manta = self.manta
+
+		return m
+
+	def operate(self):
+		self.manta.cores.my_io_core.set_probe("foo", 2)
+		self.manta.cores.my_io_core.get_probe(bar)
+```
+
+Using this `ExampleDesign` in the configure-build-operate flow might look like the following:
+
+```python
+>>> from amaranth_boards.icestick import ICEStickPlatform
+>>> design = ExampleDesign()
+>>> ICEStickPlatform.build(design, do_program=True)
+>>> design.operate()
+>>> design.manta.my_io_core.get_probe(bar)
+```
+
+Here, Amaranth’s board definitions and build system are being used to build and program an iCEstick development board. More examples of Amaranth-based designs can be found in the [examples/amaranth](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) folder of the repo.
+
+!!! warning "Usage with older versions of Amaranth"
+
+    Unfortunately, Manta has a hard dependency on Amaranth 0.5 (due to [this](https://github.com/amaranth-lang/amaranth/issues/1011) bugfix), and it may not work correctly in projects built upon older versions of Amaranth. If this is the case for your project, you may need to generate a standalone Verilog module from the Verilog-based flow, and then include in your project as an [Instance](https://amaranth-lang.org/docs/amaranth/latest/guide.html#instances). Alternatively, you may upgrade your project’s version of Amaranth by following the [migration guides](https://amaranth-lang.org/docs/amaranth/latest/changes.html#migrating-from-version-0-4).
+
+### Adding Manta as an Instance Variable
+
+It’s worth noting that this usage represents a slight departure from typical Amaranth style. Typically, submodules would be defined and added to a `Module` in the `elaborate` method. Here, the Manta module is instead defined as an instance variable in the `__init__` function, and then later added as a submodule in the `elaborate` method.
+
+This is necessary as the `Manta` object contains both HDL needed for build and methods for operating the cores. Saving the `Manta` instance in the class and re-using it later removes the need to define and configure separate instances when elaborating and operating the cores.
+
+Lastly, including `manta` as an instance variable also allows it to be directly accessed from an interpreter, as shown above. This allows for a more interactive debugging session, as the definition of the `operate` method doesn’t have to change when you wish to use Manta’s cores differently.
+
