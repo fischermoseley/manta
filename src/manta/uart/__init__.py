@@ -164,11 +164,16 @@ class UARTInterface(Elaboratable):
 
         for addr_chunk in addr_chunks:
             # Encode addrs into read requests
-            bytes_out = b"".join([f"R{a:04X}\r\n".encode("ascii") for a in addr_chunk])
-            ser.write(bytes_out)
+            bytes_out = "".join([f"R{a:04X}\r\n" for a in addr_chunk])
+
+            # Add a \n after every 32 packets, see:
+            # https://github.com/fischermoseley/manta/issues/18
+            bytes_out = "\n".join(split_into_chunks(bytes_out, 7 * 32))
+
+            ser.write(bytes_out.encode("ascii"))
 
             # Read responses have the same length as read requests
-            bytes_in = ser.read(len(bytes_out))
+            bytes_in = ser.read(7 * len(addr_chunk))
 
             if len(bytes_in) != len(bytes_out):
                 raise ValueError(
@@ -211,9 +216,8 @@ class UARTInterface(Elaboratable):
 
         # Encode addrs and datas into write requests
         bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, datas)])
-        bytes_out = bytes_out.encode("ascii")
         ser = self._get_serial_device()
-        ser.write(bytes_out)
+        ser.write(bytes_out.encode("ascii"))
 
     def _decode_read_response(self, response_bytes):
         """
