@@ -173,11 +173,12 @@ class UARTInterface(Elaboratable):
             ser.write(bytes_out.encode("ascii"))
 
             # Read responses have the same length as read requests
-            bytes_in = ser.read(7 * len(addr_chunk))
+            bytes_expected = 7 * len(addr_chunk)
+            bytes_in = ser.read(bytes_expected)
 
-            if len(bytes_in) != len(bytes_out):
+            if len(bytes_in) != bytes_expected:
                 raise ValueError(
-                    f"Only got {len(bytes_in)} out of {len(bytes_out)} bytes."
+                    f"Only got {len(bytes_in)} out of {bytes_expected} bytes."
                 )
 
             # Split received bytes into individual responses and decode
