@@ -8,17 +8,31 @@ from manta.utils import *
 
 class MemoryCore(MantaCore):
     """
-    A module for generating a memory on the FPGA, with a port tied to Manta's
-    internal bus, and a port provided to user logic.
-
-    Provides methods for generating synthesizable logic for the FPGA, as well
-    as methods for reading and writing the value of a register.
-
-    More information available in the online documentation at:
-    https://fischermoseley.github.io/manta/memory_core/
+    A synthesizable module for accessing a memory. This is accomplished by
+    instantiating a dual-port memory with one end tied to Manta's internal bus,
+    and the other provided to user logic.
     """
 
     def __init__(self, mode, width, depth):
+        """
+        Create a Memory Core with the given width and depth.
+
+        This function is the main mechanism for configuring a Memory Core in an
+        Amaranth-native design.
+
+        Args:
+            mode (str): Must be one of `bidirectional`, `host_to_fpga`, or
+                'fpga_to_host'. Bidirectional memories can be both read or
+                written to by the host and FPGA, but they require the use
+                of a True Dual Port RAM, which is not available on all
+                platforms (most notably, the ice40). Host-to-fpga and
+                fpga-to-host RAMs only require a Simple Dual Port RAM, which
+                is available on nearly all platforms.
+
+            width (int): The width of the memory, in bits.
+
+            depth (int): The depth of the memory, in entries.
+        """
         self._mode = mode
         self._width = width
         self._depth = depth
@@ -256,8 +270,24 @@ class MemoryCore(MantaCore):
 
     def read(self, addrs):
         """
-        Read the memory stored at the provided address, as seen from the user
-        side.
+        Read the data stored in the Memory Core at one or many address.
+
+        This function can read from either one or multiple addresses at a time.
+        Due to the the IO latency in most OSes, a single multi-address read is
+        significantly faster than multiple single-address reads. Prefer their
+        usage where possible. This method is blocking.
+
+        Args:
+            addrs (int | List[int]): The memory address (or addresses) to read
+                from.
+
+        Returns:
+            datas (int | List[int]): The data stored at the address (or
+                addresses), represented as an unsigned integer.
+
+        Raises:
+            TypeError: addrs is not an integer or list of integers.
+
         """
 
         # Handle a single integer address
@@ -275,8 +305,27 @@ class MemoryCore(MantaCore):
 
     def write(self, addrs, datas):
         """
-        Write to the memory stored at the provided address, as seen from the
-        user side.
+        Write data to the Memory core at one or many addresses.
+
+        This function can write to either one or multiple addresses at a time.
+        Due to the the IO latency in most OSes, a single multi-address write is
+        significantly faster than multiple single-address write. Prefer their
+        usage where possible. This method is blocking.
+
+        Args:
+            addrs (int | List[int]): The memory address (or addresses) to write
+                to.
+
+            datas (int | List[int]): The data to store at the address (or
+                addresses). This may be either positive or negative, but must
+                fit within the width of the memory.
+
+        Returns:
+            None
+
+        Raises:
+            TypeError: addrs or datas is not an integer or list of integers.
+
         """
 
         # Handle a single integer address and data
