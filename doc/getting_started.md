@@ -1,5 +1,6 @@
 
-Regardless of if you use Manta in a traditional Verilog-based workflow or natively in an Amaranth design, the general concept of operation is as follows:
+## Overview
+Regardless of if you use it in a traditional Verilog-based workflow or natively in an Amaranth design, using Manta consists of the following steps:
 
 - Specify and configure the cores you wish to include in your FPGA design.
 - Generate RTL for these cores, and include this RTL in your design.
