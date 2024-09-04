@@ -2,6 +2,7 @@ import pytest
 from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from amaranth_boards.test.blinky import *
+
 from manta.utils import *
 
 

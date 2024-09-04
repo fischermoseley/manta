@@ -7,17 +7,32 @@ from manta.utils import *
 
 class IOCore(MantaCore):
     """
-    A module for setting and getting the values of registers of arbitrary size
-    on a FPGA.
+    A synthesizable module for setting and getting the values of registers of
+    arbitrary size.
 
     Provides methods for generating synthesizable logic for the FPGA, as well
     as methods for reading and writing the value of a register.
-
-    More information available in the online documentation at:
-    https://fischermoseley.github.io/manta/io_core/
     """
 
     def __init__(self, inputs=[], outputs=[]):
+        """
+        Create an IO Core, with the given input and output probes.
+
+        This function is the main mechanism for configuring an IO Core in an
+        Amaranth-native design.
+
+        Args:
+            inputs (Optional[List[amaranth.Signal]]): A list of
+                Amaranth Signals to use as inputs. Defaults to an empty list.
+                This parameter is technically optional as an IO Core must have
+                at least one probe, but it need not be an input.
+
+            outputs (Optional[List[amaranth.Signal]]): A list of
+                Amaranth Signals to use as outputs. Defaults to an empty list.
+                This parameter is technically optional as an IO Core must have
+                at least one probe, but it need not be an output.
+
+        """
         self._inputs = inputs
         self._outputs = outputs
 
@@ -196,9 +211,26 @@ class IOCore(MantaCore):
 
     def set_probe(self, probe, value):
         """
-        Set the value of an output probe on the FPGA. The value may be either
-        an unsigned or signed integer, but must fit within the width of the
-        probe.
+        Set the value of an output probe on the FPGA.
+
+        Args:
+            probe (str | amaranth.Signal): The output probe to set the value
+                of. This may be either a string containing the name of the
+                probe, or the Amaranth Signal representing the probe itself.
+                Strings are typically used in Verilog-based workflows, and
+                Amaranth Signals are typically used in Amaranth-native designs.
+
+            value (int): The value to set the probe to. This may be either
+                positive or negative, but must fit within the width of the
+                probe.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: The probe was not found to be an output of the IO Core,
+                or many probes were found with the same name.
+
         """
 
         # This function accepts either the name of an output probe, or a
@@ -240,10 +272,27 @@ class IOCore(MantaCore):
 
     def get_probe(self, probe):
         """
-        Get the present value of a probe on the FPGA, which is returned as an
-        unsigned integer. This function may be called on both input and output
-        probes, but output probes will return the last value written to them
-        (or their initial value, if no value has been written to them yet).
+        Get the value of an input or output probe on the FPGA.
+
+        If called on an output probe, this function will return the last value
+        written to the output probe. If no value has been written to the output
+        probe, then it will return the probe's initial value.
+
+        Args:
+            probe (str | amaranth.Signal): The probe to get the value of. This
+                may be either a string containing the name of the probe, or the
+                Amaranth Signal representing the probe itself. Strings are
+                typically used in Verilog-based workflows, and Amaranth Signals
+                are typically used in Amaranth-native designs.
+
+        Returns:
+            value (int): The value of the probe, interpreted as an unsigned
+                integer.
+
+        Raises:
+            ValueError: The probe was not found in the IO Core, or many probes
+                were found with the same name.
+
         """
 
         # This function accepts either the name of an output probe, or a

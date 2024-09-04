@@ -6,6 +6,7 @@ from amaranth import *
 from amaranth.lib import io
 from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
+
 from manta import *
 from manta.utils import *
 

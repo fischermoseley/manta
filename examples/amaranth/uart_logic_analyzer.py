@@ -2,6 +2,7 @@ from time import sleep
 
 from amaranth import *
 from amaranth.lib import io
+
 from manta import *
 
 
