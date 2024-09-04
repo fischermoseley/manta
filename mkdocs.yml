@@ -71,6 +71,7 @@ plugins:
       handlers:
         python:
           options:
+            merge_init_into_class: true
             heading_level: 3
             show_bases: false
             show_root_heading: true
