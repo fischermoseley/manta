@@ -9,9 +9,6 @@ class IOCore(MantaCore):
     """
     A synthesizable module for setting and getting the values of registers of
     arbitrary size.
-
-    Provides methods for generating synthesizable logic for the FPGA, as well
-    as methods for reading and writing the value of a register.
     """
 
     def __init__(self, inputs=[], outputs=[]):
@@ -24,12 +21,12 @@ class IOCore(MantaCore):
         Args:
             inputs (Optional[List[amaranth.Signal]]): A list of
                 Amaranth Signals to use as inputs. Defaults to an empty list.
-                This parameter is technically optional as an IO Core must have
+                This parameter is somewhat optional as an IO Core must have
                 at least one probe, but it need not be an input.
 
             outputs (Optional[List[amaranth.Signal]]): A list of
                 Amaranth Signals to use as outputs. Defaults to an empty list.
-                This parameter is technically optional as an IO Core must have
+                This parameter is somewhat optional as an IO Core must have
                 at least one probe, but it need not be an output.
 
         """
@@ -213,6 +210,8 @@ class IOCore(MantaCore):
         """
         Set the value of an output probe on the FPGA.
 
+        This method is blocking.
+
         Args:
             probe (str | amaranth.Signal): The output probe to set the value
                 of. This may be either a string containing the name of the
@@ -276,7 +275,8 @@ class IOCore(MantaCore):
 
         If called on an output probe, this function will return the last value
         written to the output probe. If no value has been written to the output
-        probe, then it will return the probe's initial value.
+        probe, then it will return the probe's initial value. This method is
+        blocking.
 
         Args:
             probe (str | amaranth.Signal): The probe to get the value of. This
