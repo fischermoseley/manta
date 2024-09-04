@@ -2,6 +2,7 @@ import tempfile
 
 import yaml
 from amaranth import *
+
 from manta import *
 
 

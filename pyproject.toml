@@ -23,6 +23,7 @@ dev = [
   "codecov",
   "ruff",
   "mkdocs-material",
+  "mkdocstrings[python]",
   "amaranth_boards@git+https://github.com/amaranth-lang/amaranth-boards"
 ]
 

@@ -1,6 +1,7 @@
 from random import getrandbits
 
 from amaranth import *
+
 from manta import *
 from manta.utils import *
 

@@ -19,21 +19,21 @@ theme:
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/link
+        icon: material/brightness-7
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: blue
       accent: custom
       toggle:
-        icon: material/toggle-switch
+        icon: material/brightness-4
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
       accent: custom
       toggle:
-        icon: material/toggle-switch-off
+        icon: material/brightness-auto
         name: Switch to system preference
 
 extra_css:
@@ -60,18 +60,43 @@ markdown_extensions:
   - pymdownx.tilde
   - attr_list
 
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            heading_level: 3
+            show_bases: false
+            show_root_heading: true
+            show_source: false
+            separate_signature: true
+            show_signature_annotations: true
+            modernize_annotations: true
+            signature_crossrefs: true
+            docstring_section_style: list
+            show_symbol_type_toc: true
+            show_symbol_type_heading: true
+
+            docstring_options:
+              ignore_init_summary: false
+
+            # filters: ["!^_"]
+            unwrap_annotated: true
+
 nav:
     - Home: index.md
     - Installation: installation.md
     - Getting Started: getting_started.md
-    - Similar Tools: similar_tools.md
+    - Use Cases: use_cases.md
     - Architecture: architecture.md
-    - Usage:
+    - Similar Tools: similar_tools.md
+    - Cores:
       - IO Core: io_core.md
       - Logic Analyzer Core: logic_analyzer_core.md
       - Memory Core: memory_core.md
+
+    - Interfaces:
       - UART Interface: uart_interface.md
       - Ethernet Interface: ethernet_interface.md
     - For Developers:
-      - Repository Structure: repository_structure.md
       - Roadmap: https://github.com/fischermoseley/manta/milestones

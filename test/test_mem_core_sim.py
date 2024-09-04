@@ -2,6 +2,7 @@ from math import ceil
 from random import choice, getrandbits, randint
 
 import pytest
+
 from manta.memory_core import MemoryCore
 from manta.utils import *
 
