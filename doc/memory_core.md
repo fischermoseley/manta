@@ -37,7 +37,7 @@ cores:
 
 Inside this configuration, the following parameters may be set:
 
-- `name`: The name of the Memory core. This name is used to reference the core when working with the API, and can be whatever you'd like.
+- `name`: The name of the Memory core, which is used when working with the API.
 - `type`: This denotes that this is a Memory core. All cores contain a `type` field, which must be set to `memory` to be recognized as an Memory core.
 - `mode`: The mode for the Memory core to operate in. This must be one of `bidirectional`, `host_to_fpga`, or `fpga_to_host`. Bidirectional memories can be both read or written to by the host and FPGA, but they require the use of a True Dual Port RAM, which is not available on all platforms (most notably, the ice40). Host-to-fpga and fpga-to-host RAMs only require a Simple Dual Port RAM, which is available on nearly all platforms.
 - `width`: The width of the Memory core, in bits.

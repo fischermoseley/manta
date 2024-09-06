@@ -36,7 +36,7 @@ my_io_core:
 ```
 Inside this configuration, the following parameters may be set:
 
-- `name` _(required)_: The name of the IO core. This name is used to reference the core when working with the API, and can be whatever you'd like.
+- `name` _(required)_: The name of the IO core, which is used when working with the API.
 - `type` _(required)_: This denotes that this is an IO core. All cores contain a `type` field, which must be set to `io` to be recognized as an IO core.
 - `inputs` _(optional)_: This lists all inputs from from the FPGA fabric to the host machine. Signals in this list may be read by the host, but ___cannot___ be written to. This parameter is somewhat optional as an IO Core must have at least one probe, but it need not be an input.
 - `outputs` _(optional)_: This lists all outputs from the host machine to the FPGA fabric. Signals in this list are usually written to by the host, but they can also be read from. Doing so returns the value last written to the register. This parameter is somewhat optional as an IO Core must have at least one probe, but it need not be an output.
