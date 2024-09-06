@@ -14,12 +14,25 @@ class LogicAnalyzerCore(MantaCore):
 
     Provides methods for generating synthesizable logic for the FPGA, as well
     as methods for reading and writing the value of a register.
-
-    More information available in the online documentation at:
-    https://fischermoseley.github.io/manta/logic_analyzer_core/
     """
 
     def __init__(self, sample_depth, probes):
+        """
+        Create a Logic Analyzer Core with the given probes and sample depth.
+
+        This function is the main mechanism for configuring a Logic Analyzer in
+        an Amaranth-native design.
+
+        Args:
+            sample_depth (int):  The number of samples saved in the capture. A
+                larger sample depth will use more FPGA resources, but will show
+                what the probes are doing over a longer time interval.
+
+            probes (List[Signal]): The signals in your logic that the Logic
+                Analyzer connects to. Each probe is specified with a name and
+                a width.
+        """
+
         self._sample_depth = sample_depth
         self._probes = probes
         self.trigger_location = sample_depth // 2
@@ -209,9 +222,11 @@ class LogicAnalyzerCore(MantaCore):
 
     def capture(self):
         """
-        Performs a capture, recording the state of all input probes to the
-        FPGA's memory, and then returns that as a LogicAnalyzerCapture class
-        on the host.
+        Performs a capture, recording the state of all probes to memory.
+
+        Returns:
+            capture (LogicAnalyzerCapture): A LogicAnalyzerCapture object
+                containing the capture and its metadata.
         """
 
         print(" -> Resetting core...")
