@@ -27,6 +27,14 @@ class LogicAnalyzerCapture:
     def get_trace(self, name):
         """
         Gets the value of a single probe over the capture.
+
+        Args:
+            name (str): The name of the probe.
+
+        Returns:
+            data (List[int]): The value of the probe at every timestep,
+                interpreted as an unsigned integer. Has length equal to
+                the `sample_depth` of the core that produced the capture.
         """
 
         # Get index of probe with given name
@@ -53,8 +61,13 @@ class LogicAnalyzerCapture:
 
     def export_csv(self, path):
         """
-        Export the capture to a CSV file, containing the data of all probes in
-        the core.
+        Export the capture to a CSV file.
+
+        Args:
+            path (str): Path to the destination file.
+
+        Returns:
+            None
         """
 
         names = [p.name for p in self._probes]
@@ -74,8 +87,13 @@ class LogicAnalyzerCapture:
 
     def export_vcd(self, path):
         """
-        Export the capture to a VCD file, containing the data of all probes in
-        the core.
+        Export the capture to a VCD file.
+
+        Args:
+            path (str): Path to the destination file.
+
+        Returns:
+            None
         """
 
         from datetime import datetime
