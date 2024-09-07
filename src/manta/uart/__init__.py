@@ -10,7 +10,7 @@ from manta.utils import *
 
 class UARTInterface(Elaboratable):
     """
-    A synthesizable module for UART communication between the host machine and
+    A synthesizable module for UART communication between a host machine and
     the FPGA.
     """
 
