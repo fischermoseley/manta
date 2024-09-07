@@ -15,7 +15,9 @@ class EthernetInterface(Elaboratable):
     machine and the FPGA.
     """
 
-    def __init__(self, phy, clk_freq, fpga_ip_addr, host_ip_addr, udp_port=2001, **kwargs):
+    def __init__(
+        self, phy, clk_freq, fpga_ip_addr, host_ip_addr, udp_port=2001, **kwargs
+    ):
         """
         This function is the main mechanism for configuring an Ethernet
         Interface in an Amaranth-native design.
