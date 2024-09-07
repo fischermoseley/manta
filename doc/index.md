@@ -6,6 +6,8 @@ Manta is a tool for rapidly prototyping and debugging FPGA designs. It works by 
 
 These cores include functionality such as register reads/writes, memory accesses, and an embedded logic analyzer. Manta includes both a UART and Ethernet (via UDP) interface for communication between the host and FPGA.
 
+For more information on how Manta can be used, please refer to the [Use Cases](../use_cases) page and the repository's [examples](https://github.com/fischermoseley/manta/tree/main/examples) folder.
+
 Manta specifies its RTL logic with [Amaranth](https://github.com/amaranth-lang/amaranth) which allows it to target nearly any FPGA device, regardless of vendor. Manta itself is written in pure Python, which allows it to run on Windows, macOS, Linux, and BSD across a variety of CPU architectures. Manta can be included natively in Amaranth-based designs, or export Verilog-2001 for use in traditional Verilog-based workflows.
 
 ## About
