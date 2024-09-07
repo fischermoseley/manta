@@ -14,7 +14,7 @@ As explained in the [getting started](../getting_started) page, the IO Core must
 
 ### Verilog-Based Workflows
 
-Cores are configured with an entry in a project's configuration file when using a Verilog-based workflow, and the IO Core is no different. This is best shown by example:
+The IO Core is used by adding an entry in a `cores` section of a configuration file. This is best shown by example:
 
 ```yaml
 ---
