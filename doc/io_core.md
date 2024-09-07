@@ -18,20 +18,21 @@ Cores are configured with an entry in a project's configuration file when using 
 
 ```yaml
 ---
-my_io_core:
-  type: io
+cores:
+  my_io_core:
+    type: io
 
-  inputs:
-    kermit: 3
-    piggy: 1
-    animal: 38
-    scooter:
-      width: 4
-      initial_value: 13
+    inputs:
+      kermit: 3
+      piggy: 1
+      animal: 38
+      scooter:
+        width: 4
+        initial_value: 13
 
-  outputs:
-    fozzy: 1
-    gonzo: 3
+    outputs:
+      fozzy: 1
+      gonzo: 3
 
 ```
 Inside this configuration, the following parameters may be set:

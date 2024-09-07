@@ -10,16 +10,45 @@ from manta.utils import *
 
 class UARTInterface(Elaboratable):
     """
-    A module for communicating with Manta over UART.
-
-    Provides methods for generating synthesizable logic for the FPGA, as well
-    as methods for reading and writing to memory by the host.
-
-    More information available in the online documentation at:
-    https://fischermoseley.github.io/manta/uart_interface/
+    A synthesizable module for UART communication between the host machine and
+    the FPGA.
     """
 
     def __init__(self, port, baudrate, clock_freq, chunk_size=256):
+        """
+        This function is the main mechanism for configuring a UART Interface
+        in an Amaranth-native design.
+
+        Args:
+            port (str): The name of the serial port on the host machine that's
+                connected to the FPGA. Depending on your platform, this could
+                be `/dev/ttyUSBXX`, `/dev/tty.usbserialXXX`, or `COMX`. If set
+                to `auto`, then Manta will try to find the right serial port by
+                looking for a connected FTDI chip. This doesn't always work, so
+                if your port isn't automatically detected then just specify the
+                port manually.
+
+            baudrate (float | int): The baudrate of the serial port. Generally,
+                this should be set to the maximum baudrate supported by the
+                USB/UART chip on your dev board for fastest operation.
+
+            clock_freq (float | int): The frequency of the clock provided to
+                this module, in Hertz (Hz). This is used to calculate an
+                appropriate prescaler onboard the FPGA to acheive the desired
+                baudrate.
+
+            chunk_size (Optional[int]): The number of read requests to send at
+                a time. Since the FPGA responds to read requests almost
+                instantly, sending them in batches prevents the host machine's
+                input buffer from overflowing. Reduce this if Manta reports
+                that bytes are being dropped.
+
+        Raises:
+            ValueError: The baudrate is not acheivable with the clock frequency
+                provided, or the clock frequency or baudrate is invalid.
+
+        """
+
         self._port = port
         self._baudrate = baudrate
         self._clock_freq = clock_freq
