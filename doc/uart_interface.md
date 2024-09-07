@@ -1,21 +1,36 @@
 ## Overview
 
-Manta needs an interface to pass data between the host machine and FPGA, and UART is a convenient option. When configured to use UART, Manta will shuffle data back and forth using generic 8N1 serial with no flow control. This happens through a series of read and write transactions, which are specified using a messaging format described [here](architecture.md#message-format).
+The ubiquity and simplicity of UART makes it a convenient mechanism for sharing data between the host machine and FPGA. As a result, Manta provides the option to run over UART, where operating the cores can often take place over the same USB cable used to program the FPGA.
+
+Both the [Use Cases](../use_cases) page and the repository's [examples](https://github.com/fischermoseley/manta/tree/main/examples) folder contain examples of the UART Interface for your reference.
 
 ## Configuration
 
-The configuration of the UART interface is best shown by example:
+### Verilog-Based Workflows
+
+The UART interface is used by adding a `uart` entry at the bottom of the configuration file. This is best shown by example:
 
 ```yaml
 uart:
   port: "auto"
   baudrate: 3000000
   clock_freq: 100000000
+  chunk_size: 256
 ```
-This snippet at the end of the configuration file defines the interface. The following parameters must be set:
+Inside this configuration, the following parameters may be set:
 
-- `port` _(required)_: The name of the serial port on the host machine that's connected to the FPGA. Depending on your platform, this could be `/dev/ttyUSBXX`, `/dev/tty.usbserialXXX`, or `COMX`. If set to `auto`, then Manta will try to find the right serial port by looking for a USB device with the same VID and PID as a FT2232 - a USB/UART converter chip that's super popular on FPGA dev boards. This doesn't always work, but it's super convenient when it does. If your port isn't automatically detected, then just specify the port manually.
+- `port` _(required)_: The name of the serial port on the host machine that's connected to the FPGA. Depending on your platform, this could be `/dev/ttyUSBXX`, `/dev/tty.usbserialXXX`, or `COMX`. If set to `auto`, then Manta will try to find the right serial port by looking for a connected FTDI chip. This doesn't always work, so if your port isn't automatically detected then just specify the port manually.
 
-- `baudrate` _(required)_: The baudrate of the serial port. Generally you want to configure this at the maximum speed of your USB/UART chip such that data transfers as fast as possible. The ubiquitous FT2232 supports up to 3Mbaud.
+- `baudrate` _(required)_: The baudrate of the serial port. Generally, this should be set to the maximum baudrate supported by the USB/UART chip on your dev board for fastest operation. Manta will throw an error if this baudrate is not achievable with your FPGA's clock frequency.
 
-- `clock_freq` _(required)_: The frequency of the clock being provided to the `manta` module, in Hertz (Hz). This speed doesn't matter much to the logic itself, it's only used to calculate the correct baud timing for the provided baudrate. However, this frequency does have to be fast enough to ensure a good agreement between the onboard prescaler and the requested baudrate - and Manta will throw an error during code generation if that is not the case.
+- `clock_freq` _(required)_: The frequency of the clock provided to the `manta` module, in Hertz (Hz). This is used to calculate an appropriate prescaler onboard the FPGA to acheive the desired baudrate. Manta will throw an error if this clock frequency does not allow you to achieve your desired baudrate.
+
+- `chunk_size` _(optional)_: The number of read requests to send at a time. Since the FPGA responds to read requests almost instantly, sending them in batches prevents the host machine's input buffer from overflowing. Defaults to 256, reduce this if Manta reports that bytes are being dropped.
+
+### Amaranth-Native Designs
+
+Since Amaranth modules are Python objects, the configuration of the IO Core is given by the arguments given during initialization. See the documentation for the `UARTInterface` [class constructor](#manta.UARTInterface) below, as well as the Amaranth [examples](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) in the repo.
+
+::: manta.UARTInterface
+    options:
+      members: false
