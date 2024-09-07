@@ -3,16 +3,13 @@ The Logic Analyzer core allows for debugging logic by capturing a set of digital
 
 This is very similar to the behavior of a benchtop logic analyzer, but Manta's Logic Analyzer Core includes some extra features you may find useful. Both the [Use Cases](../use_cases) page and the repository's [examples](https://github.com/fischermoseley/manta/tree/main/examples) folder contain examples of the Logic Analyzer Core for your reference.
 
-
-
-
 ## Configuration
 
 As explained in the [getting started](../getting_started) page, the Logic Analyzer Core must be configured and included in the FPGA design before it can be operated. Configuration is performed differently depending on if you're using a traditional Verilog-based workflow, or if you're building an Amaranth-native design.
 
 ### Verilog-Based Workflows
 
-Cores are configured with an entry in a project's configuration file when using a Verilog-based workflow, and the Logic Analyzer Core is no different. This is best shown by example:
+The Logic Analyzer Core is used by adding an entry in a `cores` section of a configuration file. This is best shown by example:
 
 ```yaml
 ---
