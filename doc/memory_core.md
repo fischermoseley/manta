@@ -22,7 +22,7 @@ As explained in the [getting started](../getting_started) page, the Memory Core 
 
 ### Verilog-Based Workflows
 
-Cores are configured with an entry in a project's configuration file when using a Verilog-based workflow, and the Memory Core is no different. This is best shown by example:
+The Memory Core is used by adding an entry in a `cores` section of a configuration file. This is best shown by example:
 
 ```yaml
 ---
