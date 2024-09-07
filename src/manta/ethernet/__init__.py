@@ -11,16 +11,58 @@ from manta.utils import *
 
 class EthernetInterface(Elaboratable):
     """
-    A module for communicating with Manta over Ethernet, using UDP.
-
-    Provides methods for generating synthesizable logic for the FPGA, as well
-    as methods for reading and writing to memory by the host.
-
-    More information available in the online documentation at:
-    https://fischermoseley.github.io/manta/ethernet_interface/
+    A synthesizable module for Ethernet (UDP) communication between a host
+    machine and the FPGA.
     """
 
-    def __init__(self, fpga_ip_addr, host_ip_addr, udp_port, phy, clk_freq, **kwargs):
+    def __init__(self, phy, clk_freq, fpga_ip_addr, host_ip_addr, udp_port=2001, **kwargs):
+        """
+        This function is the main mechanism for configuring an Ethernet
+        Interface in an Amaranth-native design.
+
+        Args:
+            phy (str): The name of the LiteEth PHY class to use. Select the
+                appropriate one from [this list](https://github.com/enjoy-digital/liteeth/blob/main/liteeth/phy/__init__.py#L25-L45)
+                for your FPGA vendor and family.
+
+            clk_freq (int | float): The frequency of the clock provided to the
+                Manta module on the FPGA, in Hertz (Hz).
+
+            fpga_ip_addr (str): The IP address the FPGA will attempt to claim.
+                Upon power-on, the FPGA will issue a DHCP request for this IP
+                address. Ping this address after power-on to check if this
+                request was successful, or check your router for a list of
+                connected devices.
+
+            host_ip_addr (str): The IP address of the host machine, which the
+                FPGA will send packets back to.
+
+            udp_port (Optional[int]): The UDP port to communicate over.
+
+            **kwargs: Any additional keyword arguments to this function will
+                be passed to the LiteEth RTL generator. Some examples are
+                provided below:
+
+                - mac_address (int): A 48-bit integer representing the MAC
+                    address the FPGA will assume. If not provided, an address
+                    within the [Locally Administered, Administratively Assigned group](https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses)
+                    will be randomly generated.
+
+                - vendor (str): The vendor of your FPGA. Currently only values
+                    of `xilinx` and `lattice` are supported. This is used to
+                    generate (currently unused) timing constraints files.
+
+                - toolchain (str): The toolchain being used. Currently only
+                    values of `vivado` and `diamond` are supported.
+
+                - refclk_freq (int | float): The frequency of the reference
+                    clock to be provided to the Ethernet PHY, in Hertz (Hz).
+                    This frequency must match the MII variant used by the PHY,
+                    and speed it is being operated at. For instance, a RGMII
+                    PHY may be operated at either 125MHz in Gigabit mode, or
+                    25MHz in 100Mbps mode.
+        """
+
         self._fpga_ip_addr = fpga_ip_addr
         self._host_ip_addr = host_ip_addr
         self._udp_port = udp_port
