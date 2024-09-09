@@ -43,16 +43,14 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
 
         # Set triggers
         for trigger in triggers:
-            components = trigger.strip().split(" ")
-
             # Handle triggers that don't need an argument
-            if len(components) == 2:
-                name, op = components
+            if len(trigger) == 2:
+                name, op = trigger
                 self.registers.set_probe(name + "_op", Operations[op].value)
 
             # Handle triggers that do need an argument
-            elif len(components) == 3:
-                name, op, arg = components
+            elif len(trigger) == 3:
+                name, op, arg = trigger
                 self.registers.set_probe(name + "_op", Operations[op].value)
                 self.registers.set_probe(name + "_arg", int(arg))
 
