@@ -102,84 +102,25 @@ class LogicAnalyzerCore(MantaCore):
             if width < 0:
                 raise ValueError(f"Width of probe {name} must be positive.")
 
-        # Check trigger mode, if provided
-        trigger_mode = config.get("trigger_mode")
-        valid_modes = ["single_shot", "incremental", "immediate"]
-        if trigger_mode and trigger_mode not in valid_modes:
-            raise ValueError(
-                f"Unrecognized trigger mode {config['trigger_mode']} provided."
-            )
+        # Check triggers are specified with strings
+        triggers = config.get("triggers", [])
+        for trigger in triggers:
+            if not isinstance(trigger, str):
+                raise ValueError("Trigger must be specified with a string.")
 
-        # Check triggers
-        if trigger_mode and trigger_mode != "immediate":
-            if "triggers" not in config or config["triggers"] == 0:
-                raise ValueError(
-                    "Logic Analyzer must have at least one trigger specified if not running in immediate mode."
-                )
+        # Convert triggers to list
+        triggers = [t.strip().split(" ") for t in triggers]
 
-        # Check trigger location
-        trigger_location = config.get("trigger_location")
-        if trigger_location:
-            if not isinstance(trigger_location, int) or trigger_location < 0:
-                raise ValueError("Trigger location must be a positive integer.")
-
-            if trigger_location >= config["sample_depth"]:
-                raise ValueError("Trigger location must be less than sample depth.")
-
-            if trigger_mode == "immediate":
-                warn(
-                    "Ignoring option 'trigger_location', as 'trigger_mode' is set to immediate, and there is no trigger condition to wait for."
-                )
-
-        # Check triggers themselves
-        if trigger_mode == "immediate":
-            if "triggers" in config:
-                warn(
-                    "Ignoring triggers as 'trigger_mode' is set to immediate, and there are no triggers to specify."
-                )
-
-        else:
-            if ("triggers" not in config) or (len(config["triggers"]) == 0):
-                raise ValueError("At least one trigger must be specified.")
-
-            for trigger in config.get("triggers"):
-                if not isinstance(trigger, str):
-                    raise ValueError("Trigger must be specified with a string.")
-
-                # Trigger conditions may be composed of either two or three components,
-                # depending on the operation specified. In the case of operations that
-                # don't need an argument (like DISABLE, RISING, FALLING, CHANGING) or
-                # three statements in
-
-                # Check the trigger operations
-                components = trigger.strip().split(" ")
-                if len(components) == 2:
-                    name, op = components
-                    if op not in ["DISABLE", "RISING", "FALLING", "CHANGING"]:
-                        raise ValueError(
-                            f"Unable to interpret trigger condition '{trigger}'."
-                        )
-
-                elif len(components) == 3:
-                    name, op, arg = components
-                    if op not in ["GT", "LT", "GEQ", "LEQ", "EQ", "NEQ"]:
-                        raise ValueError(
-                            f"Unable to interpret trigger condition '{trigger}'."
-                        )
-
-                else:
-                    raise ValueError(
-                        f"Unable to interpret trigger condition '{trigger}'."
-                    )
-
-                # Check probe names
-                if components[0] not in config["probes"]:
-                    raise ValueError(f"Unknown probe name '{components[0]}' specified.")
-
-        # Checks complete, create LogicAnalyzerCore
+        # Checks and formatting complete, create LogicAnalyzerCore
         probes = [Signal(width, name=name) for name, width in config["probes"].items()]
 
-        return cls(config["sample_depth"], probes)
+        core = cls(sample_depth, probes)
+        core.set_triggers(
+            trigger_mode=config.get("trigger_mode"),
+            triggers=triggers,
+            trigger_location=config.get("trigger_location"),
+        )
+        return core
 
     def define_submodules(self):
         self._fsm = LogicAnalyzerFSM(
@@ -229,6 +170,110 @@ class LogicAnalyzerCore(MantaCore):
         ]
 
         return m
+
+    def _validate_triggers(self, triggers):
+        """
+        This function takes a list of lists, where each sublist may have two or
+        three entries.
+        """
+        if not triggers:
+            raise ValueError("At least one trigger must be specified.")
+
+        for trigger in triggers:
+            # Check two-token triggers
+            if len(trigger) == 2:
+                name, operation = trigger
+
+                # Check name
+                if name not in [p.name for p in self._probes]:
+                    raise ValueError(f"Unknown probe name '{name}' specified.")
+
+                # Check operation
+                if operation not in ["DISABLE", "RISING", "FALLING", "CHANGING"]:
+                    raise ValueError(
+                        f"Unable to interpret trigger condition '{trigger}'."
+                    )
+
+            # Check three-token triggers
+            elif len(trigger) == 3:
+                name, operation, argument = trigger
+
+                # Check name
+                if name not in [p.name for p in self._probes]:
+                    raise ValueError(f"Unknown probe name '{name}' specified.")
+
+                # Check operation
+                if operation not in ["GT", "LT", "GEQ", "LEQ", "EQ", "NEQ"]:
+                    raise ValueError(
+                        f"Unable to interpret trigger condition '{trigger}'."
+                    )
+
+            else:
+                raise ValueError(f"Unable to interpret trigger condition '{trigger}'.")
+
+    def set_triggers(self, trigger_mode=None, triggers=None, trigger_location=None):
+        """
+        Args:
+            trigger_mode (TriggerMode | str):
+
+            triggers (Optional[Sequence[Sequence[str | int]]]):
+
+            trigger_location (Optional[int]):
+        """
+        # Obtain trigger mode
+        if isinstance(trigger_mode, TriggerModes):
+            mode = trigger_mode
+
+        elif isinstance(trigger_mode, str):
+            mode = TriggerModes[trigger_mode.upper()]
+
+        else:
+            raise ValueError(f"Unrecognized trigger mode {trigger_mode} provided.")
+
+        # Peform checks based on trigger mode
+        if mode == TriggerModes.IMMEDIATE:
+            # Warn on triggers
+            if triggers:
+                warn("Ignoring provided triggers as trigger mode is set to Immediate.")
+
+            # Warn on trigger location
+            if trigger_location:
+                warn(
+                    "Ignoring provided trigger_location as trigger mode is set to Immediate."
+                )
+
+            self._trigger_mode = mode
+            self._triggers = []
+            self._trigger_location = self._sample_depth // 2
+
+        elif mode == TriggerModes.INCREMENTAL:
+            # Warn on trigger location
+            if trigger_location:
+                warn(
+                    "Ignoring provided trigger_location as trigger mode is set to Incremental."
+                )
+
+            # Validate triggers
+            self._validate_triggers(triggers)
+
+            self._trigger_mode = mode
+            self._triggers = triggers
+            self._trigger_location = self._sample_depth // 2
+
+        elif mode == TriggerModes.SINGLE_SHOT:
+            # Validate trigger location, if provided
+            if trigger_location:
+                if not 0 <= trigger_location < self._sample_depth:
+                    raise ValueError(
+                        "Trigger location must be a positive integer between 0 and sample_depth."
+                    )
+
+            # Validate triggers
+            self._validate_triggers(triggers)
+
+            self.trigger_mode = mode
+            self._triggers = triggers
+            self._trigger_location = trigger_location or self._sample_depth // 2
 
     def capture(self):
         """
