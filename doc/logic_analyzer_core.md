@@ -79,7 +79,7 @@ The logic analyzer has a few different ways of capturing data, which are represe
 - __Incremental__: Record samples when the trigger condition is met, but __don't__ record the samples when the trigger condition is not met. This is super useful for applications like audio processing or memory controllers, where there are many system clock cycles between signals of interest.
 - __Immediate__: Record the value of the probes on every clock cycle, beginning immediately, and regardless of if the trigger condition is met. This is useful for investigating cases where a trigger condition is never being met (such as latchup or deadlock conditions) or obtaining a random snapshot of the FPGA's state.
 
-Most logic analyzers use a single-shot capture by default, so Manta will do the same if no `trigger_mode` entry is provided in the project's configuration file.
+Manta will use an `Immediate` trigger mode if no `trigger_mode` is provided in the configuration file.
 
 ## Usage
 

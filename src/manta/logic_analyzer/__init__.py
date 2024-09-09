@@ -35,9 +35,10 @@ class LogicAnalyzerCore(MantaCore):
 
         self._sample_depth = sample_depth
         self._probes = probes
-        self.trigger_location = sample_depth // 2
-        self.trigger_mode = TriggerModes.SINGLE_SHOT
-        self.triggers = []
+
+        self._trigger_location = sample_depth // 2
+        self._trigger_mode = TriggerModes.IMMEDIATE
+        self._triggers = []
 
         # Bus Input/Output
         self.bus_i = Signal(InternalBus())
@@ -53,13 +54,22 @@ class LogicAnalyzerCore(MantaCore):
         return self._probes
 
     def to_config(self):
-        return {
+        config = {
             "type": "logic_analyzer",
             "sample_depth": self._sample_depth,
-            "trigger_location": self.trigger_location,
             "probes": {p.name: len(p) for p in self._probes},
-            "triggers": self.triggers,
         }
+
+        if self._trigger_mode == TriggerModes.INCREMENTAL:
+            config["trigger_mode"] = self._trigger_mode.name.lower()
+            config["triggers"] = self._triggers
+
+        elif self._trigger_mode == TriggerModes.SINGLE_SHOT:
+            config["trigger_mode"] = self._trigger_mode.name.lower()
+            config["triggers"] = self._triggers
+            config["trigger_location"] = self._trigger_location
+
+        return config
 
     @classmethod
     def from_config(cls, config):
@@ -236,10 +246,10 @@ class LogicAnalyzerCore(MantaCore):
         self._trig_blk.set_triggers(self.triggers)
 
         print(" -> Setting trigger mode...")
-        self._fsm.write_register("trigger_mode", self.trigger_mode)
+        self._fsm.write_register("trigger_mode", self._trigger_mode)
 
         print(" -> Setting trigger location...")
-        self._fsm.write_register("trigger_location", self.trigger_location)
+        self._fsm.write_register("trigger_location", self._trigger_location)
 
         print(" -> Starting capture...")
         self._fsm.start_capture()
@@ -258,5 +268,5 @@ class LogicAnalyzerCore(MantaCore):
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]
         return LogicAnalyzerCapture(
-            self._probes, self.trigger_location, self.trigger_mode, data
+            self._probes, self._trigger_location, self._trigger_mode, data
         )

@@ -111,9 +111,7 @@ def test_logic_analyzer_core_dump():
             "test_core": {
                 "type": "logic_analyzer",
                 "sample_depth": 2048,
-                "trigger_location": 1024,
                 "probes": {"probe0": 1, "probe1": 2, "probe2": 3},
-                "triggers": [],
             }
         }
     }
