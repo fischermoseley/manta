@@ -33,4 +33,5 @@ jobs:
 
       - name: Upload results to Codecov
         run: |
-          codecov -t ${{ secrets.CODECOV_TOKEN }}
+          source venv/bin/activate
+          python3 -m codecov -t ${{ secrets.CODECOV_TOKEN }}
