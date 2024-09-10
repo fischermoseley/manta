@@ -26,12 +26,11 @@ jobs:
           python3 -m pip install ".[dev]"
 
       - name: Run tests
-        run:  |
+        run: |
           source ./environment.sh
           source venv/bin/activate
           make test
 
       - name: Upload results to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          codecov -t ${{ secrets.CODECOV_TOKEN }}

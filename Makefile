@@ -1,6 +1,6 @@
 .PHONY: test format clean serve_docs
 test:
-	python3 -m pytest --cov-report json
+	python3 -m pytest --cov
 
 format:
 	python3 -m black .

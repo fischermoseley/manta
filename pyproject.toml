@@ -20,6 +20,7 @@ requires-python = ">=3.8"
 dev = [
   "pytest",
   "pytest-cov",
+  "codecov",
   "ruff",
   "mkdocs-material",
   "amaranth_boards@git+https://github.com/amaranth-lang/amaranth-boards"
