@@ -3,6 +3,7 @@ cores:
   my_logic_analyzer:
     type: logic_analyzer
     sample_depth: 2048
+    trigger_mode: single_shot
 
     probes:
       probe0: 1
