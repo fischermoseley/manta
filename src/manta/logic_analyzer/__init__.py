@@ -113,13 +113,17 @@ class LogicAnalyzerCore(MantaCore):
 
         # Checks and formatting complete, create LogicAnalyzerCore
         probes = [Signal(width, name=name) for name, width in config["probes"].items()]
-
         core = cls(sample_depth, probes)
-        core.set_triggers(
-            trigger_mode=config.get("trigger_mode"),
-            triggers=triggers,
-            trigger_location=config.get("trigger_location"),
-        )
+
+        # If any trigger-related configuration was provided, set the triggers with it
+        keys = ["trigger_mode", "triggers", "trigger_location"]
+        if any([key in config for key in keys]):
+            core.set_triggers(
+                trigger_mode=config.get("trigger_mode"),
+                triggers=triggers,
+                trigger_location=config.get("trigger_location"),
+            )
+
         return core
 
     def define_submodules(self):
