@@ -15,6 +15,7 @@ uart:
   port: "auto"
   baudrate: 3000000
   clock_freq: 100000000
+  stall_interval: 16
   chunk_size: 256
 ```
 Inside this configuration, the following parameters may be set:
@@ -25,7 +26,9 @@ Inside this configuration, the following parameters may be set:
 
 - `clock_freq` _(required)_: The frequency of the clock provided to the `manta` module, in Hertz (Hz). This is used to calculate an appropriate prescaler onboard the FPGA to acheive the desired baudrate. Manta will throw an error if this clock frequency does not allow you to achieve your desired baudrate.
 
-- `chunk_size` _(optional)_: The number of read requests to send at a time. Since the FPGA responds to read requests almost instantly, sending them in batches prevents the host machine's input buffer from overflowing. Defaults to 256, reduce this if Manta reports that bytes are being dropped.
+- `stall_interval` _(optional)_: The number of read requests to send before sending a stall byte. This prevents packets from being dropped if the FPGA's baudrate is less than the USB-Serial adapter's baudrate. This is usually caused by a mismatch between the clock frequency of the USB-Serial adapter and the FPGA fabric. See issue [#18](https://github.com/fischermoseley/manta/issues/18) on GitHub. Defaults to 16, reduce this if Manta reports that bytes are being dropped.
+
+- `chunk_size` _(optional)_: The number of read requests to send at a time. Since the FPGA responds to read requests almost instantly, sending them in batches prevents the host machine's input buffer from overflowing. Defaults to 256, Reduce this if Manta reports that bytes are being dropped, and decreasing `stall_interval` did not work.
 
 ### Amaranth-Native Designs
 
