@@ -14,7 +14,7 @@ class UARTInterface(Elaboratable):
     the FPGA.
     """
 
-    def __init__(self, port, baudrate, clock_freq, chunk_size=256):
+    def __init__(self, port, baudrate, clock_freq, stall_interval=16, chunk_size=256):
         """
         This function is the main mechanism for configuring a UART Interface
         in an Amaranth-native design.
@@ -37,11 +37,20 @@ class UARTInterface(Elaboratable):
                 appropriate prescaler onboard the FPGA to acheive the desired
                 baudrate.
 
+            stall_interval (Optional[int]): The number of read requests to send
+                before sending a stall byte. This prevents packets from being
+                dropped if the FPGA's baudrate is less than the USB-Serial
+                adapter's baudrate. This is usually caused by a mismatch
+                between the clock frequency of the USB-Serial adapter and the
+                FPGA fabric. See issue #18 on GitHub. Reduce this if Manta
+                reports that bytes are being dropped.
+
             chunk_size (Optional[int]): The number of read requests to send at
                 a time. Since the FPGA responds to read requests almost
                 instantly, sending them in batches prevents the host machine's
                 input buffer from overflowing. Reduce this if Manta reports
-                that bytes are being dropped.
+                that bytes are being dropped, and decreasing `stall_interval`
+                did not work.
 
         Raises:
             ValueError: The baudrate is not acheivable with the clock frequency
@@ -52,8 +61,9 @@ class UARTInterface(Elaboratable):
         self._port = port
         self._baudrate = baudrate
         self._clock_freq = clock_freq
-        self._chunk_size = chunk_size
         self._clocks_per_baud = int(self._clock_freq // self._baudrate)
+        self._chunk_size = chunk_size
+        self._stall_interval = stall_interval
         self._check_config()
 
         # Top-Level Ports
@@ -70,24 +80,27 @@ class UARTInterface(Elaboratable):
         baudrate = config.get("baudrate")
 
         # Warn if unrecognized options have been given
-        recognized_options = ["port", "clock_freq", "baudrate", "chunk_size"]
+        recognized_options = [
+            "port",
+            "clock_freq",
+            "baudrate",
+            "chunk_size",
+            "stall_interval",
+        ]
         for option in config:
             if option not in recognized_options:
                 warn(
                     f"Ignoring unrecognized option '{option}' in UART interface config."
                 )
 
-        if "chunk_size" in config:
-            return cls(port, baudrate, clock_freq, config["chunk_size"])
-
-        else:
-            return cls(port, baudrate, clock_freq)
+        return cls(**config)
 
     def to_config(self):
         return {
             "port": self._port,
             "baudrate": self._baudrate,
             "clock_freq": self._clock_freq,
+            "stall_interval": self._stall_interval,
             "chunk_size": self._chunk_size,
         }
 
@@ -204,9 +217,10 @@ class UARTInterface(Elaboratable):
             # Encode addrs into read requests
             bytes_out = "".join([f"R{a:04X}\r\n" for a in addr_chunk])
 
-            # Add a \n after every 32 packets, see:
+            # Add a \n after every N packets, see:
             # https://github.com/fischermoseley/manta/issues/18
-            bytes_out = "\n".join(split_into_chunks(bytes_out, 7 * 32))
+            bytes_out = split_into_chunks(bytes_out, 7 * self._stall_interval)
+            bytes_out = "\n".join(bytes_out)
 
             ser.write(bytes_out.encode("ascii"))
 
