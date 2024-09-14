@@ -147,6 +147,7 @@ def test_uart_interface_dump():
             # will fail when it shouldn't.
             "clock_freq": 100000000.0,
             "chunk_size": 256,
+            "stall_interval": 16,
         }
     }
 
