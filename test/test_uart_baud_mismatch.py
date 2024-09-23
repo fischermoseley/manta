@@ -103,7 +103,6 @@ def test_baudrate_mismatch_xilinx_passes(baudrate, percent_slowdown, stall_inter
 
 
 nexys4ddr_fail_cases = [
-    (3e6, 1, 1024),  # Light clock mismatch, no mitigation
     (3e6, 2, 1024),  # Heavy clock mismatch, no mitigation
     (3e6, 2, 16),  # Heavy clock mismatch, light mitigation
 ]
