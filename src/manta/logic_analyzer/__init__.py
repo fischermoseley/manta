@@ -322,7 +322,7 @@ class LogicAnalyzerCapture:
             writer.writerow(names)
             writer.writerows(values_t)
 
-    def export_vcd(self, path):
+    def export_vcd(self, path, frequency):
         """
         Export the capture to a VCD file, containing the data of all probes in
         the core.
@@ -335,7 +335,15 @@ class LogicAnalyzerCapture:
         timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
         vcd_file = open(path, "w")
 
-        with VCDWriter(vcd_file, "10 ns", timestamp, "manta") as writer:
+        # Compute the timescale from the frequency of the provided clock
+        timescale_value = 0.5 / frequency
+        timescale_scale = 0
+        while timescale_value < 1.0:
+            timescale_scale += 1
+            timescale_value *= 10
+        timescale = ["1 s", "100 ms", "10 ms", "1 ms", "100 us", "10 us", "1 us", "100 ns", "10 ns", "1 ns"][timescale_scale]
+
+        with VCDWriter(vcd_file, timescale, timestamp, "manta") as writer:
             # Each probe has a name, width, and writer associated with it
             signals = []
             for name, width in self._config["probes"].items():
@@ -358,8 +366,10 @@ class LogicAnalyzerCapture:
 
             # Add the data to each probe in the vcd file
             for timestamp in range(0, 2 * len(self._data)):
+                # Calculate the nearest time step
+                ts = round(timestamp * timescale_value)
                 # Run the clock
-                writer.change(clock, timestamp, timestamp % 2 == 0)
+                writer.change(clock, ts, timestamp % 2 == 0)
 
                 # Set the trigger (if there is one)
                 if (
@@ -367,14 +377,14 @@ class LogicAnalyzerCapture:
                     or self._config["trigger_mode"] == "single_shot"
                 ):
                     triggered = (timestamp // 2) >= self.get_trigger_location()
-                    writer.change(trigger, timestamp, triggered)
+                    writer.change(trigger, ts, triggered)
 
                 # Add other signals
                 for signal in signals:
                     var = signal["var"]
                     sample = signal["data"][timestamp // 2]
 
-                    writer.change(var, timestamp, sample)
+                    writer.change(var, ts, sample)
 
         vcd_file.close()
 
