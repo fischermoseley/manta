@@ -138,6 +138,9 @@ class UARTInterface(Elaboratable):
         """
         return [self.rx, self.tx]
 
+    def get_frequency(self):
+        return self._clock_freq
+
     def read(self, addrs):
         """
         Read the data stored in a set of address on Manta's internal memory.

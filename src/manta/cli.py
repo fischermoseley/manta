@@ -96,7 +96,7 @@ def capture(config_path, logic_analyzer_name, export_paths):
 
     for path in export_paths:
         if ".vcd" in path:
-            cap.export_vcd(path)
+            cap.export_vcd(path, m.interface.get_frequency())
         elif ".csv" in path:
             cap.export_csv(path)
         elif ".v" in path:
