@@ -18,4 +18,4 @@ jobs:
           key: ${{ github.ref }}
           path: .cache
       - run: pip install mkdocs-material mike
-      - run: mike deploy --push latest
+      - run: mike deploy --push dev
