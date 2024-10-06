@@ -9,4 +9,4 @@ clean:
 	git clean -Xdf
 
 preview_site:
-	mkdocs serve
+	mike serve
