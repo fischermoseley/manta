@@ -25,7 +25,7 @@ logo = f"""
                         `------........------'
 
 
-Manta - An In-Situ Debugging Tool for Programmable Hardware
+Manta - A configurable and approachable tool for FPGA debugging and rapid prototyping
 Version {distribution("manta").version}
 https://github.com/fischermoseley/manta
 """

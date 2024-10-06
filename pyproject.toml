@@ -23,6 +23,7 @@ dev = [
   "codecov",
   "ruff",
   "mkdocs-material",
+  "mike",
   "amaranth_boards@git+https://github.com/amaranth-lang/amaranth-boards"
 ]
 
