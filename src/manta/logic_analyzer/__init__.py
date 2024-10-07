@@ -5,6 +5,8 @@ from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
 from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States, TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
+import math
+
 
 class LogicAnalyzerCore(MantaCore):
     """
@@ -330,20 +332,39 @@ class LogicAnalyzerCapture:
         the core.
         """
 
-        from vcd import VCDWriter
         from datetime import datetime
+
+        from vcd import VCDWriter
 
         # Use the same datetime format that iVerilog uses
         timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
         vcd_file = open(path, "w")
 
         # Compute the timescale from the frequency of the provided clock
-        timescale_value = 0.5 / self._interface.get_frequency()
-        timescale_scale = 0
-        while timescale_value < 1.0:
-            timescale_scale += 1
-            timescale_value *= 10
-        timescale = ["1 s", "100 ms", "10 ms", "1 ms", "100 us", "10 us", "1 us", "100 ns", "10 ns", "1 ns"][timescale_scale]
+        half_period = 1 / (2 * self._interface._clock_freq)
+        exponent = math.floor(math.log10(half_period))
+        exponent_eng = (exponent // 3) * 3
+
+        # The VCD file format specification supports no units larger or smaller
+        # than these
+        units = {
+            0: "s",
+            -3: "ms",
+            -6: "us",
+            -9: "ns",
+            -12: "ps",
+            -15: "fs",
+        }
+
+        timescale_unit = units[exponent_eng]
+        timescale_exponent = 10 ** (exponent - exponent_eng)
+        timescale_exact = half_period / (10**exponent)
+        timescale_integer = round(timescale_exact)
+
+        if abs(timescale_exact - timescale_integer) > 1e-3:
+            warn("VCD file timescale will differ slightly from exact clock frequency.")
+
+        timescale = (timescale_exponent, timescale_unit)
 
         with VCDWriter(vcd_file, timescale, timestamp, "manta") as writer:
             # Each probe has a name, width, and writer associated with it
@@ -367,26 +388,26 @@ class LogicAnalyzerCapture:
                 trigger = writer.register_var("manta", "trigger", "wire", size=1)
 
             # Add the data to each probe in the vcd file
-            for timestamp in range(0, 2 * len(self._data)):
-                # Calculate the nearest time step
-                ts = round(timestamp * timescale_value)
+            for sample_index in range(0, 2 * len(self._data)):
+                sample_timestamp = timescale_integer * sample_index
+
                 # Run the clock
-                writer.change(clock, ts, timestamp % 2 == 0)
+                writer.change(clock, sample_timestamp, sample_index % 2 == 0)
 
                 # Set the trigger (if there is one)
                 if (
                     "trigger_mode" not in self._config
                     or self._config["trigger_mode"] == "single_shot"
                 ):
-                    triggered = (timestamp // 2) >= self.get_trigger_location()
-                    writer.change(trigger, ts, triggered)
+                    triggered = (sample_index // 2) >= self.get_trigger_location()
+                    writer.change(trigger, sample_timestamp, triggered)
 
                 # Add other signals
                 for signal in signals:
                     var = signal["var"]
-                    sample = signal["data"][timestamp // 2]
+                    sample = signal["data"][sample_index // 2]
 
-                    writer.change(var, ts, sample)
+                    writer.change(var, sample_timestamp, sample)
 
         vcd_file.close()
 
