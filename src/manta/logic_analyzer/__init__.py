@@ -20,6 +20,7 @@ class LogicAnalyzerCore(MantaCore):
 
     def __init__(self, config, base_addr, interface):
         self._config = config
+        self._interface = interface
         self._check_config()
 
         # Bus Input/Output
@@ -31,9 +32,9 @@ class LogicAnalyzerCore(MantaCore):
         ]
 
         # Submodules
-        self._fsm = LogicAnalyzerFSM(self._config, base_addr, interface)
+        self._fsm = LogicAnalyzerFSM(self._config, base_addr, self._interface)
         self._trig_blk = LogicAnalyzerTriggerBlock(
-            self._probes, self._fsm.get_max_addr() + 1, interface
+            self._probes, self._fsm.get_max_addr() + 1, self._interface
         )
 
         self._sample_mem = MemoryCore(
@@ -41,7 +42,7 @@ class LogicAnalyzerCore(MantaCore):
             width=sum(self._config["probes"].values()),
             depth=self._config["sample_depth"],
             base_addr=self._trig_blk.get_max_addr() + 1,
-            interface=interface,
+            interface=self._interface,
         )
 
     @property
@@ -254,7 +255,7 @@ class LogicAnalyzerCore(MantaCore):
         read_pointer = self._fsm.registers.get_probe("read_pointer")
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]
-        return LogicAnalyzerCapture(data, self._config)
+        return LogicAnalyzerCapture(data, self._config, self._interface)
 
 
 class LogicAnalyzerCapture:
@@ -264,9 +265,10 @@ class LogicAnalyzerCapture:
     CSV file, or a Verilog module.
     """
 
-    def __init__(self, data, config):
+    def __init__(self, data, config, interface):
         self._data = data
         self._config = config
+        self._interface = interface
 
     def get_trigger_location(self):
         """
@@ -322,7 +324,7 @@ class LogicAnalyzerCapture:
             writer.writerow(names)
             writer.writerows(values_t)
 
-    def export_vcd(self, path, frequency):
+    def export_vcd(self, path):
         """
         Export the capture to a VCD file, containing the data of all probes in
         the core.
@@ -336,7 +338,7 @@ class LogicAnalyzerCapture:
         vcd_file = open(path, "w")
 
         # Compute the timescale from the frequency of the provided clock
-        timescale_value = 0.5 / frequency
+        timescale_value = 0.5 / self._interface.get_frequency()
         timescale_scale = 0
         while timescale_value < 1.0:
             timescale_scale += 1
