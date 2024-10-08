@@ -14,11 +14,12 @@ class LogicAnalyzerCapture:
     CSV file, or a Verilog module.
     """
 
-    def __init__(self, probes, trigger_location, trigger_mode, data):
+    def __init__(self, probes, trigger_location, trigger_mode, data, interface):
         self._probes = probes
         self._trigger_location = trigger_location
         self._trigger_mode = trigger_mode
         self._data = data
+        self._interface = interface
 
     def get_trigger_location(self):
         """

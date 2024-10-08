@@ -317,5 +317,9 @@ class LogicAnalyzerCore(MantaCore):
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]
         return LogicAnalyzerCapture(
-            self._probes, self._trigger_location, self._trigger_mode, data
+            self._probes,
+            self._trigger_location,
+            self._trigger_mode,
+            data,
+            self.interface,
         )
