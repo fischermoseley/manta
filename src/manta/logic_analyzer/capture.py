@@ -1,3 +1,8 @@
+import math
+from datetime import datetime
+
+from vcd import VCDWriter
+
 from manta.logic_analyzer.fsm import TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 
@@ -96,10 +101,6 @@ class LogicAnalyzerCapture:
             None
         """
 
-        from datetime import datetime
-
-        from vcd import VCDWriter
-
         # Compute the timescale from the frequency of the provided clock
         half_period = 1 / (2 * self._interface._clock_freq)
         exponent = math.floor(math.log10(half_period))
@@ -158,7 +159,7 @@ class LogicAnalyzerCapture:
                 # Set the trigger (if there is one)
                 if self._trigger_mode == TriggerModes.SINGLE_SHOT:
                     triggered = (sample_index // 2) >= self._trigger_location
-                    writer.change(trigger, sample_timestep, triggered)
+                    writer.change(trigger, sample_timestamp, triggered)
 
                 # Add other signals
                 for signal in signals:

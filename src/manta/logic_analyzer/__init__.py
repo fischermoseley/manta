@@ -6,8 +6,6 @@ from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
 from manta.memory_core import MemoryCore
 from manta.utils import *
 
-import math
-
 
 class LogicAnalyzerCore(MantaCore):
     """
