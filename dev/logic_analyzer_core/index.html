@@ -52,6 +52,8 @@
       
     
     
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
       <link rel="stylesheet" href="../stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
@@ -147,7 +149,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
     
       <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -157,7 +159,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
     
       <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -167,7 +169,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="custom"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
     
       <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
       </label>
     
   
@@ -178,43 +180,6 @@
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
-    
-      <label class="md-header__button md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-      </label>
-      <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
     
     
       <div class="md-header__source">
@@ -343,11 +308,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../alternatives/" class="md-nav__link">
+      <a href="../use_cases/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Alternatives
+    Use Cases
   </span>
   
 
@@ -380,6 +345,26 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../similar_tools/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Similar Tools
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -397,24 +382,24 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   <span class="md-ellipsis">
-    Usage
+    Cores
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
-            Usage
+            Cores
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -507,18 +492,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sample-depth" class="md-nav__link">
+  <a href="#verilog-based-workflows" class="md-nav__link">
     <span class="md-ellipsis">
-      Sample Depth
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#probes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Probes
+      Verilog-Based Workflows
     </span>
   </a>
   
@@ -534,18 +510,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#trigger-position-optional" class="md-nav__link">
+  <a href="#trigger-location-optional" class="md-nav__link">
     <span class="md-ellipsis">
-      Trigger Position (optional)
+      Trigger Location (optional)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#capture-modes-optional" class="md-nav__link">
+  <a href="#trigger-modes-optional" class="md-nav__link">
     <span class="md-ellipsis">
-      Capture Modes (optional)
+      Trigger Modes (optional)
     </span>
   </a>
   
@@ -590,11 +566,143 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-api" class="md-nav__link">
+  <a href="#python-api-documentation" class="md-nav__link">
     <span class="md-ellipsis">
-      Python API
+      Python API Documentation
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Python API Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCore" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LogicAnalyzerCore
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LogicAnalyzerCore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCore.capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;capture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCore.set_triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;set_triggers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LogicAnalyzerCapture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LogicAnalyzerCapture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.export_csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;export_csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.export_playback_verilog" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;export_playback_verilog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.export_vcd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;export_vcd
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.get_playback_module" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_playback_module
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.get_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_trace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.get_trigger_location" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_trigger_location
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerPlayback" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LogicAnalyzerPlayback
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LogicAnalyzerPlayback">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerPlayback.get_top_level_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_top_level_ports
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -627,6 +735,55 @@
   
 
               
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Interfaces
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Interfaces
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -698,10 +855,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -712,33 +869,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             For Developers
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../repository_structure/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Repository Structure
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -812,18 +948,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sample-depth" class="md-nav__link">
+  <a href="#verilog-based-workflows" class="md-nav__link">
     <span class="md-ellipsis">
-      Sample Depth
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#probes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Probes
+      Verilog-Based Workflows
     </span>
   </a>
   
@@ -839,18 +966,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#trigger-position-optional" class="md-nav__link">
+  <a href="#trigger-location-optional" class="md-nav__link">
     <span class="md-ellipsis">
-      Trigger Position (optional)
+      Trigger Location (optional)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#capture-modes-optional" class="md-nav__link">
+  <a href="#trigger-modes-optional" class="md-nav__link">
     <span class="md-ellipsis">
-      Capture Modes (optional)
+      Trigger Modes (optional)
     </span>
   </a>
   
@@ -895,11 +1022,143 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#python-api" class="md-nav__link">
+  <a href="#python-api-documentation" class="md-nav__link">
     <span class="md-ellipsis">
-      Python API
+      Python API Documentation
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Python API Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCore" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LogicAnalyzerCore
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LogicAnalyzerCore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCore.capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;capture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCore.set_triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;set_triggers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LogicAnalyzerCapture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LogicAnalyzerCapture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.export_csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;export_csv
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.export_playback_verilog" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;export_playback_verilog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.export_vcd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;export_vcd
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.get_playback_module" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_playback_module
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.get_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_trace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerCapture.get_trigger_location" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_trigger_location
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerPlayback" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LogicAnalyzerPlayback
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LogicAnalyzerPlayback">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.LogicAnalyzerPlayback.get_top_level_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_top_level_ports
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -924,11 +1183,13 @@
   <h1>Logic Analyzer Core</h1>
 
 <h2 id="overview">Overview</h2>
-<p>The Logic Analyzer core allows for debugging logic by capturing a set of digital signals to memory. This is done in response to a <strong><em>trigger</em></strong> condition, which starts the <strong><em>capture</em></strong>, which continues until the onboard memory is full, and the resulting capture is then read out to the user.</p>
-<p>While this is pretty much identical to the behavior of a benchtop logic analyzer, Manta has a few tricks up its sleeve that you may find useful! These are described below:</p>
+<p>The Logic Analyzer core allows for debugging logic by capturing a set of digital signals to memory. This is done in response to a <strong><em>trigger</em></strong> condition, which starts a <strong><em>capture</em></strong>, which continues until the onboard memory is full. The resulting data is then read out to the host machine, and can be displayed as a waveform, exported as a CSV file, or turned into a synthesizable playback module.</p>
+<p>This is very similar to the behavior of a benchtop logic analyzer, but Manta's Logic Analyzer Core includes some extra features you may find useful. Both the <a href="../use_cases">Use Cases</a> page and the repository's <a href="https://github.com/fischermoseley/manta/tree/main/examples">examples</a> folder contain examples of the Logic Analyzer Core for your reference.</p>
 <h2 id="configuration">Configuration</h2>
-<p>Just like the rest of the cores, the Logic Analyzer core is configured via an entry in a project's configuration file. This is easiest to show by example:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">---</span>
+<p>As explained in the <a href="../getting_started">getting started</a> page, the Logic Analyzer Core must be configured and included in the FPGA design before it can be operated. Configuration is performed differently depending on if you're using a traditional Verilog-based workflow, or if you're building an Amaranth-native design.</p>
+<h3 id="verilog-based-workflows">Verilog-Based Workflows</h3>
+<p>The Logic Analyzer Core is used by adding an entry in a <code>cores</code> section of a configuration file. This is best shown by example:</p>
+<p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">---</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">cores</span><span class="p">:</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">my_logic_analyzer</span><span class="p">:</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logic_analyzer</span>
@@ -944,15 +1205,17 @@
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">moe RISING</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">curly FALLING</span>
 </span></code></pre></div>
-<p>There's a few parameters that get configured here, including:</p>
+Inside this configuration, the following parameters may be set:</p>
 <ul>
-<li><code>name</code>: The name of the Logic Analyzer core. This name is used to reference the core when working with the API, and can be whatever you'd like.</li>
-<li><code>type</code>: This denotes that this is a Logic Analyzer core. All cores contain a <code>type</code> field, which must be set to <code>logic_analyzer</code> to be recognized as an Logic Analyzer core.</li>
+<li><code>name</code><em>(required)</em>: The name of the Logic Analyzer core, which is used when working with the API.</li>
+<li><code>type</code><em>(required)</em>: This denotes that this is a Logic Analyzer core. All cores contain a <code>type</code> field, which must be set to <code>logic_analyzer</code> to be recognized as an Logic Analyzer core.</li>
+<li><code>sample_depth</code><em>(required)</em>: The number of samples saved in the capture. A larger sample depth will use more FPGA resources, but will show what the probes are doing over a longer time interval.</li>
+<li><code>probes</code> <em>(required)</em>: The signals in your logic that the Logic Analyzer connects to. Each probe is specified with a name and a width.</li>
 </ul>
-<h3 id="sample-depth">Sample Depth</h3>
-<p>This refers to the number of samples saved in the capture, and is set with the <code>sample_depth</code> entry in the config file. A larger sample depth will use more resources, but show what your probes are doing over a longer time.</p>
-<h3 id="probes">Probes</h3>
-<p>Probes are the signals in your logic that the Logic Analyzer connects to, and are specified in the <code>probes</code> entry of the config file. Each probe requires both a name and a width to be specified. These names can be whatever you'd like, however they are referenced in the autogenerated Verilog - so don't use something your synthesis engine won't appreciate.</p>
+<div class="admonition warning">
+<p class="admonition-title">Name things carefully!</p>
+<p>The names of the core and its probes are referenced in the autogenerated Verilog. This means that while the names can be arbitrary, they must be unique within your project and not contain any characters that your synthesis engine won't appreciate.</p>
+</div>
 <h3 id="triggers">Triggers</h3>
 <p>Triggers are the conditions that your logic must meet in order to start a capture, and they're specified under the <code>triggers</code> entry in the config file. Manta's triggers are reprogrammable, meaning you don't need to rebuild your source code to change the trigger condition - just updating the configuration file is enough. If multiple triggers are provided, any one trigger being met will trigger the entire core.</p>
 <p>Each individual trigger is specified with the following structure:</p>
@@ -983,22 +1246,21 @@
 <p><strong>argument</strong>: A constant to compare against, if the operation specified requires one. On the FPGA, the argument will have just as many bits as the probe width.</p>
 </li>
 </ul>
-<p>Lastly, if you're not able to express your desired trigger condition in terms of the operators above, fear not! You can also specify an <code>external_trigger: true</code> entry in the config file, which exposes an input on Manta's top level for your own trigger.</p>
-<h3 id="trigger-position-optional">Trigger Position (optional)</h3>
-<p>Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accommodate this, the logic analyzer has an optional <em>Trigger Position</em> parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the <code>trigger_position</code> entry in the configuration file, which sets how many samples to save prior to the trigger condition occurring. This is similar to a "holdoff" option on a traditional oscilloscope or logic analyzer.</p>
+<h3 id="trigger-location-optional">Trigger Location (optional)</h3>
+<p>Sometimes, you care more about what happens before a trigger is met than afterwards, or vice versa. To accommodate this, the logic analyzer has an optional <em>Trigger Location</em> parameter, which sets when probe data is captured relative to the trigger condition being met. This is specified with the <code>trigger_position</code> entry in the configuration file, which sets how many samples to save prior to the trigger condition occurring. This is similar to a "holdoff" option on a traditional oscilloscope or logic analyzer.</p>
 <p>If <code>trigger_position</code> is not specified, Manta will default to centering the capture window around the trigger condition. This results in just as many samples before the trigger as after.</p>
-<h3 id="capture-modes-optional">Capture Modes (optional)</h3>
-<p>The logic analyzer has a few different ways of capturing data, which are represented by the <em>capture modes</em> below:</p>
+<h3 id="trigger-modes-optional">Trigger Modes (optional)</h3>
+<p>The logic analyzer has a few different ways of capturing data, which are represented by the <em>trigger modes</em> below:</p>
 <ul>
 <li><strong>Single-Shot</strong>: Once the trigger condition is met, record the value of the probes on every clock cycle in a continuous single shot.</li>
 <li><strong>Incremental</strong>: Record samples when the trigger condition is met, but <strong>don't</strong> record the samples when the trigger condition is not met. This is super useful for applications like audio processing or memory controllers, where there are many system clock cycles between signals of interest.</li>
 <li><strong>Immediate</strong>: Record the value of the probes on every clock cycle, beginning immediately, and regardless of if the trigger condition is met. This is useful for investigating cases where a trigger condition is never being met (such as latchup or deadlock conditions) or obtaining a random snapshot of the FPGA's state.</li>
 </ul>
-<p>Most logic analyzers use a single-shot capture by default, so Manta will do the same if no <code>capture_mode</code> entry is provided in the project's configuration file.</p>
+<p>Manta will use an <code>Immediate</code> trigger mode if no <code>trigger_mode</code> is provided in the configuration file.</p>
 <h2 id="usage">Usage</h2>
 <h3 id="capturing-data">Capturing Data</h3>
 <p>Once you have your Logic Analyzer core on the FPGA, you can capture data with:</p>
-<p><div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>manta<span class="w"> </span>capture<span class="w"> </span><span class="o">[</span>config<span class="w"> </span>file<span class="o">]</span><span class="w"> </span><span class="o">[</span>LA<span class="w"> </span>core<span class="o">]</span><span class="w"> </span><span class="o">[</span>output<span class="w"> </span>filename<span class="o">]</span><span class="w"> </span><span class="o">[[</span>additional<span class="w"> </span>output<span class="w"> </span>filenames<span class="o">]</span>...<span class="o">]</span>
+<p><div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>manta<span class="w"> </span>capture<span class="w"> </span><span class="o">[</span>config_file<span class="o">]</span><span class="w"> </span><span class="o">[</span>la_core_name<span class="o">]</span><span class="w"> </span><span class="o">[</span>output<span class="w"> </span>path<span class="o">]</span><span class="w"> </span><span class="o">[[</span>additional<span class="w"> </span>output<span class="w"> </span>paths<span class="o">]</span>...<span class="o">]</span>
 </span></code></pre></div>
 The capture may be exported as either a VCD or CSV file. If <code>manta.yaml</code> contained the configuration at the top of this page, then the following would export a .vcd file containing the captured waveform:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>manta<span class="w"> </span>capture<span class="w"> </span>manta.yaml<span class="w"> </span>my_logic_analyzer<span class="w"> </span>capture.vcd
@@ -1019,8 +1281,458 @@ The capture may be exported as either a VCD or CSV file. If <code>manta.yaml</co
 <p><em>Sparse Sampling.</em> Sometimes designs will have a small number of inputs, but a huge amount of internal state. In situations like these, it may be more efficient to sample the inputs and simulate the logic, instead of directly sampling the state. For instance, debugging a misbehaving branch predictor in a CPU can be done by recording activity on the address and data busses and playing them back in simulation - which would use less FPGA resources than sampling the entire pattern history table.</p>
 </li>
 </ul>
-<h2 id="python-api">Python API</h2>
-<p>The Logic Analyzer core functionality is stored in the <code>Manta.LogicAnalyzerCore</code> class in <a href="https://github.com/fischermoseley/manta/blob/main/src/manta/logic_analyzer/__init__.py">src/manta/logic_analyzer/__init__.py</a>. This class contains methods for capturing data, exporting it as <code>.vcd</code>, <code>.v</code> or <code>.csv</code> files, or as a Python list.</p>
+<h2 id="python-api-documentation">Python API Documentation</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="manta.LogicAnalyzerCore" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">manta.LogicAnalyzerCore</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">LogicAnalyzerCore</span><span class="p">(</span><span class="n">sample_depth</span><span class="p">,</span> <span class="n">probes</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+        <p>A module for generating a logic analyzer on the FPGA, with configurable
+triggers, trigger position, and trigger modes.</p>
+<p>Provides methods for generating synthesizable logic for the FPGA, as well
+as methods for reading and writing the value of a register.</p>
+
+        <p>Create a Logic Analyzer Core with the given probes and sample depth.</p>
+<p>This function is the main mechanism for configuring a Logic Analyzer in
+an Amaranth-native design.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>sample_depth</code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>The number of samples saved in the capture. A
+larger sample depth will use more FPGA resources, but will show
+what the probes are doing over a longer time interval.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>probes</code></b>
+              (<code>List[Signal]</code>)
+          –
+          <div class="doc-md-description">
+            <p>The signals in your logic that the Logic
+Analyzer connects to. Each probe is specified with a name and
+a width.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCore.capture" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">capture</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">capture</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Performs a capture, recording the state of all probes to memory.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+<b><code>capture</code></b> (              <code><a class="autorefs autorefs-internal" title="manta.logic_analyzer.capture.LogicAnalyzerCapture" href="#manta.LogicAnalyzerCapture">LogicAnalyzerCapture</a></code>
+)          –
+          <div class="doc-md-description">
+            <p>A LogicAnalyzerCapture object
+containing the capture and its metadata.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCore.set_triggers" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">set_triggers</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">set_triggers</span><span class="p">(</span><span class="n">trigger_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_location</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>trigger_mode</code></b>
+              (<code>TriggerMode | str</code>, default:
+                  <code>None</code>
+)
+          –
+          <div class="doc-md-description">
+            
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>triggers</code></b>
+              (<code>Optional[Sequence[Sequence[str | int]]]</code>, default:
+                  <code>None</code>
+)
+          –
+          <div class="doc-md-description">
+            
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>trigger_location</code></b>
+              (<code>Optional[int]</code>, default:
+                  <code>None</code>
+)
+          –
+          <div class="doc-md-description">
+            
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="manta.LogicAnalyzerCapture" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">manta.LogicAnalyzerCapture</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">LogicAnalyzerCapture</span><span class="p">(</span><span class="n">probes</span><span class="p">,</span> <span class="n">trigger_location</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+        <p>A container class for the data collected by a LogicAnalyzerCore. Contains
+methods for exporting the data as a VCD waveform file, a Python list, a
+CSV file, or a Verilog module.</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCapture.export_csv" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">export_csv</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the capture to a CSV file.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>path</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Path to the destination file.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          –
+          <div class="doc-md-description">
+            <p>None</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCapture.export_playback_verilog" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">export_playback_verilog</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export_playback_verilog</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Exports a Verilog module that will playback the captured data. This
+module is synthesizable, so it may be used in either simulation or
+on the FPGA directly by including it your build process.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCapture.export_vcd" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">export_vcd</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">export_vcd</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Export the capture to a VCD file.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>path</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>Path to the destination file.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          –
+          <div class="doc-md-description">
+            <p>None</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCapture.get_playback_module" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_playback_module</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_playback_module</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Returns an Amaranth module that will playback the captured data. This
+module is synthesizable, so it may be used in either simulation or
+on the FPGA directly by including it your build process.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCapture.get_trace" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_trace</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_trace</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Gets the value of a single probe over the capture.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>name</code></b>
+              (<code>str</code>)
+          –
+          <div class="doc-md-description">
+            <p>The name of the probe.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+<b><code>data</code></b> (              <code>List[int]</code>
+)          –
+          <div class="doc-md-description">
+            <p>The value of the probe at every timestep,
+interpreted as an unsigned integer. Has length equal to
+the <code>sample_depth</code> of the core that produced the capture.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerCapture.get_trigger_location" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_trigger_location</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_trigger_location</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Returns the location of the trigger in the capture. This will match the
+value of "trigger_location" provided in the configuration file at the
+time of capture.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="manta.LogicAnalyzerPlayback" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">manta.LogicAnalyzerPlayback</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">LogicAnalyzerPlayback</span><span class="p">(</span><span class="n">probes</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+        <p>A synthesizable module that plays back data captured by a
+LogicAnalyzerCore. Takes a list of all the samples captured by a core,
+along with the config of the core used to take it.</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.LogicAnalyzerPlayback.get_top_level_ports" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_top_level_ports</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_top_level_ports</span><span class="p">()</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Returns the Amaranth signals that should be included as ports in the
+exported Verilog module.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 

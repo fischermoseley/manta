@@ -50,6 +50,8 @@
       
     
     
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
       <link rel="stylesheet" href="stylesheets/extra.css">
     
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
@@ -145,7 +147,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
     
       <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -155,7 +157,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
     
       <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -165,7 +167,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="custom"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
     
       <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
       </label>
     
   
@@ -176,43 +178,6 @@
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
-    
-      <label class="md-header__button md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-      </label>
-      <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
     
     
       <div class="md-header__source">
@@ -329,39 +294,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#logic-analyzer-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      Logic Analyzer Core
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#io-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      I/O Core
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#memory-cores" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Cores
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -428,11 +360,11 @@
   
   
     <li class="md-nav__item">
-      <a href="alternatives/" class="md-nav__link">
+      <a href="use_cases/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Alternatives
+    Use Cases
   </span>
   
 
@@ -467,6 +399,26 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="similar_tools/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Similar Tools
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -482,24 +434,24 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   <span class="md-ellipsis">
-    Usage
+    Cores
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
-            Usage
+            Cores
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -565,6 +517,55 @@
   
 
               
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Interfaces
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Interfaces
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -636,10 +637,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -650,33 +651,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             For Developers
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="repository_structure/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Repository Structure
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -737,39 +717,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#logic-analyzer-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      Logic Analyzer Core
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#io-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      I/O Core
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#memory-cores" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Cores
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -803,48 +750,12 @@
 
 <p><img alt="" src="assets/logo.png" /></p>
 <h2 id="manta-a-configurable-and-approachable-tool-for-fpga-debugging-and-rapid-prototyping">Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping</h2>
-<p>Manta is a tool for moving data between a host machine and a FPGA over UART or Ethernet. It's primarily intended for debugging and rapid prototyping of FPGA designs, but it's robust enough to be used as a simple, reliable transport layer.</p>
-<p>Manta works by generating a number of cores that are instantiated in the FPGA design. These allow for a variety of functions, such as reading and writing to registers and memory, or capturing data with a logic analyzer. These cores are operated by the connected host machine through either the Manta CLI, or a simple Python API.</p>
-<p>Manta is written in Amaranth HDL, and the generated designs may be used natively in other Amaranth designs, or exported to vendor-agnostic Verilog-2001. All dependencies are cross-platform, so Manta can be used on any machine that has at least Python 3.8 or newer installed.</p>
-<p>Manta's capabilities are best reflected in its cores, for which a brief description of each is provided below:</p>
-<h3 id="logic-analyzer-core"><strong>Logic Analyzer Core</strong></h3>
-<p><em>More details available on the <a href="logic_analyzer_core/">full documentation page</a>.</em></p>
-<p>This core captures a timeseries of digital signals from within the FPGA, much like a benchtop logic analyzer would. This captures data on the FPGA's native clock and presents it as a waveform, making it very useful for debugging logic cycle-by-cycle. This concept is very similar to the Xilinx <a href="https://docs.xilinx.com/r/en-US/ug908-vivado-programming-debugging/ILA">Integrated Logic Analyzer (ILA)</a> and Intel <a href="https://www.intel.com/content/www/us/en/docs/programmable/683819/21-3/logic-analyzer-introduction.html">SignalTap</a> utilities.</p>
-<p>You may find this core useful for:</p>
-<ul>
-<li>
-<p><em>Verifying specification adherence for connected hardware</em> - for instance, you're writing a S/PDIF decoder that works in simulation, but fails in hardware. The logic analyzer core can record a cycle-by-cycle capture of what's coming off the cable, letting you verify that your input signals are what you expect. Even better, Manta will let you play that capture back in your preferred simulator, letting you feed the exact same inputs to your module in simulation and check your logic.</p>
-</li>
-<li>
-<p><em>Capturing arbitrary data</em> - you're working on a DSP project, and you'd like to grab some test data from your onboard ADCs to start prototyping your signal processing with. Manta will grab that data, and export it for you.</p>
-</li>
-</ul>
-<h3 id="io-core"><strong>I/O Core</strong></h3>
-<p><em>More details available on the <a href="io_core/">full documentation page</a>.</em></p>
-<p>This core presents a series of user-accessbile registers to the FPGA fabric, which may be configured as either inputs or outputs. The value of an input register can be read off the FPGA by the host machine, and the value of an output register on the FPGA may be set by the host machine. This is handy for getting small amounts of information into and out of the FPGA, debugging, configuration, or experimentation. This concept is very similar to the Xilinx <a href="https://docs.xilinx.com/v/u/en-US/pg159-vio">Virtual IO</a> and Intel <a href="https://www.intel.com/content/www/us/en/docs/programmable/683552/18-1/in-system-sources-and-probes-66964.html">In-System Sources and Probes</a> tools.</p>
-<p>You may find this core useful for:</p>
-<ul>
-<li>
-<p><em>Prototyping designs in Python, and incrementally migrating them to hardware</em> - you're working on some real-time signal processing, but you want to prototype it with some sample data in Numpy before meticulously implementing everything in Verilog.</p>
-</li>
-<li>
-<p><em>Making dashboards</em> - you'd like to get some telemetry out of your existing FPGA design and display it nicely, but you don't want to implement an interface, design a packetization scheme, and write a library.</p>
-</li>
-</ul>
-<h3 id="memory-cores"><strong>Memory Cores</strong></h3>
-<p><em>More details available on the <a href="memory_core/">full documentation page</a>.</em></p>
-<p>This core creates a two-port block memory on the FPGA, and gives one port to the host machine, and the other to your logic on the FPGA. The width and depth of this block memory is configurable, allowing large chunks of arbitrarily-sized data to be shuffled onto and off of the FPGA by the host machine, via the Python API. This lets you establish a transport layer between the host and FPGA, that treats the data as exactly how it exists on the FPGA.</p>
-<p>You may find this core useful for:</p>
-<ul>
-<li>
-<p><em>Moving data between a host and connected FPGA</em> - you're working on a cool new machine learning accelerator, but you don't want to think about how to get training data and weights out of TensorFlow, and into your core.</p>
-</li>
-<li>
-<p><em>Hand-tuning ROMs</em> - you're designing a digital filter for a DSP project and would like to tune it in real-time, or you're developing a soft processor and want to upload program code without rebuilding a bitstream.</p>
-</li>
-</ul>
+<p>Manta is a tool for rapidly prototyping and debugging FPGA designs. It works by providing a Manta module which is included in a FPGA design, which itself contains a number of <em>cores</em> - small, configurable debugging blocks that each provide some functionality. These cores are then connected to your design, and allow you to interface with it from a connected host machine.</p>
+<p>These cores include functionality such as register reads/writes, memory accesses, and an embedded logic analyzer. Manta includes both a UART and Ethernet (via UDP) interface for communication between the host and FPGA.</p>
+<p>For more information on how Manta can be used, please refer to the <a href="../use_cases">Use Cases</a> page and the repository's <a href="https://github.com/fischermoseley/manta/tree/main/examples">examples</a> folder.</p>
+<p>Manta specifies its RTL logic with <a href="https://github.com/amaranth-lang/amaranth">Amaranth</a> which allows it to target nearly any FPGA device, regardless of vendor. Manta itself is written in pure Python, which allows it to run on Windows, macOS, Linux, and BSD across a variety of CPU architectures. Manta can be included natively in Amaranth-based designs, or export Verilog-2001 for use in traditional Verilog-based workflows.</p>
 <h2 id="about">About</h2>
-<p>Manta and its source code are released under a <a href="https://github.com/fischermoseley/manta/blob/main/LICENSE.txt">GPLv3 license</a>, and it was originally developed as part of my <a href="https://hdl.handle.net/1721.1/151223">Master's Thesis at MIT</a> in 2023, done under the supervision of <a href="https://www.jodalyst.com/">Dr. Joe Steinmeyer</a>. The thesis itself is copyrighted by Fischer Moseley (me!), but feel free to use the following Bibtex if you'd like to cite it:</p>
+<p>Manta and its source code are released under a <a href="https://github.com/fischermoseley/manta/blob/main/LICENSE.txt">GPLv3 license</a>, and it was originally developed as part of my <a href="https://hdl.handle.net/1721.1/151223">Master's Thesis at MIT</a> in 2023, done under the supervision of <a href="https://www.jodalyst.com/">Dr. Joe Steinmeyer</a>. The following Bibtex is available if you wish to cite it:</p>
 <div class="language-bibtex highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nc">@misc</span><span class="p">{</span><span class="nl">manta2023</span><span class="p">,</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="na">author</span><span class="p">=</span><span class="s">{Fischer Moseley}</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="na">title</span><span class="p">=</span><span class="s">{Manta: An In-Situ Debugging Tool for Programmable Hardware}</span><span class="p">,</span>

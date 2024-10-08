@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://fischermoseley.github.io/manta/dev/io_core/">
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="../similar_tools/">
       
       
         <link rel="next" href="../logic_analyzer_core/">
@@ -51,6 +51,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
       <link rel="stylesheet" href="../stylesheets/extra.css">
     
@@ -147,7 +149,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
     
       <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -157,7 +159,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
     
       <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -167,7 +169,7 @@
     <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="custom"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
     
       <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
       </label>
     
   
@@ -178,43 +180,6 @@
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     
-    
-      <label class="md-header__button md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-      </label>
-      <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
     
     
       <div class="md-header__source">
@@ -343,11 +308,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../alternatives/" class="md-nav__link">
+      <a href="../use_cases/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Alternatives
+    Use Cases
   </span>
   
 
@@ -380,6 +345,26 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../similar_tools/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Similar Tools
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -397,24 +382,24 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   <span class="md-ellipsis">
-    Usage
+    Cores
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
-            Usage
+            Cores
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -482,22 +467,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#python-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Python API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Python API">
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#verilog-based-workflows" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
+      Verilog-Based Workflows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amaranth-native-designs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Amaranth-Native Designs
     </span>
   </a>
   
@@ -509,11 +494,59 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
+  <a href="#operation" class="md-nav__link">
     <span class="md-ellipsis">
-      Limitations
+      Operation
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-api-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python API Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python API Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.IOCore" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;IOCore
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" IOCore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.IOCore.get_probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_probe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.IOCore.set_probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;set_probe
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -567,6 +600,55 @@
   
 
               
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Interfaces
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Interfaces
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -638,10 +720,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -652,33 +734,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             For Developers
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../repository_structure/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Repository Structure
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -748,22 +809,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#python-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Python API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Python API">
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#verilog-based-workflows" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
+      Verilog-Based Workflows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amaranth-native-designs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Amaranth-Native Designs
     </span>
   </a>
   
@@ -775,11 +836,59 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
+  <a href="#operation" class="md-nav__link">
     <span class="md-ellipsis">
-      Limitations
+      Operation
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-api-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python API Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python API Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.IOCore" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;IOCore
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" IOCore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#manta.IOCore.get_probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_probe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manta.IOCore.set_probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;set_probe
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -804,82 +913,267 @@
   <h1>IO Core</h1>
 
 <h2 id="overview">Overview</h2>
-<p>Registers are a fundamental building block of digital hardware, and the IO core provides a simple way of interacting with them from the host machine. It allows you to define a set of inputs and outputs of arbitrary width, and then set values to the outputs and read values from the inputs.</p>
-<p>This is a very, very simple task - and while configuration is straightforward, there are a few caveats. More on both topics below:</p>
+<p>Registers are a fundamental building block of digital hardware, and the IO core provides a simple way of interacting with them from the host machine. It allows you to define inputs and outputs of arbitrary width, and then write values to the outputs and read values from the inputs.</p>
+<p>This is a very, very simple task - however it's surprisingly useful in practice. Both the <a href="../use_cases">Use Cases</a> page and the repository's <a href="https://github.com/fischermoseley/manta/tree/main/examples">examples</a> folder contain examples of the IO Core for your reference.</p>
+<div class="admonition warning">
+<p class="admonition-title">It's not instantaneous!</p>
+<p>If you're trying to read or write values in your design with cycle-accurate timing, this will not do that for you. The time taken by Python to evaluate an expression is not constant, nor is the amount of time it takes for your OS to put bytes on the wire. If you need cycle-accurate timing, the <a href="../logic_analyzer_core/">Logic Analyzer Core</a> and it's <a href="../logic_analyzer_core/#playback">Playback feature</a> may be helpful.</p>
+</div>
 <h2 id="configuration">Configuration</h2>
-<p>Just like the rest of the cores, the IO core is configured via an entry in a project's configuration file. This is easiest to show by example:</p>
+<p>As explained in the <a href="../getting_started">getting started</a> page, the IO Core must be configured and included in the FPGA design before it can be operated. Configuration is performed differently depending on if you're using a traditional Verilog-based workflow, or if you're building an Amaranth-native design.</p>
+<h3 id="verilog-based-workflows">Verilog-Based Workflows</h3>
+<p>The IO Core is used by adding an entry in a <code>cores</code> section of a configuration file. This is best shown by example:</p>
 <p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nn">---</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">my_io_core</span><span class="p">:</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">inputs</span><span class="p">:</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">kermit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">piggy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">animal</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">38</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">scooter</span><span class="p">:</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">initial_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">13</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nt">outputs</span><span class="p">:</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="nt">fozzy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">gonzo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nt">user_clock</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">cores</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">my_io_core</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">kermit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">piggy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">animal</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">38</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">scooter</span><span class="p">:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="nt">initial_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">13</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">fozzy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">gonzo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 </span></code></pre></div>
-Inside this configuration, the following parameters may be configured:</p>
+Inside this configuration, the following parameters may be set:</p>
 <ul>
-<li><code>name</code> <em>(required)</em>: The name of the IO core. This name is used to reference the core when working with the API, and can be whatever you'd like.</li>
+<li><code>name</code> <em>(required)</em>: The name of the IO core, which is used when working with the API.</li>
 <li><code>type</code> <em>(required)</em>: This denotes that this is an IO core. All cores contain a <code>type</code> field, which must be set to <code>io</code> to be recognized as an IO core.</li>
-<li><code>inputs</code> <em>(optional)</em>: This lists all inputs from from the FPGA fabric to the host machine. Signals in this list may be read by the host, but <strong><em>cannot</em></strong> be written to. Technically specifying input probes is totally optional - it's perfectly fine to have an IO core with only output probes.</li>
-<li><code>outputs</code> <em>(optional)</em>: This lists all outputs from the host machine to the FPGA fabric. Signals in this list are usually written to by the host, but they can also be read from. Doing so returns the value last written to the register. Just like the <code>inputs</code> parameter, this list is technically optional, and it's perfectly valid to have an IO core with input probes only.<ul>
-<li><code>initial_value</code> <em>(optional)</em>: This sets an initial value for an output probe to take after the FPGA powers on. This is done with an <code>initial</code> statement in Manta's Verilog, and is independent of the input clock or resets elsewhere in the FPGA. This parameter is optional, and if it isn't provided the probe will initialize to zero.</li>
+<li><code>inputs</code> <em>(optional)</em>: This lists all inputs from from the FPGA fabric to the host machine. Signals in this list may be read by the host, but <strong><em>cannot</em></strong> be written to. This parameter is somewhat optional as an IO Core must have at least one probe, but it need not be an input.</li>
+<li><code>outputs</code> <em>(optional)</em>: This lists all outputs from the host machine to the FPGA fabric. Signals in this list are usually written to by the host, but they can also be read from. Doing so returns the value last written to the register. This parameter is somewhat optional as an IO Core must have at least one probe, but it need not be an output.<ul>
+<li><code>initial_value</code> <em>(optional)</em>: This sets an initial value for an output probe to take after the FPGA powers on. This is done with an <code>initial</code> statement in Manta's Verilog, and is independent of the input clock or resets elsewhere in the FPGA. This parameter is optional, and defaults to zero.</li>
 </ul>
 </li>
-<li><code>user_clock</code> <em>(optional)</em>: If set to True, an extra input port will be added to the <code>manta</code> module for an clock input to run the IO core on. This lets the IO Core handle clock domain crossing through its internal buffers. If set to False, Manta will run the IO core from its internal clock (the one provided through <code>manta</code>'s <code>clk</code> port). More information on this is available in the <a href="#how-it-works">diagram</a> below. This parameter is optional, and defaults to False.</li>
 </ul>
+<!-- - `user_clock` _(optional)_: If set to True, an extra input port will be added to the `manta` module for an clock input to run the IO core on. This lets the IO Core handle clock domain crossing through its internal buffers. If set to False, Manta will run the IO core from its internal clock (the one provided through `manta`'s `clk` port). This parameter is optional, and defaults to False. More information is available in the [architecture](../architecture#io-core) page. -->
+
 <div class="admonition warning">
 <p class="admonition-title">Name things carefully!</p>
 <p>The names of the core and its probes are referenced in the autogenerated Verilog. This means that while the names can be arbitrary, they must be unique within your project and not contain any characters that your synthesis engine won't appreciate.</p>
 </div>
-<h2 id="python-api">Python API</h2>
-<p>The IO core functionality is stored in the <code>Manta.IOCore</code> class in <a href="https://github.com/fischermoseley/manta/blob/main/src/manta/io_core.py">src/manta/io_core/__init__.py</a>, and it may be controlled with the two functions:</p>
-<hr />
-<p><code>Manta.IOCore.set_probe(name, data)</code></p>
-<ul>
-<li>[<code>string</code>] <em>name</em>: The probe to write to. Must not be an output port, and must match the name provided in the config file.</li>
-<li>[<code>int</code>, <code>bool</code>] <em>data</em>: The value to write to an output probe. May be signed or unsigned, but will raise an exception if the value is too large for the width of the port.</li>
-<li><em>returns</em>: None</li>
-</ul>
-<p>This method is blocking. When called it will dispatch a request to the FPGA, and halt execution until the request has been sent.</p>
-<hr />
-<p><code>Manta.IOCore.get_probe(name)</code></p>
-<ul>
-<li>[<code>string</code>] <em>name</em>: The probe to read from. May be either an input or an output port, and must match the name provided in the config file.</li>
-<li><em>returns</em>: The value of an input or output probe. In the case of an output probe, the value returned will be the last value written to the probe.</li>
-</ul>
-<p>This method is blocking. When called it will dispatch a request to the FPGA, and halt execution until the request has been sent and a response has been received.</p>
-<hr />
-<h3 id="example">Example</h3>
-<p>A small example is shown below, using the <a href="#configuration">example configuration</a> above. More extensive examples can also be found in the repository's <a href="https://github.com/fischermoseley/manta/tree/main/examples">examples/</a> folder.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">Manta</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">m</span> <span class="o">=</span> <span class="n">Manta</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">m</span><span class="o">.</span><span class="n">my_io_core</span><span class="o">.</span><span class="n">set_probe</span><span class="p">(</span><span class="s2">&quot;fozzy&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">m</span><span class="o">.</span><span class="n">my_io_core</span><span class="o">.</span><span class="n">get_probe</span><span class="p">(</span><span class="s2">&quot;fozzy&quot;</span><span class="p">)</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="kc">True</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">m</span><span class="o">.</span><span class="n">my_io_core</span><span class="o">.</span><span class="n">set_probe</span><span class="p">(</span><span class="s2">&quot;gonzo&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">m</span><span class="o">.</span><span class="n">my_io_core</span><span class="o">.</span><span class="n">get_probe</span><span class="p">(</span><span class="s2">&quot;scooter&quot;</span><span class="p">)</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="mi">5</span>
+<h3 id="amaranth-native-designs">Amaranth-Native Designs</h3>
+<p>Since Amaranth modules are Python objects, the configuration of the IO Core is given by the arguments given during initialization. See the documentation for the <code>IOCore</code> <a href="#manta.IOCore">class constructor</a> below, as well as the Amaranth <a href="https://github.com/fischermoseley/manta/tree/main/examples/amaranth">examples</a> in the repo.</p>
+<h2 id="operation">Operation</h2>
+<p>Regardless of the technique you used to configure your IO Core, it is operated using the <a href="#manta.IOCore.set_probe"><code>set_probe()</code></a> and <a href="#manta.IOCore.get_probe"><code>get_probe()</code></a> methods. Documentation for these methods is available below.</p>
+<p>These methods are members of the <code>IOCore</code> class, so if you're using Manta in a Verilog-based workflow, you'll first need to obtain a <code>Manta</code> object that contains an <code>IOCore</code> member. This is done with <code>Manta.from_config()</code>, as shown in the Verilog <a href="https://github.com/fischermoseley/manta/tree/main/examples/verilog">examples</a>.</p>
+<h2 id="python-api-documentation">Python API Documentation</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="manta.IOCore" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">manta.IOCore</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">IOCore</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">[],</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[])</span>
 </span></code></pre></div>
-<h2 id="limitations">Limitations</h2>
-<p>While the IO core performs a very, very simple task, it carries a few caveats.</p>
-<ul>
-<li>
-<p>First, <strong>it's not instantaneous</strong>. Manta has designed to be as fast as possible, but setting and querying registers relies on passing messages between the host and FPGA, which is slow relative to FPGA clock speeds! If you're trying to set values in your design with cycle-accurate timing, this will not do that for you. However, the <a href="../logic_analyzer_core/#playback">Logic Analyzer's playback feature</a> might be helpful.</p>
-</li>
-<li>
-<p>Second, <strong>the API methods are blocking</strong>, and will wait for a response from the FPGA before resuming program execution. Depending on your application, you might want to run your IO Core operations in a separate thread, but you can also decrease the execution time by using a faster interface between the host and FPGA. This means using a higher UART baudrate, or using Ethernet.</p>
-</li>
-</ul>
+
+    <div class="doc doc-contents first">
+
+
+        <p>A synthesizable module for setting and getting the values of registers of
+arbitrary size.</p>
+
+        <p>Create an IO Core, with the given input and output probes.</p>
+<p>This function is the main mechanism for configuring an IO Core in an
+Amaranth-native design.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>inputs</code></b>
+              (<code>Optional[List[<span title="amaranth.Signal">Signal</span>]]</code>, default:
+                  <code>[]</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>A list of
+Amaranth Signals to use as inputs. Defaults to an empty list.
+This parameter is somewhat optional as an IO Core must have
+at least one probe, but it need not be an input.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>outputs</code></b>
+              (<code>Optional[List[<span title="amaranth.Signal">Signal</span>]]</code>, default:
+                  <code>[]</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>A list of
+Amaranth Signals to use as outputs. Defaults to an empty list.
+This parameter is somewhat optional as an IO Core must have
+at least one probe, but it need not be an output.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.IOCore.get_probe" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get_probe</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_probe</span><span class="p">(</span><span class="n">probe</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the value of an input or output probe on the FPGA.</p>
+<p>If called on an output probe, this function will return the last value
+written to the output probe. If no value has been written to the output
+probe, then it will return the probe's initial value. This method is
+blocking.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>probe</code></b>
+              (<code>str | <span title="amaranth.Signal">Signal</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>The probe to get the value of. This
+may be either a string containing the name of the probe, or the
+Amaranth Signal representing the probe itself. Strings are
+typically used in Verilog-based workflows, and Amaranth Signals
+are typically used in Amaranth-native designs.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+<b><code>value</code></b> (              <code>int</code>
+)          –
+          <div class="doc-md-description">
+            <p>The value of the probe, interpreted as an unsigned
+integer.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>ValueError</code>
+            –
+          <div class="doc-md-description">
+            <p>The probe was not found in the IO Core, or many probes
+were found with the same name.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="manta.IOCore.set_probe" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">set_probe</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">set_probe</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Set the value of an output probe on the FPGA.</p>
+<p>This method is blocking.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code>probe</code></b>
+              (<code>str | <span title="amaranth.Signal">Signal</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>The output probe to set the value
+of. This may be either a string containing the name of the
+probe, or the Amaranth Signal representing the probe itself.
+Strings are typically used in Verilog-based workflows, and
+Amaranth Signals are typically used in Amaranth-native designs.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code>value</code></b>
+              (<code>int</code>)
+          –
+          <div class="doc-md-description">
+            <p>The value to set the probe to. This may be either
+positive or negative, but must fit within the width of the
+probe.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          –
+          <div class="doc-md-description">
+            <p>None</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code>ValueError</code>
+            –
+          <div class="doc-md-description">
+            <p>The probe was not found to be an output of the IO Core,
+or many probes were found with the same name.</p>
+          </div>
+        </li>
+    </ul>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 
