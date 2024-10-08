@@ -5,6 +5,7 @@ from vcd import VCDWriter
 
 from manta.logic_analyzer.fsm import TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
+from manta.utils import *
 
 
 class LogicAnalyzerCapture:
