@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../assets/logo_ray_only_with_shadow.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.39">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.40">
     
     
       
@@ -1312,7 +1312,7 @@ an Amaranth-native design.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
     <ul>
         <li class="doc-section-item field-body">
-          <b><code>sample_depth</code></b>
+            <b><code>sample_depth</code></b>
               (<code>int</code>)
           –
           <div class="doc-md-description">
@@ -1322,7 +1322,7 @@ what the probes are doing over a longer time interval.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
-          <b><code>probes</code></b>
+            <b><code>probes</code></b>
               (<code>List[Signal]</code>)
           –
           <div class="doc-md-description">
@@ -1332,6 +1332,11 @@ a width.</p>
           </div>
         </li>
     </ul>
+
+
+
+
+
 
 
 
@@ -1396,7 +1401,7 @@ containing the capture and its metadata.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
     <ul>
         <li class="doc-section-item field-body">
-          <b><code>trigger_mode</code></b>
+            <b><code>trigger_mode</code></b>
               (<code>TriggerMode | str</code>, default:
                   <code>None</code>
 )
@@ -1406,7 +1411,7 @@ containing the capture and its metadata.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
-          <b><code>triggers</code></b>
+            <b><code>triggers</code></b>
               (<code>Optional[Sequence[Sequence[str | int]]]</code>, default:
                   <code>None</code>
 )
@@ -1416,7 +1421,7 @@ containing the capture and its metadata.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
-          <b><code>trigger_location</code></b>
+            <b><code>trigger_location</code></b>
               (<code>Optional[int]</code>, default:
                   <code>None</code>
 )
@@ -1461,6 +1466,11 @@ CSV file, or a Verilog module.</p>
 
 
 
+
+
+
+
+
   <div class="doc doc-children">
 
 
@@ -1490,7 +1500,7 @@ CSV file, or a Verilog module.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
     <ul>
         <li class="doc-section-item field-body">
-          <b><code>path</code></b>
+            <b><code>path</code></b>
               (<code>str</code>)
           –
           <div class="doc-md-description">
@@ -1554,7 +1564,7 @@ on the FPGA directly by including it your build process.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
     <ul>
         <li class="doc-section-item field-body">
-          <b><code>path</code></b>
+            <b><code>path</code></b>
               (<code>str</code>)
           –
           <div class="doc-md-description">
@@ -1618,7 +1628,7 @@ on the FPGA directly by including it your build process.</p>
 <p><span class="doc-section-title">Parameters:</span></p>
     <ul>
         <li class="doc-section-item field-body">
-          <b><code>name</code></b>
+            <b><code>name</code></b>
               (<code>str</code>)
           –
           <div class="doc-md-description">
@@ -1692,6 +1702,11 @@ time of capture.</p>
         <p>A synthesizable module that plays back data captured by a
 LogicAnalyzerCore. Takes a list of all the samples captured by a core,
 along with the config of the core used to take it.</p>
+
+
+
+
+
 
 
 
