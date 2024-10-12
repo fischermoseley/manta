@@ -104,7 +104,7 @@ class LogicAnalyzerCapture:
         """
 
         # Compute the timescale from the frequency of the provided clock
-        half_period = 1 / (2 * self._interface._clock_freq)
+        half_period = 1 / (2 * self._interface.clock_freq)
         exponent = math.floor(math.log10(half_period))
         exponent_eng = (exponent // 3) * 3
 

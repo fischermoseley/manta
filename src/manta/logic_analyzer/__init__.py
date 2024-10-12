@@ -292,7 +292,7 @@ class LogicAnalyzerCore(MantaCore):
         self._fsm.stop_capture()
 
         print(" -> Setting triggers...")
-        self._trig_blk.set_triggers(self.triggers)
+        self._trig_blk.set_triggers(self._triggers)
 
         print(" -> Setting trigger mode...")
         self._fsm.write_register("trigger_mode", self._trigger_mode)

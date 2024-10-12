@@ -150,6 +150,10 @@ class EthernetInterface(Elaboratable):
         """
         return [io[2] for io in self._phy_io]
 
+    @property
+    def clock_freq(self):
+        return self._clk_freq
+
     def _binarize_ip_addr(self, ip_addr):
         octets = [bin(int(o))[2:].zfill(8) for o in ip_addr.split(".")]
         return int("".join(octets), 2)
