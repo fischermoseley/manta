@@ -31,6 +31,6 @@ ethernet:
   refclk_freq: 50e6
   clk_freq: 50e6
 
-  fpga_ip_addr: "192.168.0.110"
-  host_ip_addr: "192.168.0.100"
+  fpga_ip_addr: "10.0.0.2"
+  host_ip_addr: "10.0.0.1"
   udp_port: 2000

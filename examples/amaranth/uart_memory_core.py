@@ -11,7 +11,7 @@ class UARTMemoryCoreExample(Elaboratable):
         # Create Manta instance
         self.manta = Manta()
 
-        # Configure it to communicate over Ethernet
+        # Configure it to communicate over UART
         self.manta.interface = UARTInterface(
             port=port,
             baudrate=2000000,
