@@ -1,5 +1,5 @@
 from amaranth import *
-from amaranth.lib.enum import IntEnum
+from amaranth.lib.enum import IntEnum, Flag
 
 from manta.io_core import IOCore
 
@@ -16,6 +16,11 @@ class TriggerModes(IntEnum):
     SINGLE_SHOT = 0
     INCREMENTAL = 1
     IMMEDIATE = 2
+
+
+class TriggerPrune(Flag):
+    TRUE = True
+    FALSE = False
 
 
 class LogicAnalyzerFSM(Elaboratable):

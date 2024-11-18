@@ -12,10 +12,14 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
     the triggers to be reprogrammed without reflashing the FPGA.
     """
 
-    def __init__(self, probes, base_addr, interface):
+    def __init__(self, probes, base_addr, interface, trig_names):
         # Instantiate a bunch of trigger blocks
+        self._trig_names = trig_names
         self._probes = probes
-        self._triggers = [LogicAnalyzerTrigger(p) for p in self._probes]
+        if trig_names is None:
+            self._triggers = [LogicAnalyzerTrigger(p) for p in self._probes]
+        else:
+            self._triggers = [LogicAnalyzerTrigger(p) for p in self._probes if p.name in trig_names]
 
         # Make IO core for everything
         ops = [t.op for t in self._triggers]
@@ -37,9 +41,14 @@ class LogicAnalyzerTriggerBlock(Elaboratable):
 
     def set_triggers(self, triggers):
         # Reset all triggers to disabled with no argument
-        for p in self._probes:
-            self.registers.set_probe(p.name + "_op", Operations.DISABLE)
-            self.registers.set_probe(p.name + "_arg", 0)
+        if self._trig_names is None:
+            for p in self._probes:
+                self.registers.set_probe(p.name + "_op", Operations.DISABLE)
+                self.registers.set_probe(p.name + "_arg", 0)
+        else:
+            for n in self._trig_names:
+                self.registers.set_probe(n + "_op", Operations.DISABLE)
+                self.registers.set_probe(n + "_arg", 0)
 
         # Set triggers
         for trigger in triggers:

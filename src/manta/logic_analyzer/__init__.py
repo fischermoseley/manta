@@ -1,7 +1,7 @@
 from amaranth import *
 
 from manta.logic_analyzer.capture import LogicAnalyzerCapture
-from manta.logic_analyzer.fsm import LogicAnalyzerFSM, TriggerModes
+from manta.logic_analyzer.fsm import LogicAnalyzerFSM, TriggerModes, TriggerPrune
 from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
 from manta.memory_core import MemoryCore
 from manta.utils import *
@@ -39,6 +39,7 @@ class LogicAnalyzerCore(MantaCore):
         self._trigger_location = sample_depth // 2
         self._trigger_mode = TriggerModes.IMMEDIATE
         self._triggers = []
+        self._trigger_pruned = TriggerPrune.FALSE
 
         # Bus Input/Output
         self.bus_i = Signal(InternalBus())
@@ -58,6 +59,7 @@ class LogicAnalyzerCore(MantaCore):
             "type": "logic_analyzer",
             "sample_depth": self._sample_depth,
             "probes": {p.name: len(p) for p in self._probes},
+            "trigger_pruned": self._trigger_pruned,
         }
 
         if self._trigger_mode == TriggerModes.INCREMENTAL:
@@ -81,6 +83,7 @@ class LogicAnalyzerCore(MantaCore):
             "triggers",
             "trigger_location",
             "trigger_mode",
+            "trigger_pruned",
         ]
         for option in config:
             if option not in valid_options:
@@ -116,12 +119,13 @@ class LogicAnalyzerCore(MantaCore):
         core = cls(sample_depth, probes)
 
         # If any trigger-related configuration was provided, set the triggers with it
-        keys = ["trigger_mode", "triggers", "trigger_location"]
+        keys = ["trigger_mode", "triggers", "trigger_location", "trigger_pruned"]
         if any([key in config for key in keys]):
             core.set_triggers(
                 trigger_mode=config.get("trigger_mode"),
                 triggers=triggers,
                 trigger_location=config.get("trigger_location"),
+                trigger_pruned=config.get("trigger_pruned"),
             )
 
         return core
@@ -137,6 +141,7 @@ class LogicAnalyzerCore(MantaCore):
             probes=self._probes,
             base_addr=self._fsm.max_addr + 1,
             interface=self.interface,
+            trig_names=[n[0] for n in self._triggers] if self._trigger_pruned else None,
         )
 
         self._sample_mem = MemoryCore(
@@ -215,7 +220,7 @@ class LogicAnalyzerCore(MantaCore):
             else:
                 raise ValueError(f"Unable to interpret trigger condition '{trigger}'.")
 
-    def set_triggers(self, trigger_mode=None, triggers=None, trigger_location=None):
+    def set_triggers(self, trigger_mode=None, triggers=None, trigger_location=None, trigger_pruned=None):
         """
         Args:
             trigger_mode (TriggerMode | str):
@@ -223,6 +228,8 @@ class LogicAnalyzerCore(MantaCore):
             triggers (Optional[Sequence[Sequence[str | int]]]):
 
             trigger_location (Optional[int]):
+
+            trigger_pruned (Optional[TriggerPrune]):
         """
         # Obtain trigger mode
         if isinstance(trigger_mode, TriggerModes):
@@ -233,6 +240,11 @@ class LogicAnalyzerCore(MantaCore):
 
         else:
             raise ValueError(f"Unrecognized trigger mode {trigger_mode} provided.")
+
+        # Obtain trigger pruning
+        if not isinstance(trigger_pruned, bool) and (trigger_pruned != None):
+            raise ValueError(f"Unrecognized trigger pruning {trigger_pruned} provided.")
+        self._trigger_pruned = trigger_pruned or TriggerPrune.FALSE
 
         # Peform checks based on trigger mode
         if mode == TriggerModes.IMMEDIATE:
@@ -275,7 +287,7 @@ class LogicAnalyzerCore(MantaCore):
             # Validate triggers
             self._validate_triggers(triggers)
 
-            self.trigger_mode = mode
+            self._trigger_mode = mode
             self._triggers = triggers
             self._trigger_location = trigger_location or self._sample_depth // 2
 
