@@ -28,14 +28,15 @@ def test_verilog_examples_build(root_dir):
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 
-# Import Examples
 # Import Platforms
 from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
+# Import Examples
 from examples.amaranth.uart_io_core import UARTIOCoreExample
 from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
 from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
+from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
 
 # Manually specify a list of examples/platforms to test.
 
@@ -49,6 +50,7 @@ amaranth_examples_cases = [
     (UARTLogicAnalyzerExample, ICEStickPlatform),
     (UARTLogicAnalyzerExample, Nexys4DDRPlatform),
     (UARTMemoryCoreExample, Nexys4DDRPlatform),
+    (EthernetIOCoreExample, Nexys4DDRPlatform),
 ]
 
 
