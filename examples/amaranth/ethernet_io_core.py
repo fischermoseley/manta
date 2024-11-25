@@ -76,13 +76,6 @@ class EthernetIOCoreExample(Elaboratable):
         #     rmii_mdio = eth_pins.mdio,
         # )
 
-        # m.submodules.rxd = rxd = io.Buffer("i", eth_pins.rxd)
-        # m.submodules.crs_dv = crs_dv = io.Buffer("i", eth_pins.crs_dv)
-        # m.submodules.txen = txen = io.Buffer("o", eth_pins.txen)
-        # m.submodules.txd = txd = io.Buffer("o", eth_pins.txd)
-        # m.submodules.mdc = mdc = io.Buffer("o", eth_pins.mdc)
-        # m.submodules.mdio = mdio = io.SingleEndedPort(io.Buffer("io", eth_pins.mdio))
-
         m.submodules.eth_clk_io_buf = eth_clk_io_buf = io.Buffer("o", eth_pins.clk)
         m.d.comb += eth_clk_io_buf.o.eq(ethclk.clk)
 
@@ -96,8 +89,6 @@ class EthernetIOCoreExample(Elaboratable):
             ("o", "rmii_mdc", eth_pins.mdc.io),
             ("io", "rmii_mdio", eth_pins.mdio.io),
         ]
-
-        platform.add_file("liteeth.v", self.manta.interface.generate_liteeth_core())
 
         return m
 

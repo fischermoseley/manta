@@ -293,6 +293,12 @@ class EthernetInterface(Elaboratable):
             ("i", "udp0_sink_valid", self._sink_valid),
         )
 
+        # Add LiteEth module definition if we're in an Amaranth-native workflow
+        # If we're in a Verilog-based workflow, then platform will be None, and
+        # the module will be added in manta.generate_verilog()
+        if platform:
+            platform.add_file("liteeth.v", self.generate_liteeth_core())
+
         m.submodules.source_bridge = source_bridge = UDPSourceBridge()
         m.submodules.sink_bridge = sink_bridge = UDPSinkBridge()
 
