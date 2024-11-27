@@ -25,9 +25,10 @@ If you're working on the source, you might want an editable installation with so
 git clone https://github.com/fischermoseley/manta.git
 cd manta
 pip install -e ".[dev]"
+pre-commit install
 ```
 
-Manta's hardware-in-the-loop tests rely on Amaranth's build system for programming FPGAs, which in turn rely on the open-source `xc3sprog` and `iceprog` tools for programming Xilinx and ice40 devices, respecitvely. If you'd like to run these tests locally, you may need to install these tools and have them available on your `PATH`.
+Manta's hardware-in-the-loop tests rely on Amaranth's build system for programming FPGAs, which in turn rely on the open-source `xc3sprog` and `iceprog` tools for programming Xilinx and ice40 devices, respectively. If you'd like to run these tests locally, you may need to install these tools and have them available on your `PATH`.
 
 If you're on Linux, you may also need to add a new udev rule to give non-superuser accounts access to any connected FTDI devices. This can be done by making a new file at `/etc/udev/rules.d/99-ftdi-devices.rules`, which contains:
 

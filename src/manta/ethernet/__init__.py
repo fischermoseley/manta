@@ -275,7 +275,7 @@ class EthernetInterface(Elaboratable):
             mii_mdio (IOPort): Management Data
             mii_mdc (IOPort): Management Data Clock
             mii_rx_dv (IOPort): Receive Data Valid
-            mii_rx_er (IOPort): Recieve Error
+            mii_rx_er (IOPort): Receive Error
             mii_rx_data (IOPort): Receive Data
             mii_tx_en (IOPort): Transmit Enable
             mii_tx_data (IOPort): Transmit Data

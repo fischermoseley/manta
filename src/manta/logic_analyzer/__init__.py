@@ -234,7 +234,7 @@ class LogicAnalyzerCore(MantaCore):
         else:
             raise ValueError(f"Unrecognized trigger mode {trigger_mode} provided.")
 
-        # Peform checks based on trigger mode
+        # Perform checks based on trigger mode
         if mode == TriggerModes.IMMEDIATE:
             # Warn on triggers
             if triggers:
@@ -311,7 +311,7 @@ class LogicAnalyzerCore(MantaCore):
         raw_capture = self._sample_mem.read(addrs)
 
         # Revolve the memory around the read_pointer, such that all the beginning
-        # of the caputure is at the first element
+        # of the capture is at the first element
         print(" -> Checking read pointer and revolving memory...")
         read_pointer = self._fsm.read_register("read_pointer")
 

@@ -171,7 +171,7 @@ class IOCore(MantaCore):
 
         # Save the last used address, for use later.
         # Normally we'd just grab this from self._memory_map, but Python
-        # dictionaries don't guaruntee that insertion order is preserved,
+        # dictionaries don't guarantee that insertion order is preserved,
         # so it's more convenient to just save it now.
 
         self._max_addr = last_used_addr

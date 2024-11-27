@@ -34,7 +34,7 @@ class UARTInterface(Elaboratable):
 
             clock_freq (float | int): The frequency of the clock provided to
                 this module, in Hertz (Hz). This is used to calculate an
-                appropriate prescaler onboard the FPGA to acheive the desired
+                appropriate prescaler onboard the FPGA to achieve the desired
                 baudrate.
 
             stall_interval (Optional[int]): The number of read requests to send
@@ -53,7 +53,7 @@ class UARTInterface(Elaboratable):
                 did not work.
 
         Raises:
-            ValueError: The baudrate is not acheivable with the clock frequency
+            ValueError: The baudrate is not achievable with the clock frequency
                 provided, or the clock frequency or baudrate is invalid.
 
         """
@@ -213,9 +213,9 @@ class UARTInterface(Elaboratable):
         # buffer from overflowing and dropping bytes, as the FPGA will send
         # responses instantly after it's received a request.
 
-        ser = self._get_serial_device()
+        set = self._get_serial_device()
         addr_chunks = split_into_chunks(addrs, self._chunk_size)
-        datas = []
+        data = []
 
         for addr_chunk in addr_chunks:
             # Encode addrs into read requests
@@ -226,11 +226,11 @@ class UARTInterface(Elaboratable):
             bytes_out = split_into_chunks(bytes_out, 7 * self._stall_interval)
             bytes_out = "\n".join(bytes_out)
 
-            ser.write(bytes_out.encode("ascii"))
+            set.write(bytes_out.encode("ascii"))
 
             # Read responses have the same length as read requests
             bytes_expected = 7 * len(addr_chunk)
-            bytes_in = ser.read(bytes_expected)
+            bytes_in = set.read(bytes_expected)
 
             if len(bytes_in) != bytes_expected:
                 raise ValueError(
@@ -240,11 +240,11 @@ class UARTInterface(Elaboratable):
             # Split received bytes into individual responses and decode
             responses = split_into_chunks(bytes_in, 7)
             data_chunk = [self._decode_read_response(r) for r in responses]
-            datas += data_chunk
+            data += data_chunk
 
-        return datas
+        return data
 
-    def write(self, addrs, datas):
+    def write(self, addrs, data):
         """
         Write the provided data into the provided addresses in Manta's internal
         memory. Addresses and data must be specified as either integers or a
@@ -252,11 +252,11 @@ class UARTInterface(Elaboratable):
         """
 
         # Handle a single integer address and data
-        if isinstance(addrs, int) and isinstance(datas, int):
-            return self.write([addrs], [datas])
+        if isinstance(addrs, int) and isinstance(data, int):
+            return self.write([addrs], [data])
 
-        # Make sure address and datas are all integers
-        if not isinstance(addrs, list) or not isinstance(datas, list):
+        # Make sure address and data are all integers
+        if not isinstance(addrs, list) or not isinstance(data, list):
             raise TypeError(
                 "Write addresses and data must be an integer or list of integers."
             )
@@ -264,17 +264,17 @@ class UARTInterface(Elaboratable):
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Write addresses must be all be integers.")
 
-        if not all(isinstance(d, int) for d in datas):
+        if not all(isinstance(d, int) for d in data):
             raise TypeError("Write data must all be integers.")
 
         # Since the FPGA doesn't issue any responses to write requests, we
         # the host's input buffer isn't written to, and we don't need to
         # send the data as chunks as the to avoid overflowing the input buffer.
 
-        # Encode addrs and datas into write requests
-        bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, datas)])
-        ser = self._get_serial_device()
-        ser.write(bytes_out.encode("ascii"))
+        # Encode addrs and data into write requests
+        bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, data)])
+        set = self._get_serial_device()
+        set.write(bytes_out.encode("ascii"))
 
     def _decode_read_response(self, response_bytes):
         """

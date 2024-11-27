@@ -15,7 +15,7 @@ An embedded logic analyzer written in Migen, primarily for use in LiteX SoC desi
 
 ### GateMate ILA
 
-An embedded logic analyzer written in Verilog, targeting the GateMate FPGA family from Colonge Chip and the Yosys/NextPNR toolchain. Communication between the host and FPGA is accomplished with SPI, via a FT232 or FT2232 used as a USB-SPI adapter. GateMate is inteneded to be used with GTKWave, so the tool generates `.gtkw` files in addition to VCD files.
+An embedded logic analyzer written in Verilog, targeting the GateMate FPGA family from Cologne Chip and the Yosys/NextPNR toolchain. Communication between the host and FPGA is accomplished with SPI, via a FT232 or FT2232 used as a USB-SPI adapter. GateMate is intended to be used with GTKWave, so the tool generates `.gtkw` files in addition to VCD files.
 
 - [Source Code](https://github.com/colognechip/gatemate_ila)
 
@@ -28,7 +28,7 @@ A set of embedded debugging modules written by Dan Gisselquist of ZipCPU fame. C
 
 ## Commercial Tools
 
-### Xilinx Integrated Logic Analzyer
+### Xilinx Integrated Logic Analyzer
 
 An embedded logic analyzer for Xilinx FPGAs, provided as part of the Xilinx Vivado development suite. Communication between the host and FPGA is accomplished with JTAG, typically running over a USB cable to the device. Includes an integrated waveform viewer, and VCD and CSV export. Also supports a JTAG-to-AXI mode, which integrates well with Xilinx IP, which uses primarily AXI. Also integrates with the ChipScoPy API, which allows for Python control of the ILA on Versal devices. The ILA was previously known as ChipScope in earlier versions of Vivado.
 

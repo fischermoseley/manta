@@ -112,4 +112,3 @@ It’s worth noting that this usage represents a slight departure from typical A
 This is necessary as the `Manta` object contains both HDL needed for build and methods for operating the cores. Saving the `Manta` instance in the class and re-using it later removes the need to define and configure separate instances when elaborating and operating the cores.
 
 Lastly, including `manta` as an instance variable also allows it to be directly accessed from an interpreter, as shown above. This allows for a more interactive debugging session, as the definition of the `operate` method doesn’t have to change when you wish to use Manta’s cores differently.
-
