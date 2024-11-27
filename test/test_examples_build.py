@@ -33,10 +33,10 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 # Import Examples
+from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
 from examples.amaranth.uart_io_core import UARTIOCoreExample
 from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
 from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
-from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
 
 # Manually specify a list of examples/platforms to test.
 

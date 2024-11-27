@@ -1,14 +1,18 @@
-from time import sleep
-
+import pytest
+import time
+from random import getrandbits
 from amaranth import *
 from amaranth.lib import io
+from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
+from manta.utils import *
 
-
-class EthernetIOCoreExample(Elaboratable):
-    def __init__(self, platform, port):
+class EthernetMemoryCoreTest(Elaboratable):
+    def __init__(self, platform):
         self.platform = platform
+        self.width = 28
+        self.depth = 612
 
         # Create Manta instance
         self.manta = Manta()
@@ -26,13 +30,7 @@ class EthernetIOCoreExample(Elaboratable):
             udp_port=2000,
         )
 
-        # Autodetect the number of LEDs on the platform
-        resources = platform.resources.keys()
-        self.n_leds = max([i for name, i in resources if name == "led"])
-
-        # Add IOCore to Manta instance
-        self.leds = Signal(self.n_leds)
-        self.manta.cores.io = IOCore(outputs=[self.leds])
+        self.manta.cores.mem = MemoryCore("bidirectional", self.width, self.depth)
 
     def elaborate(self, platform):
         m = Module()
@@ -44,16 +42,10 @@ class EthernetIOCoreExample(Elaboratable):
             ("i", "clk", ClockSignal()),
             ("o", "ethclk", ethclk.clk),
         )
-        platform.add_file("divider.sv", open("../common/divider.sv"))
+        platform.add_file("../examples/common/divider.sv", open("divider.sv"))
 
         # Add Manta as a submodule
         m.submodules.manta = DomainRenamer("ethclk")(self.manta)
-
-        # Wire each LED to Manta's IO Core output
-        for i in range(self.n_leds):
-            led = io.Buffer("o", platform.request("led", i, dir="-"))
-            m.d.comb += led.o.eq(self.leds[i])
-            m.submodules += led
 
         # This is only required for Amaranth < 0.5.2
         eth_pin_names = [
@@ -92,29 +84,25 @@ class EthernetIOCoreExample(Elaboratable):
 
         return m
 
-    def test(self):
-        # Build and program the FPGA
+    def verify(self):
         self.platform.build(self, do_program=True)
 
-        # Iterate through all the LEDs, blinking them off and on
-        i = 0
-        while True:
-            self.manta.cores.io.set_probe("leds", 1 << i)
-            i = (i + 1) % self.n_leds
-            sleep(0.1)
+        # Wait for the FPGA to acquire IP address
+        time.sleep(5)
+
+        for addr in jumble(range(self.depth)):
+            data = getrandbits(self.width)
+            self.manta.cores.mem.write(addr, data)
+
+            # Verify the same number is returned when reading
+            readback = self.manta.cores.mem.read(addr)
+            if readback != data:
+                raise ValueError(
+                    f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}"
+                )
 
 
-# Although Amaranth provides an environment that is almost entirely independent
-# of FPGA vendor or family, it does not provide any facilites for clock
-# generation. As a result, this example design includes an external Verilog
-# snippet containing a clock generator created by Vivado's Clock Wizard.
-# This uses a MMCM clock generation primitive to make a 50MHz clock from the
-# onboard 100MHz oscillator, in order to drive the Ethernet PHY. This primitive
-# is only available on Xilinx Series-7 parts, so this example will only work on
-# Series-7 parts clocked at 100MHz that have RMII PHYs connected...which is
-# pretty much just the Nexys4DDR and the Arty A7 :)
 
-if __name__ == "__main__":
-    from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
-
-    EthernetIOCoreExample(platform=Nexys4DDRPlatform(), port="auto").test()
+@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
+def test_mem_core_xilinx():
+    EthernetMemoryCoreTest(Nexys4DDRPlatform()).verify()
