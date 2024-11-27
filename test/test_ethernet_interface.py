@@ -73,7 +73,7 @@ class EthernetMemoryCoreTest(Elaboratable):
         m.d.comb += eth_clk_io_buf.o.eq(ethclk.clk)
 
         # Wire Ethernet pins to the Manta instance
-        self.manta.interface.set_phy_io(
+        self.manta.interface.set_rmii_phy_io(
             rmii_clocks_ref_clk=ethclk.clk,
             rmii_rst_n=eth_pins.reset.io,
             rmii_rx_data=eth_pins.rxd.io,
