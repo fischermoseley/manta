@@ -1,3 +1,4 @@
+from pathlib import Path
 from time import sleep
 
 from amaranth import *
@@ -44,7 +45,8 @@ class EthernetIOCoreExample(Elaboratable):
             ("i", "clk", ClockSignal()),
             ("o", "ethclk", ethclk.clk),
         )
-        platform.add_file("divider.sv", open("../common/divider.sv"))
+        divider_sv_path = Path(__file__).parent / "../common/divider.sv"
+        platform.add_file("divider.sv", open(divider_sv_path))
 
         # Add Manta as a submodule
         m.submodules.manta = DomainRenamer("ethclk")(self.manta)
