@@ -1,12 +1,14 @@
-import pytest
 import time
 from random import getrandbits
+
+import pytest
 from amaranth import *
 from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
 from manta.utils import *
+
 
 class EthernetMemoryCoreTest(Elaboratable):
     def __init__(self, platform):
@@ -100,7 +102,6 @@ class EthernetMemoryCoreTest(Elaboratable):
                 raise ValueError(
                     f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}"
                 )
-
 
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
