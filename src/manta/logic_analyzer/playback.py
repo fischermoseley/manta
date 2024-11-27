@@ -46,7 +46,7 @@ class LogicAnalyzerPlayback(Elaboratable):
             with m.Else():
                 m.d.sync += read_port.addr.eq(read_port.addr + 1)
 
-        # Pipeline to accomodate for the 2-cycle latency in the RAM
+        # Pipeline to accommodate for the 2-cycle latency in the RAM
         m.d.sync += self.valid.eq(busy)
 
         # Assign the probe values by part-selecting from the data port

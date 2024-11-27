@@ -1,6 +1,6 @@
 ## Overview
 
-For applications where UART is too slow or isn't available, Manta provides the option to run over Ethernet. This is done via UDP, so the FPGA can be anywhere on the same network as the host machine - as opposed to MAC-based Ethernet interfaces, which usually require a point-to-point network connection between the FPGA and the host. Although UDP does not guaruntee reliable, in-order packet delivery, this generally tends to be the case on uncongested networks. In the future, Manta will enforce this at the [application layer](https://github.com/fischermoseley/manta/issues/10).
+For applications where UART is too slow or isn't available, Manta provides the option to run over Ethernet. This is done via UDP, so the FPGA can be anywhere on the same network as the host machine - as opposed to MAC-based Ethernet interfaces, which usually require a point-to-point network connection between the FPGA and the host. Although UDP does not guarantee reliable, in-order packet delivery, this generally tends to be the case on uncongested networks. In the future, Manta will enforce this at the [application layer](https://github.com/fischermoseley/manta/issues/10).
 
 !!! info "Not every device is supported!"
 
@@ -46,7 +46,7 @@ Inside this configuration, the following parameters may be set:
 
 - `udp_port` _(optional)_: The UDP port to communicate over. Defaults to 2001.
 
-Lastly, any additonal arguments provided in the `ethernet` section of the config file will be passed to the LiteEth standalone core generator. As a result, the [examples](https://github.com/enjoy-digital/liteeth/tree/master/examples) provided by LiteEth may be of some service to you if you're bringing up a different FPGA!
+Lastly, any additional arguments provided in the `ethernet` section of the config file will be passed to the LiteEth standalone core generator. As a result, the [examples](https://github.com/enjoy-digital/liteeth/tree/master/examples) provided by LiteEth may be of some service to you if you're bringing up a different FPGA!
 
 !!! warning "LiteEth doesn't always generate its own `refclk`!"
 

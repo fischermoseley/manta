@@ -10,7 +10,7 @@ from amaranth.sim import Simulator
 
 class MantaCore(ABC, Elaboratable):
     # These attributes are meant to be settable and gettable, but max_addr and
-    # top_level_ports are indended to be only gettable. Do not implement
+    # top_level_ports are intended to be only gettable. Do not implement
     # setters for them in subclasses.
 
     base_addr = None
@@ -139,7 +139,7 @@ def value_to_words(data, n_words):
 
 def check_value_fits_in_bits(value, n_bits):
     """
-    Rasies an exception if the provided value isn't an integer that cannot
+    Raises an exception if the provided value isn't an integer that cannot
     be expressed with the provided number of bits.
     """
 
@@ -200,7 +200,7 @@ def simulate(top):
 def jumble(iterable):
     """
     Returns the provided iterable, but with every element moved to a random
-    index. Very similar to random.shuffle, but returns an iteratable, instead
+    index. Very similar to random.shuffle, but returns an iterable, instead
     of modifying one in-place.
     """
     return sample(iterable, len(iterable))
@@ -213,7 +213,7 @@ async def verify_register(module, ctx, addr, expected_data):
 
     Unfortunately because Amaranth uses generator functions to define processes,
     this must be a generator function and thus cannot return a value - it must
-    yield the next timestep. This means that the comparision with the expected
+    yield the next timestep. This means that the comparison with the expected
     value must occur inside this function and not somewhere else, it's not
     possible to return a value from here, and compare it in the calling
     function.

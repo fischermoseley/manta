@@ -238,7 +238,7 @@ class MemoryCore(MantaCore):
         for i, mem in enumerate(self._mems):
             m.submodules[f"mem_{i}"] = mem
 
-        # Pipeline the bus to accomodate the two clock-cycle delay in the memories
+        # Pipeline the bus to accommodate the two clock-cycle delay in the memories
         self._bus_pipe = [Signal(InternalBus()) for _ in range(3)]
         m.d.sync += self._bus_pipe[0].eq(self.bus_i)
 

@@ -16,7 +16,7 @@ You may find this core useful for:
 
 _More details available on the [full documentation page](./io_core.md)._
 
-This core presents a series of user-accessbile registers to the FPGA fabric, which may be configured as either inputs or outputs. The value of an input register can be read off the FPGA by the host machine, and the value of an output register on the FPGA may be set by the host machine. This is handy for getting small amounts of information into and out of the FPGA, debugging, configuration, or experimentation. This concept is very similar to the Xilinx [Virtual IO](https://docs.xilinx.com/v/u/en-US/pg159-vio) and Intel [In-System Sources and Probes](https://www.intel.com/content/www/us/en/docs/programmable/683552/18-1/in-system-sources-and-probes-66964.html) tools.
+This core presents a series of user-accessible registers to the FPGA fabric, which may be configured as either inputs or outputs. The value of an input register can be read off the FPGA by the host machine, and the value of an output register on the FPGA may be set by the host machine. This is handy for getting small amounts of information into and out of the FPGA, debugging, configuration, or experimentation. This concept is very similar to the Xilinx [Virtual IO](https://docs.xilinx.com/v/u/en-US/pg159-vio) and Intel [In-System Sources and Probes](https://www.intel.com/content/www/us/en/docs/programmable/683552/18-1/in-system-sources-and-probes-66964.html) tools.
 
 You may find this core useful for:
 

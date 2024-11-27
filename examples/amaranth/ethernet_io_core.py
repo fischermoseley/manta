@@ -107,7 +107,7 @@ class EthernetIOCoreExample(Elaboratable):
 
 
 # Although Amaranth provides an environment that is almost entirely independent
-# of FPGA vendor or family, it does not provide any facilites for clock
+# of FPGA vendor or family, it does not provide any facilities for clock
 # generation. As a result, this example design includes an external Verilog
 # snippet containing a clock generator created by Vivado's Clock Wizard.
 # This uses a MMCM clock generation primitive to make a 50MHz clock from the

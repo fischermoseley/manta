@@ -134,7 +134,7 @@ class MemoryCoreTests:
     async def one_bus_write_then_one_user_read(self):
         for user_addr in self.user_addrs:
             # Try and set the value at the user address to a given value,
-            # by writing to the appropriate memory locaitons on the bus side
+            # by writing to the appropriate memory locations on the bus side
             data = getrandbits(self.width)
 
             words = value_to_words(data, self.n_mems)

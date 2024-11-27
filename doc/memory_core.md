@@ -9,12 +9,12 @@ Manta won't impose any limit on the width or depth of the memory you instantiate
 
 !!! warning "Words update 16 bits at a time!"
 
-    Due to the structure of Manta's internal bus, the Memory core only updates 16 bits of a word at a time. For instance, writing a new value to a 33-bit wide memory would update bits 0-15 on one clock cycle, bits 16-31 on another, and bit 32 on another still. Manta makes no guaruntees about the time taken between each of these updates. If this is a problem for your application, consider using an IO Core as a doorbell to signal when the memory is valid, or ping-pong between two Memory Cores.
+    Due to the structure of Manta's internal bus, the Memory core only updates 16 bits of a word at a time. For instance, writing a new value to a 33-bit wide memory would update bits 0-15 on one clock cycle, bits 16-31 on another, and bit 32 on another still. Manta makes no guarantees about the time taken between each of these updates. If this is a problem for your application, consider using an IO Core as a doorbell to signal when the memory is valid, or ping-pong between two Memory Cores.
 
 
 ## On-Chip Implementation
 
-Manta will make a best-effort attempt to implement the memory in Block RAM, if it is available on the device. This is done by exporting Verilog that synthesis tools should infer as Block RAMs, however this inference is not guarunteed. Depending on your toolchain and the FPGA's architecture, the Verilog produced by Manta may be implemented as FF RAM, LUT (Distributed) RAM, or something else. These memory types are well explained in the [Yosys documentation](https://yosyshq.readthedocs.io/projects/yosys/en/latest/using_yosys/synthesis/memory.html), but be sure to check your toolchain's documentation as well.
+Manta will make a best-effort attempt to implement the memory in Block RAM, if it is available on the device. This is done by exporting Verilog that synthesis tools should infer as Block RAMs, however this inference is not guaranteed. Depending on your toolchain and the FPGA's architecture, the Verilog produced by Manta may be implemented as FF RAM, LUT (Distributed) RAM, or something else. These memory types are well explained in the [Yosys documentation](https://yosyshq.readthedocs.io/projects/yosys/en/latest/using_yosys/synthesis/memory.html), but be sure to check your toolchain's documentation as well.
 
 ## Configuration
 

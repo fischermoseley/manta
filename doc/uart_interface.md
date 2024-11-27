@@ -24,7 +24,7 @@ Inside this configuration, the following parameters may be set:
 
 - `baudrate` _(required)_: The baudrate of the serial port. Generally, this should be set to the maximum baudrate supported by the USB/UART chip on your dev board for fastest operation. Manta will throw an error if this baudrate is not achievable with your FPGA's clock frequency.
 
-- `clock_freq` _(required)_: The frequency of the clock provided to the `manta` module, in Hertz (Hz). This is used to calculate an appropriate prescaler onboard the FPGA to acheive the desired baudrate. Manta will throw an error if this clock frequency does not allow you to achieve your desired baudrate.
+- `clock_freq` _(required)_: The frequency of the clock provided to the `manta` module, in Hertz (Hz). This is used to calculate an appropriate prescaler onboard the FPGA to achieve the desired baudrate. Manta will throw an error if this clock frequency does not allow you to achieve your desired baudrate.
 
 - `stall_interval` _(optional)_: The number of read requests to send before sending a stall byte. This prevents packets from being dropped if the FPGA's baudrate is less than the USB-Serial adapter's baudrate. This is usually caused by a mismatch between the clock frequency of the USB-Serial adapter and the FPGA fabric. See issue [#18](https://github.com/fischermoseley/manta/issues/18) on GitHub. Defaults to 16, reduce this if Manta reports that bytes are being dropped.
 

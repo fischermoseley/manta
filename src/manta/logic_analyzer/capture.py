@@ -45,16 +45,16 @@ class LogicAnalyzerCapture:
         """
 
         # Get index of probe with given name
-        indicies = [i for i, p in enumerate(self._probes) if p.name == name]
-        if len(indicies) == 0:
+        indices = [i for i, p in enumerate(self._probes) if p.name == name]
+        if len(indices) == 0:
             raise ValueError(f"Probe {name} not found in LogicAnalyzerCapture!")
 
-        if len(indicies) > 1:
+        if len(indices) > 1:
             raise ValueError(
                 f"Probe {name} found multiple times in LogicAnalyzerCapture!"
             )
 
-        idx = indicies[0]
+        idx = indices[0]
 
         # Sum up the widths of all the probes below this one
         lower = sum([len(p) for p in self._probes[:idx]])

@@ -21,6 +21,7 @@ dev = [
   "pytest",
   "pytest-cov",
   "codecov",
+  "pre-commit",
   "ruff",
   "mkdocs-material",
   "mkdocstrings[python]",
