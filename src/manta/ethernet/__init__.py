@@ -4,7 +4,6 @@ from random import getrandbits
 from amaranth import *
 from amaranth.hdl import IOPort
 
-from manta.ethernet.phy_io_defs import phy_io_mapping
 from manta.ethernet.sink_bridge import UDPSinkBridge
 from manta.ethernet.source_bridge import UDPSourceBridge
 from manta.utils import *
@@ -161,23 +160,311 @@ class EthernetInterface(Elaboratable):
         return int("".join(octets), 2)
 
     def _define_phy_io(self, phy):
-        phy_io = phy_io_mapping[phy]
-
-        self._phy_io = [
-            (p.dir, p.name, IOPort(width=p.width, name=p.name)) for p in phy_io
+        mii_phys = ["LiteEthPHYMII"]
+        rmii_phys = ["LiteEthPHYRMII"]
+        gmii_phys = ["LiteEthPHYGMII", "LiteEthPHYGMIIMII"]
+        rgmii_phys = ["LiteEthS7PHYRGMII", "LiteEthECP5PHYRGMII"]
+        sgmii_phys = [
+            "A7_1000BASEX",
+            "A7_2500BASEX",
+            "K7_1000BASEX",
+            "K7_2500BASEX",
+            "KU_1000BASEX",
+            "KU_2500BASEX",
+            "USP_GTH_1000BASEX",
+            "USP_GTH_2500BASEX",
+            "USP_GTY_1000BASEX",
+            "USP_GTY_2500BASEX",
         ]
 
-    def set_phy_io(self, **kwargs):
-        # Given the user's IO, create a list of tuples that can be passed to Instance
-        # Only to be used in Amaranth-Native workflows!
+        if phy in mii_phys:
+            self.set_mii_phy_io(
+                mii_clocks_rx=IOPort(name="mii_clocks_rx", width=1),
+                mii_clocks_tx=IOPort(name="mii_clocks_tx", width=1),
+                mii_rst_n=IOPort(name="mii_rst_n", width=1),
+                mii_mdio=IOPort(name="mii_mdio", width=1),
+                mii_mdc=IOPort(name="mii_mdc", width=1),
+                mii_rx_dv=IOPort(name="mii_rx_dv", width=1),
+                mii_rx_er=IOPort(name="mii_rx_er", width=1),
+                mii_rx_data=IOPort(name="mii_rx_data", width=4),
+                mii_tx_en=IOPort(name="mii_tx_en", width=1),
+                mii_tx_data=IOPort(name="mii_tx_data", width=4),
+                mii_col=IOPort(name="mii_col", width=1),
+                mii_crs=IOPort(name="mii_crs", width=1),
+            )
 
-        all_phy_io = phy_io_mapping.values()
-        all_io_definitions = [io for phy_io in all_phy_io for io in phy_io]
-        find_io_def = lambda name: next(
-            (iod for iod in all_io_definitions if iod.name == name), None
-        )
+        elif phy in rmii_phys:
+            self.set_rmii_phy_io(
+                rmii_clocks_ref_clk=IOPort(name="rmii_clocks_ref_clk", width=1),
+                rmii_rst_n=IOPort(name="rmii_rst_n", width=1),
+                rmii_rx_data=IOPort(name="rmii_rx_data", width=2),
+                rmii_crs_dv=IOPort(name="rmii_crs_dv", width=1),
+                rmii_tx_en=IOPort(name="rmii_tx_en", width=1),
+                rmii_tx_data=IOPort(name="rmii_tx_data", width=2),
+                rmii_mdc=IOPort(name="rmii_mdc", width=1),
+                rmii_mdio=IOPort(name="rmii_mdio", width=1),
+            )
 
-        self._phy_io = [(find_io_def(k).dir, k, v) for k, v in kwargs.items()]
+        elif phy in gmii_phys:
+            self.set_gmii_phy_io(
+                gmii_clocks_tx=IOPort(name="gmii_clocks_tx", width=1),
+                gmii_clocks_gtx=IOPort(name="gmii_clocks_gtx", width=1),
+                gmii_clocks_rx=IOPort(name="gmii_clocks_rx", width=1),
+                gmii_rst_n=IOPort(name="gmii_rst_n", width=1),
+                gmii_int_n=IOPort(name="gmii_int_n", width=1),
+                gmii_mdio=IOPort(name="gmii_mdio", width=1),
+                gmii_mdc=IOPort(name="gmii_mdc", width=1),
+                gmii_rx_dv=IOPort(name="gmii_rx_dv", width=1),
+                gmii_rx_er=IOPort(name="gmii_rx_er", width=1),
+                gmii_rx_data=IOPort(name="gmii_rx_data", width=8),
+                gmii_tx_en=IOPort(name="gmii_tx_en", width=1),
+                gmii_tx_er=IOPort(name="gmii_tx_er", width=1),
+                gmii_tx_data=IOPort(name="gmii_tx_data", width=8),
+                gmii_col=IOPort(name="gmii_col", width=1),
+                gmii_crs=IOPort(name="gmii_crs", width=1),
+            )
+
+        elif phy in rgmii_phys:
+            self.set_rgmii_phy_io(
+                rgmii_clocks_tx=IOPort(name="rgmii_clocks_tx", width=1),
+                rgmii_clocks_rx=IOPort(name="rgmii_clocks_rx", width=1),
+                rgmii_rst_n=IOPort(name="rgmii_rst_n", width=1),
+                rgmii_int_n=IOPort(name="rgmii_int_n", width=1),
+                rgmii_mdio=IOPort(name="rgmii_mdio", width=1),
+                rgmii_mdc=IOPort(name="rgmii_mdc", width=1),
+                rgmii_rx_ctl=IOPort(name="rgmii_rx_ctl", width=1),
+                rgmii_rx_data=IOPort(name="rgmii_rx_data", width=4),
+                rgmii_tx_ctl=IOPort(name="rgmii_tx_ctl", width=1),
+                rgmii_tx_data=IOPort(name="rgmii_tx_data", width=4),
+            )
+
+        elif phy in sgmii_phys:
+            self.set_sgmii_phy_io(
+                sgmii_refclk=IOPort(name="sgmii_refclk", width=1),
+                sgmii_rst=IOPort(name="sgmii_rst", width=1),
+                sgmii_txp=IOPort(name="sgmii_txp", width=1),
+                sgmii_txn=IOPort(name="sgmii_txn", width=1),
+                sgmii_rxp=IOPort(name="sgmii_rxp", width=1),
+                sgmii_rxn=IOPort(name="sgmii_rxn", width=1),
+                sgmii_link_up=IOPort(name="sgmii_link_up", width=1),
+            )
+
+    def set_mii_phy_io(
+        self,
+        mii_clocks_tx,
+        mii_clocks_rx,
+        mii_rst_n,
+        mii_mdio,
+        mii_mdc,
+        mii_rx_dv,
+        mii_rx_er,
+        mii_rx_data,
+        mii_tx_en,
+        mii_tx_data,
+        mii_col,
+        mii_crs,
+    ):
+        """
+        Sets the signals used to connect to a MII PHY in an Amarnath-native
+        design.
+
+        Args:
+            mii_clocks_tx (IOPort): Transmit Clock
+            mii_clocks_rx (IOPort): Receive Clock
+            mii_rst_n (IOPort): PHY Reset
+            mii_mdio (IOPort): Management Data
+            mii_mdc (IOPort): Management Data Clock
+            mii_rx_dv (IOPort): Receive Data Valid
+            mii_rx_er (IOPort): Recieve Error
+            mii_rx_data (IOPort): Receive Data
+            mii_tx_en (IOPort): Transmit Enable
+            mii_tx_data (IOPort): Transmit Data
+            mii_col (IOPort): Collision Detect
+            mii_crs (IOPort): Carrier Sense
+        """
+        self._phy_io = [
+            ("i", "mii_clocks_tx", mii_clocks_tx),
+            ("i", "mii_clocks_rx", mii_clocks_rx),
+            ("o", "mii_rst_n", mii_rst_n),
+            ("io", "mii_mdio", mii_mdio),
+            ("o", "mii_mdc", mii_mdc),
+            ("i", "mii_rx_dv", mii_rx_dv),
+            ("i", "mii_rx_er", mii_rx_er),
+            ("i", "mii_rx_data", mii_rx_data),
+            ("o", "mii_tx_en", mii_tx_en),
+            ("o", "mii_tx_data", mii_tx_data),
+            ("i", "mii_col", mii_col),
+            ("i", "mii_crs", mii_crs),
+        ]
+
+    def set_rmii_phy_io(
+        self,
+        rmii_clocks_ref_clk,
+        rmii_rst_n,
+        rmii_rx_data,
+        rmii_crs_dv,
+        rmii_tx_en,
+        rmii_tx_data,
+        rmii_mdc,
+        rmii_mdio,
+    ):
+        """
+        Sets the signals used to connect to a RMII PHY in an Amarnath-native
+        design.
+
+        Args:
+            rmii_clocks_ref_clk (IOPort): Reference Clock
+            rmii_rst_n (IOPort): PHY Reset
+            rmii_rx_data (IOPort): Receive Data
+            rmii_crs_dv (IOPort): Carrier Sense and Receive Data Valid, multiplexed
+            rmii_tx_en (IOPort): Transmit Enable
+            rmii_tx_data (IOPort): Transmit Data
+            rmii_mdc (IOPort): Management Data Clock
+            rmii_mdio (IOPort): Management Data
+        """
+        self._phy_io = [
+            ("i", "rmii_clocks_ref_clk", rmii_clocks_ref_clk),
+            ("o", "rmii_rst_n", rmii_rst_n),
+            ("i", "rmii_rx_data", rmii_rx_data),
+            ("i", "rmii_crs_dv", rmii_crs_dv),
+            ("o", "rmii_tx_en", rmii_tx_en),
+            ("o", "rmii_tx_data", rmii_tx_data),
+            ("o", "rmii_mdc", rmii_mdc),
+            ("io", "rmii_mdio", rmii_mdio),
+        ]
+
+    def set_gmii_phy_io(
+        self,
+        gmii_clocks_tx,
+        gmii_clocks_gtx,
+        gmii_clocks_rx,
+        gmii_rst_n,
+        gmii_int_n,
+        gmii_mdio,
+        gmii_mdc,
+        gmii_rx_dv,
+        gmii_rx_er,
+        gmii_rx_data,
+        gmii_tx_en,
+        gmii_tx_er,
+        gmii_tx_data,
+        gmii_col,
+        gmii_crs,
+    ):
+        """
+        Sets the signals used to connect to a GMII PHY in an Amarnath-native
+        design.
+
+        Args:
+            gmii_clocks_tx (IOPort): Clock for 10/100 Mbit/s signals.
+            gmii_clocks_gtx (IOPort): Clock for gigabit transmit signals
+            gmii_clocks_rx (IOPort): Received Clock signal
+            gmii_rst_n (IOPort): PHY Reset
+            gmii_int_n (IOPort): PHY Interrupt
+            gmii_mdio (IOPort): Management Data
+            gmii_mdc (IOPort): Management Data Clock
+            gmii_rx_dv (IOPort): Receive Data Valid
+            gmii_rx_er (IOPort): Receive Error
+            gmii_rx_data (IOPort): Receive Data
+            gmii_tx_en (IOPort): Transmit Enable
+            gmii_tx_er (IOPort): Transmit Error
+            gmii_tx_data (IOPort): Transmit Data
+            gmii_col (IOPort): Collision Detect
+            gmii_crs (IOPort): Carrier Sense
+        """
+        self._phy_io = [
+            ("i", "gmii_clocks_tx", gmii_clocks_tx),
+            ("o", "gmii_clocks_gtx", gmii_clocks_gtx),
+            ("i", "gmii_clocks_rx", gmii_clocks_rx),
+            ("o", "gmii_rst_n", gmii_rst_n),
+            ("i", "gmii_int_n", gmii_int_n),
+            ("io", "gmii_mdio", gmii_mdio),
+            ("o", "gmii_mdc", gmii_mdc),
+            ("i", "gmii_rx_dv", gmii_rx_dv),
+            ("i", "gmii_rx_er", gmii_rx_er),
+            ("i", "gmii_rx_data", gmii_rx_data),
+            ("o", "gmii_tx_en", gmii_tx_en),
+            ("o", "gmii_tx_er", gmii_tx_er),
+            ("o", "gmii_tx_data", gmii_tx_data),
+            ("i", "gmii_col", gmii_col),
+            ("i", "gmii_crs", gmii_crs),
+        ]
+
+    def set_rgmii_phy_io(
+        self,
+        rgmii_clocks_tx,
+        rgmii_clocks_rx,
+        rgmii_rst_n,
+        rgmii_int_n,
+        rgmii_mdio,
+        rgmii_mdc,
+        rgmii_rx_ctl,
+        rgmii_rx_data,
+        rgmii_tx_ctl,
+        rgmii_tx_data,
+    ):
+        """
+        Sets the signals used to connect to a RGMII PHY in an Amarnath-native
+        design.
+
+        Args:
+            rgmii_clocks_tx (IOPort): Transmit Clock
+            rgmii_clocks_rx (IOPort): Receive Clock
+            rgmii_rst_n (IOPort): PHY Reset
+            rgmii_int_n (IOPort): PHY Interrupt
+            rgmii_mdio (IOPort): Management Data
+            rgmii_mdc (IOPort): Management Data Clock
+            rgmii_rx_ctl (IOPort): Receive Error and Receive Data Valid, multiplexed
+            rgmii_rx_data (IOPort): Receive Data
+            rgmii_tx_ctl (IOPort): Transmit Enable and Transmit Error, multiplexed
+            rgmii_tx_data (IOPort): Transmit Data
+        """
+        self._phy_io = [
+            ("o", "rgmii_clocks_tx", rgmii_clocks_tx),
+            ("i", "rgmii_clocks_rx", rgmii_clocks_rx),
+            ("o", "rgmii_rst_n", rgmii_rst_n),
+            ("i", "rgmii_int_n", rgmii_int_n),
+            ("io", "rgmii_mdio", rgmii_mdio),
+            ("o", "rgmii_mdc", rgmii_mdc),
+            ("i", "rgmii_rx_ctl", rgmii_rx_ctl),
+            ("i", "rgmii_rx_data", rgmii_rx_data),
+            ("o", "rgmii_tx_ctl", rgmii_tx_ctl),
+            ("o", "rgmii_tx_data", rgmii_tx_data),
+        ]
+
+    def set_sgmii_phy_io(
+        self,
+        sgmii_refclk,
+        sgmii_rst,
+        sgmii_txp,
+        sgmii_txn,
+        sgmii_rxp,
+        sgmii_rxn,
+        sgmii_link_up,
+    ):
+        """
+        Sets the signals used to connect to a SGMII PHY in an Amarnath-native
+        design.
+
+        Args:
+            sgmii_refclk (IOPort): Reference Clock
+            sgmii_rst (IOPort): PHY Reset
+            sgmii_txp (IOPort): Transmit Data (Differential)
+            sgmii_txn (IOPort): Transmit Data (Differential)
+            sgmii_rxp (IOPort): Receive Data (Differential)
+            sgmii_rxn (IOPort): Receive Data (Differential)
+            sgmii_link_up (IOPort): Link Status
+
+        """
+        self._phy_io = [
+            ("i", "sgmii_refclk", sgmii_refclk),
+            ("i", "sgmii_rst", sgmii_rst),
+            ("o", "sgmii_txp", sgmii_txp),
+            ("o", "sgmii_txn", sgmii_txn),
+            ("i", "sgmii_rxp", sgmii_rxp),
+            ("i", "sgmii_rxn", sgmii_rxn),
+            ("o", "sgmii_link_up", sgmii_link_up),
+        ]
 
     def elaborate(self, platform):
         m = Module()

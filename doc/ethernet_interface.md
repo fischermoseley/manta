@@ -56,6 +56,18 @@ Lastly, any additonal arguments provided in the `ethernet` section of the config
 
 Since Amaranth modules are Python objects, the configuration of the IO Core is given by the arguments given during initialization. See the documentation for the `EthernetInterface` [class constructor](#manta.EthernetInterface) below, as well as the Amaranth [examples](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) in the repo.
 
+!!! note "Don't use `.eq()` when connecting to PHY IO pins!"
+
+    The `EthernetInterface` has its own class methods for connecting to the IO pins routed to the PHY. This is necessary as some variations of the Media-Independent Interface used by Ethernet PHYs include bidirectional (ie, `inout`) signals, which require some special provisions in Amaranth. As a result these methods is used to connect the `EthernetInterface` to the Ethernet PHY, instead of using Amaranth's `.eq()`, as is done on the UARTInterface.
+
+For more information on the connections between your PHY and FPGA, please reference your PHY's datasheet, your development board's schematic, or [Wikipedia](https://wikipedia.org/wiki/Media-independent_interface) for more information.
+
 ::: manta.EthernetInterface
     options:
-      members: false
+      members:
+        - EthernetInterface
+        - set_mii_phy_io
+        - set_rmii_phy_io
+        - set_gmii_phy_io
+        - set_rgmii_phy_io
+        - set_sgmii_phy_io
