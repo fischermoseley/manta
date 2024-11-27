@@ -79,7 +79,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
 
         if self.mode in ["bidirectional", "host_to_fpga"]:
             for addr in jumble(range(self.depth)):
-                # Write a random balue to a random bus address
+                # Write a random value to a random bus address
                 data = getrandbits(self.width)
                 self.manta.cores.mem.write(addr, data)
 
@@ -87,7 +87,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
                 readback = self.read_user_side(addr)
                 if readback != data:
                     raise ValueError(
-                        f"Memory read from {hex(addr)} returned {hex(data)} instead of {hex(readback)}."
+                        f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}."
                     )
 
         if self.mode in ["bidirectional", "fpga_to_host"]:
@@ -100,7 +100,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
                 readback = self.manta.cores.mem.read(addr)
                 if readback != data:
                     raise ValueError(
-                        f"Memory read from {hex(addr)} returned {hex(data)} instead of {hex(readback)}."
+                        f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}."
                     )
 
 

@@ -4,6 +4,7 @@ from random import getrandbits
 from amaranth import *
 from amaranth.hdl import IOPort
 
+from manta.ethernet.phy_io_defs import phy_io_mapping
 from manta.ethernet.sink_bridge import UDPSinkBridge
 from manta.ethernet.source_bridge import UDPSourceBridge
 from manta.utils import *
@@ -76,7 +77,8 @@ class EthernetInterface(Elaboratable):
         self.bus_i = Signal(InternalBus())
         self.bus_o = Signal(InternalBus())
 
-        self._phy_io = self._define_phy_io()
+        # Define PHY IO, assuming that we're in a Verilog-based workflow.
+        self._define_phy_io(self._phy)
 
         clk_freq_rounded = round(self._clk_freq)
         self._dhcp_start = Signal()
@@ -158,95 +160,24 @@ class EthernetInterface(Elaboratable):
         octets = [bin(int(o))[2:].zfill(8) for o in ip_addr.split(".")]
         return int("".join(octets), 2)
 
-    def _define_phy_io(self):
-        if self._phy in ["LiteEthPHYMII"]:
-            return [
-                ("i", "mii_clocks_tx", mii_clocks_tx := IOPort(1)),
-                ("i", "mii_clocks_rx", mii_clocks_rx := IOPort(1)),
-                ("o", "mii_rst_n", mii_rst_n := IOPort(1)),
-                ("io", "mii_mdio", mii_mdio := IOPort(1)),
-                ("o", "mii_mdc", mii_mdc := IOPort(1)),
-                ("i", "mii_rx_dv", mii_rx_dv := IOPort(1)),
-                ("i", "mii_rx_er", mii_rx_er := Signal()),
-                ("i", "mii_rx_data", mii_rx_data := IOPort(4)),
-                ("o", "mii_tx_en", mii_tx_en := IOPort(1)),
-                ("o", "mii_tx_data", mii_tx_data := IOPort(4)),
-                ("i", "mii_col", mii_col := IOPort(1)),
-                ("i", "mii_crs", mii_crs := IOPort(1)),
-            ]
+    def _define_phy_io(self, phy):
+        phy_io = phy_io_mapping[phy]
 
-        elif self._phy in ["LiteEthPHYRMII"]:
-            return [
-                ("i", "rmii_clocks_ref_clk", rmii_clocks_ref_clk := IOPort(1)),
-                ("o", "rmii_rst_n", rmii_rst_n := IOPort(1)),
-                ("i", "rmii_rx_data", rmii_rx_data := IOPort(2)),
-                ("i", "rmii_crs_dv", rmii_crs_dv := IOPort(1)),
-                ("o", "rmii_tx_en", rmii_tx_en := IOPort(1)),
-                ("o", "rmii_tx_data", rmii_tx_data := IOPort(2)),
-                ("o", "rmii_mdc", rmii_mdc := IOPort(1)),
-                ("io", "rmii_mdio", rmii_mdio := IOPort(1)),
-            ]
+        self._phy_io = [
+            (p.dir, p.name, IOPort(width=p.width, name=p.name)) for p in phy_io
+        ]
 
-        elif self._phy in [
-            "LiteEthPHYGMII",
-            "LiteEthPHYGMIIMII",
-        ]:
-            return [
-                ("i", "gmii_clocks_tx", gmii_clocks_tx := IOPort(1)),
-                ("o", "gmii_clocks_gtx", gmii_clocks_gtx := IOPort(1)),
-                ("i", "gmii_clocks_rx", gmii_clocks_rx := IOPort(1)),
-                ("o", "gmii_rst_n", gmii_rst_n := IOPort(1)),
-                ("i", "gmii_int_n", gmii_int_n := IOPort(1)),
-                ("io", "gmii_mdio", gmii_mdio := IOPort(1)),
-                ("o", "gmii_mdc", gmii_mdc := IOPort(1)),
-                ("i", "gmii_rx_dv", gmii_rx_dv := IOPort(1)),
-                ("i", "gmii_rx_er", gmii_rx_er := IOPort(1)),
-                ("i", "gmii_rx_data", gmii_rx_data := IOPort(8)),
-                ("o", "gmii_tx_en", gmii_tx_en := IOPort(1)),
-                ("o", "gmii_tx_er", gmii_tx_er := IOPort(1)),
-                ("o", "gmii_tx_data", gmii_tx_data := IOPort(8)),
-                ("i", "gmii_col", gmii_col := IOPort(1)),
-                ("i", "gmii_crs", gmii_crs := IOPort(1)),
-            ]
+    def set_phy_io(self, **kwargs):
+        # Given the user's IO, create a list of tuples that can be passed to Instance
+        # Only to be used in Amaranth-Native workflows!
 
-        elif self._phy in [
-            "LiteEthS7PHYRGMII",
-            "LiteEthECP5PHYRGMII",
-        ]:
-            return [
-                ("o", "rgmii_clocks_tx", rgmii_clocks_tx := IOPort(1)),
-                ("i", "rgmii_clocks_rx", rgmii_clocks_rx := IOPort(1)),
-                ("o", "rgmii_rst_n", rgmii_rst_n := IOPort(1)),
-                ("i", "rgmii_int_n", rgmii_int_n := IOPort(1)),
-                ("io", "rgmii_mdio", rgmii_mdio := IOPort(1)),
-                ("o", "rgmii_mdc", rgmii_mdc := IOPort(1)),
-                ("i", "rgmii_rx_ctl", rgmii_rx_ctl := IOPort(1)),
-                ("i", "rgmii_rx_data", rgmii_rx_data := IOPort(4)),
-                ("o", "rgmii_tx_ctl", rgmii_tx_ctl := IOPort(1)),
-                ("o", "rgmii_tx_data", rgmii_tx_data := IOPort(4)),
-            ]
+        all_phy_io = phy_io_mapping.values()
+        all_io_definitions = [io for phy_io in all_phy_io for io in phy_io]
+        find_io_def = lambda name: next(
+            (iod for iod in all_io_definitions if iod.name == name), None
+        )
 
-        elif self._phy in [
-            "A7_1000BASEX",
-            "A7_2500BASEX",
-            "K7_1000BASEX",
-            "K7_2500BASEX",
-            "KU_1000BASEX",
-            "KU_2500BASEX",
-            "USP_GTH_1000BASEX",
-            "USP_GTH_2500BASEX",
-            "USP_GTY_1000BASEX",
-            "USP_GTY_2500BASEX",
-        ]:
-            return [
-                ("i", "sgmii_refclk", sgmii_refclk := IOPort(1)),
-                ("i", "sgmii_rst", sgmii_rst := IOPort(1)),
-                ("o", "sgmii_txp", sgmii_txp := IOPort(1)),
-                ("o", "sgmii_txn", sgmii_txn := IOPort(1)),
-                ("i", "sgmii_rxp", sgmii_rxp := IOPort(1)),
-                ("i", "sgmii_rxn", sgmii_rxn := IOPort(1)),
-                ("o", "sgmii_link_up", sgmii_link_up := IOPort(1)),
-            ]
+        self._phy_io = [(find_io_def(k).dir, k, v) for k, v in kwargs.items()]
 
     def elaborate(self, platform):
         m = Module()
