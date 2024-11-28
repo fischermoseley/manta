@@ -36,6 +36,13 @@ jobs:
           source venv/bin/activate
           make test
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Coverage Report
+          path: |
+            .coverage
+            coverage.xml
+
       - name: Upload results to Codecov
         run: |
           source venv/bin/activate
