@@ -26,7 +26,7 @@ logo = f"""
 
 
 Manta - A configurable and approachable tool for FPGA debugging and rapid prototyping
-Version {distribution("manta").version}
+Version {distribution("manta-fpga").version}
 https://github.com/fischermoseley/manta
 """
 

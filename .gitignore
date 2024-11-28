@@ -4,7 +4,7 @@
 
 # Python files
 venv/
-manta.egg-info/
+manta_fpga.egg-info/
 .pytest_cache
 .ruff_cache
 __pycache__/
