@@ -38,7 +38,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Coverage Report
+          name: coverage_reports
+          include-hidden-files: true
           path: |
             .coverage
             coverage.xml
