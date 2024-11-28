@@ -25,10 +25,10 @@ jobs:
           # Install Manta, with optional dev-only dependencies
           python3 -m pip install ".[dev]"
 
-      - name: Check formatting
+      - name: Run pre-commit against all files
         run: |
           source venv/bin/activate
-          python3 -m ruff format --check
+          pre-commit run --all-files
 
       - name: Run tests
         run: |
