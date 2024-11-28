@@ -8,7 +8,7 @@ pip install --upgrade pip
 The latest release of Manta can be installed from PyPI with:
 
 ```bash
-pip install --upgrade manta-python
+pip install --upgrade manta-fpga
 ```
 
 ## Development Snapshot
