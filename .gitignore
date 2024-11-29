@@ -16,6 +16,8 @@ build/
 *.vcd
 *.out
 *.csv
+*.xml
+.coverage*
 
 # Vivado files
 *.log

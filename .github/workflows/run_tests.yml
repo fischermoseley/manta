@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Manta from Source
+      - name: Install Manta from source
         run: |
           # Make venv
           python3 -m venv venv/
@@ -43,6 +43,11 @@ jobs:
           path: |
             .coverage
             coverage.xml
+
+      - name: Show coverage report
+        run: |
+          source venv/bin/activate
+          coverage report
 
       - name: Upload results to Codecov
         run: |
