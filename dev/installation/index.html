@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../assets/logo_ray_only_with_shadow.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.46">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.47">
     
     
       
@@ -804,12 +804,15 @@
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>pre-commit<span class="w"> </span>install
 </span></code></pre></div>
-<p>Manta's hardware-in-the-loop tests rely on Amaranth's build system for programming FPGAs, which in turn rely on the open-source <code>xc3sprog</code> and <code>iceprog</code> tools for programming Xilinx and ice40 devices, respectively. If you'd like to run these tests locally, you may need to install these tools and have them available on your <code>PATH</code>.</p>
+<p>Manta's hardware-in-the-loop tests rely on Amaranth's build system for programming FPGAs, which in turn relies on the <code>amaranth-boards</code> Python package. This package is not available on PyPI, and must be installed manually with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/amaranth-lang/amaranth-boards.git
+</span></code></pre></div>
+<p>The build system also uses the open-source <code>xc3sprog</code> and <code>iceprog</code> tools for programming Xilinx and ice40 devices, respectively. If you'd like to run these tests locally, you may need to install these tools and have them available on your <code>PATH</code>.</p>
 <p>If you're on Linux, you may also need to add a new udev rule to give non-superuser accounts access to any connected FTDI devices. This can be done by making a new file at <code>/etc/udev/rules.d/99-ftdi-devices.rules</code>, which contains:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ACTION==&quot;add&quot;, ATTR{idVendor}==&quot;0403&quot;, ATTR{idProduct}==&quot;6010&quot;, MODE:=&quot;666&quot;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ACTION==&quot;add&quot;, ATTR{idVendor}==&quot;0403&quot;, ATTR{idProduct}==&quot;6010&quot;, MODE:=&quot;666&quot;
 </span></code></pre></div>
 <p>Be sure to reload your udev rules after saving the file. On most distributions, this is accomplished with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>udevadm<span class="w"> </span>trigger
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>udevadm<span class="w"> </span>trigger
 </span></code></pre></div>
 <h2 id="adding-manta-to-path-optional">Adding Manta to PATH (Optional)</h2>
 <p>Although optional, it is convenient to add the <code>manta</code> executable to your system's path. This allows you to invoke Manta's CLI with <code>manta</code>, rather than the more verbose <code>python3 -m manta</code>. The location of this executable depends on both your platform and if you're using a virtual environment. For example:</p>
