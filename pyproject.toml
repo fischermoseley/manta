@@ -7,7 +7,7 @@ authors = [
 description = "A configurable and approachable tool for FPGA debugging and rapid prototyping"
 readme = "README.md"
 dependencies = [
-  "amaranth[builtin-yosys]==0.5.0",
+  "amaranth[builtin-yosys]>=0.5.0",
   "PyYAML",
   "pyserial",
   "liteeth==2023.12",
@@ -15,6 +15,8 @@ dependencies = [
 ]
 
 requires-python = ">=3.9"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)"]
 
 [project.optional-dependencies]
 dev = [
@@ -26,11 +28,12 @@ dev = [
   "mkdocs-material",
   "mkdocstrings[python]",
   "mike",
-  "amaranth_boards@git+https://github.com/amaranth-lang/amaranth-boards"
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/fischermoseley/manta"
+"Documentation" = "https://fischermoseley.github.io/manta"
+"Issues" = "https://github.com/fischermoseley/manta/issues"
 
 [project.scripts]
 manta = "manta:main"

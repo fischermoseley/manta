@@ -8,22 +8,18 @@ jobs:
 
       - name: Install Manta from source
         run: |
-          # Make venv
-          python3 -m venv venv/
-          source venv/bin/activate
-
-          # Update pip
-          python3 -m pip install -U pip
-
-          # omitting the following command causes the version of setuptools
+          # Omitting the following command causes the version of setuptools
           # used by python to get confused, and it doesn't detect the name
           # or version of the package from pyproject.toml - so the following
           # workaround is used:
           # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
           export DEB_PYTHON_INSTALL_LAYOUT=deb_system
 
-          # Install Manta, with optional dev-only dependencies
+          python3 -m venv venv/
+          source venv/bin/activate
+          python3 -m pip install -U pip
           python3 -m pip install -e ".[dev]"
+          python3 -m pip install git+https://github.com/amaranth-lang/amaranth-boards.git
 
       - name: Run pre-commit against all files
         run: |
@@ -36,7 +32,8 @@ jobs:
           source venv/bin/activate
           make test
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload coverate reports
+        uses: actions/upload-artifact@v4
         with:
           name: coverage_reports
           include-hidden-files: true
