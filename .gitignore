@@ -9,6 +9,7 @@ manta_fpga.egg-info/
 .ruff_cache
 __pycache__/
 build/
+dist/
 
 # Miscellaneous file types
 *.v

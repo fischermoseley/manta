@@ -1,4 +1,4 @@
-![](doc/assets/logo.png)
+![](https://raw.githubusercontent.com/fischermoseley/manta/refs/heads/main/doc/assets/logo.png)
 
 ## Manta: A Configurable and Approachable Tool for FPGA Debugging and Rapid Prototyping
 ![run_tests](https://github.com/fischermoseley/manta/actions/workflows/run_tests.yml/badge.svg)
