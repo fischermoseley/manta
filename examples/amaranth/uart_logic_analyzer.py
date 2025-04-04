@@ -38,9 +38,9 @@ class UARTLogicAnalyzerExample(Elaboratable):
 
         counter = Signal(10)
         m.d.sync += counter.eq(counter + 1)
-        m.d.comb += self.probe0.eq(counter[0])
-        m.d.comb += self.probe1.eq(counter[1:2])
-        m.d.comb += self.probe2.eq(counter[3:5])
+        m.d.comb += self.probe0.eq(counter[0:1])
+        m.d.comb += self.probe1.eq(counter[1:3])
+        m.d.comb += self.probe2.eq(counter[3:6])
         m.d.comb += self.probe3.eq(counter[6:])
 
         # Wire UART pins to the Manta instance
