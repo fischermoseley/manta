@@ -13,4 +13,4 @@ cores:
 uart:
   port: "/dev/ttyUSB3"
   baudrate: 115200
-  clock_freq: 12000000
+  clock_freq: 12e6
