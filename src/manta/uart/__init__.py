@@ -75,25 +75,36 @@ class UARTInterface(Elaboratable):
 
     @classmethod
     def from_config(cls, config):
-        port = config.get("port")
-        clock_freq = config.get("clock_freq")
-        baudrate = config.get("baudrate")
-
-        # Warn if unrecognized options have been given
-        recognized_options = [
-            "port",
+        integer_options = [
             "clock_freq",
             "baudrate",
             "chunk_size",
             "stall_interval",
         ]
+
+        string_options = [
+            "port",
+        ]
+
+        sanitized_config = {}
         for option in config:
-            if option not in recognized_options:
+            # Since PyYAML is written to the YAML 1.1 spec, it will parse numeric values written
+            # with scientific notation (ie, `12e6` or `+5.0E+2`) as strings, not floats. At the
+            # time of writing, YAML 1.2 support is pending in PyYAML, so the casting is done
+            # manually here. Switching to ruyaml would also solve this.
+
+            if option in integer_options:
+                sanitized_config[option] = int(float(config[option]))
+
+            elif option in string_options:
+                sanitized_config[option] = config[option]
+
+            else:
                 warn(
                     f"Ignoring unrecognized option '{option}' in UART interface config."
                 )
 
-        return cls(**config)
+        return cls(**sanitized_config)
 
     def to_config(self):
         return {

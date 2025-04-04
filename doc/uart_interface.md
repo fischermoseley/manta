@@ -13,8 +13,8 @@ The UART interface is used by adding a `uart` entry at the bottom of the configu
 ```yaml
 uart:
   port: "auto"
-  baudrate: 3000000
-  clock_freq: 100000000
+  baudrate: 115200
+  clock_freq: 100e6
   stall_interval: 16
   chunk_size: 256
 ```
