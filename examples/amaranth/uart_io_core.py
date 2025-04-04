@@ -22,7 +22,7 @@ class UARTIOCoreExample(Elaboratable):
 
         # Autodetect the number of LEDs on the platform
         resources = platform.resources.keys()
-        self.n_leds = max([i for name, i in resources if name == "led"])
+        self.n_leds = len([name for name, _ in resources if name == "led"])
 
         # Add IOCore to Manta instance
         self.leds = Signal(self.n_leds)
