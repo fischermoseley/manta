@@ -111,6 +111,7 @@ depths = [2, 512, 1024]
 nexys4ddr_cases = [(m, w, d) for m in modes for w in widths for d in depths]
 
 
+@pytest.mark.xdist_group(name="nexys4ddr")
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize("mode, width, depth", nexys4ddr_cases)
 def test_mem_core_xilinx(mode, width, depth):
@@ -125,6 +126,7 @@ depths = [2, 512, 1024]
 ice40_cases = [(m, w, d) for m in modes for w in widths for d in depths]
 
 
+@pytest.mark.xdist_group(name="icestick")
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize("mode, width, depth", ice40_cases)
 def test_mem_core_ice40(mode, width, depth):

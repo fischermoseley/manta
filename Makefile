@@ -1,6 +1,6 @@
 .PHONY: test format clean serve_docs
 test:
-	python3 -m pytest --cov-report xml --cov=src/manta
+	python3 -m pytest -n auto --dist loadgroup --cov-report xml --cov=src/manta
 
 format:
 	python3 -m ruff check --select I --fix

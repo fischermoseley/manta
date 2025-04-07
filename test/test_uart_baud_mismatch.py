@@ -88,6 +88,7 @@ nexys4ddr_pass_cases = [
 ]
 
 
+@pytest.mark.xdist_group(name="nexys4ddr")
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize(
     "baudrate, percent_slowdown, stall_interval", nexys4ddr_pass_cases
@@ -108,6 +109,7 @@ nexys4ddr_fail_cases = [
 ]
 
 
+@pytest.mark.xdist_group(name="icestick")
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize(
     "baudrate, percent_slowdown, stall_interval", nexys4ddr_fail_cases

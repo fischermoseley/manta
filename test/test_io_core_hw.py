@@ -108,12 +108,14 @@ class IOCoreLoopbackTest(Elaboratable):
         self.verify_probes_update()
 
 
+@pytest.mark.xdist_group(name="nexys4ddr")
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_xilinx():
     port = os.environ["NEXYS4DDR_PORT"]
     IOCoreLoopbackTest(Nexys4DDRPlatform(), port).verify()
 
 
+@pytest.mark.xdist_group(name="icestick")
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_output_probe_initial_values_ice40():
     port = os.environ["ICESTICK_PORT"]

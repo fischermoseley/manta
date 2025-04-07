@@ -104,6 +104,7 @@ class EthernetMemoryCoreTest(Elaboratable):
                 )
 
 
+@pytest.mark.xdist_group(name="nexys4ddr")
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_mem_core_xilinx():
     EthernetMemoryCoreTest(Nexys4DDRPlatform()).verify()

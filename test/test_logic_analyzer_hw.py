@@ -79,12 +79,14 @@ class LogicAnalyzerCounterTest(Elaboratable):
                     raise ValueError("Bad counter!")
 
 
+@pytest.mark.xdist_group(name="nexys4ddr")
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_xilinx():
     port = os.environ["NEXYS4DDR_PORT"]
     LogicAnalyzerCounterTest(Nexys4DDRPlatform(), port).verify()
 
 
+@pytest.mark.xdist_group(name="icestick")
 @pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 def test_logic_analyzer_core_ice40():
     port = os.environ["ICESTICK_PORT"]

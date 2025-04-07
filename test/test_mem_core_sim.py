@@ -259,9 +259,9 @@ class MemoryCoreTests:
 
 
 modes = ["bidirectional", "fpga_to_host", "host_to_fpga"]
-widths = [23, randint(0, 128)]
-depths = [512, randint(0, 1024)]
-base_addrs = [0, randint(0, 32678)]
+widths = [23, 121]
+depths = [512, 968]
+base_addrs = [0, 32313]
 
 cases = [
     (m, w, d, ba) for m in modes for w in widths for d in depths for ba in base_addrs
