@@ -275,9 +275,14 @@ class LogicAnalyzerCore(MantaCore):
             # Validate triggers
             self._validate_triggers(triggers)
 
-            self.trigger_mode = mode
+            self._trigger_mode = mode
             self._triggers = triggers
-            self._trigger_location = trigger_location or self._sample_depth // 2
+
+            if trigger_location is None:
+                self._trigger_location = self._sample_depth // 2
+
+            else:
+                self._trigger_location = trigger_location
 
     def capture(self):
         """
