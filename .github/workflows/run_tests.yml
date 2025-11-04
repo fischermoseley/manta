@@ -19,7 +19,7 @@ jobs:
 
       - name: Run tests
         run: |
-          source ./environment.sh
+          source .env
           uv run make test
 
       - name: Upload coverage reports
