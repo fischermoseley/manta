@@ -93,8 +93,8 @@ class InternalBus(data.StructLayout):
     def __init__(self):
         super().__init__(
             {
-                "addr": 16,
-                "data": 16,
+                "addr": 32,
+                "data": 32,
                 "rw": 1,
                 "valid": 1,
                 "last": 1,
