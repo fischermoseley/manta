@@ -4,8 +4,7 @@ from random import getrandbits
 from amaranth import *
 from amaranth.hdl import IOPort
 
-from manta.ethernet.sink_bridge import UDPSinkBridge
-from manta.ethernet.source_bridge import UDPSourceBridge
+from manta.ethernet.bridge import EthernetBridge
 from manta.utils import *
 
 
@@ -509,21 +508,20 @@ class EthernetInterface(Elaboratable):
         if platform:
             platform.add_file("liteeth.v", self.generate_liteeth_core())
 
-        m.submodules.source_bridge = source_bridge = UDPSourceBridge()
-        m.submodules.sink_bridge = sink_bridge = UDPSinkBridge()
+        m.submodules.bridge = bridge = EthernetBridge()
 
-        m.d.comb += source_bridge.data_i.eq(self._source_data)
-        m.d.comb += source_bridge.last_i.eq(self._source_last)
-        m.d.comb += self._source_ready.eq(source_bridge.ready_o)
-        m.d.comb += source_bridge.valid_i.eq(self._source_valid)
+        m.d.comb += bridge.data_i.eq(self._source_data)
+        m.d.comb += bridge.last_i.eq(self._source_last)
+        m.d.comb += self._source_ready.eq(bridge.ready_o)
+        m.d.comb += bridge.valid_i.eq(self._source_valid)
 
-        m.d.comb += self._sink_data.eq(sink_bridge.data_o)
-        m.d.comb += self._sink_last.eq(sink_bridge.last_o)
-        m.d.comb += sink_bridge.ready_i.eq(self._sink_ready)
-        m.d.comb += self._sink_valid.eq(sink_bridge.valid_o)
+        m.d.comb += self._sink_data.eq(bridge.data_o)
+        m.d.comb += self._sink_last.eq(bridge.last_o)
+        m.d.comb += bridge.ready_i.eq(self._sink_ready)
+        m.d.comb += self._sink_valid.eq(bridge.valid_o)
 
-        m.d.comb += sink_bridge.bus_i.eq(self.bus_i)
-        m.d.comb += self.bus_o.eq(source_bridge.bus_o)
+        m.d.comb += bridge.bus_i.eq(self.bus_i)
+        m.d.comb += self.bus_o.eq(bridge.bus_o)
 
         return m
 

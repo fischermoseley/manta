@@ -3,8 +3,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from random import sample
 
-from amaranth import Elaboratable
+from amaranth import Elaboratable, unsigned
 from amaranth.lib import data
+from amaranth.lib.enum import IntEnum
 from amaranth.sim import Simulator
 
 
@@ -100,6 +101,14 @@ class InternalBus(data.StructLayout):
                 "last": 1,
             }
         )
+
+
+class MessageTypes(IntEnum, shape=unsigned(3)):
+    READ_REQUEST = 0
+    WRITE_REQUEST = 1
+    READ_RESPONSE = 2
+    WRITE_RESPONSE = 3
+    NACK = 4
 
 
 def warn(message):
