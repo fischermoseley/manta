@@ -58,6 +58,7 @@ class EthernetBridge(Elaboratable):
                         m.d.sync += self.data_o.eq(
                             Cat(MessageTypes.READ_RESPONSE, seq_num_expected + 1)
                         )
+                        m.d.sync += self.valid_o.eq(1)
                         m.next = "READ_WAIT_FOR_ADDR"
 
                     with m.Elif(self.data_i[:3] == MessageTypes.WRITE_REQUEST):
@@ -65,6 +66,9 @@ class EthernetBridge(Elaboratable):
                         m.next = "WRITE_WAIT_FOR_ADDR"
 
             with m.State("READ_WAIT_FOR_ADDR"):
+                m.d.sync += self.valid_o.eq(0)
+                m.d.sync += self.data_o.eq(0)
+
                 with m.If(self.valid_i):
                     # we have the length and the address to read from, let's go!
                     m.d.sync += self.bus_o.addr.eq(self.data_i)
@@ -98,10 +102,14 @@ class EthernetBridge(Elaboratable):
                 # Clock out any read data from the bus
                 with m.If(self.bus_i.valid):
                     m.d.sync += self.data_o.eq(self.bus_i.data)
+                    m.d.sync += self.valid_o.eq(1)
+                    m.d.sync += self.last_o.eq(self.bus_i.last)
 
-                    with m.If(self.bus_i.last):
-                        m.d.sync += self.last_o.eq(1)
-                        m.next = "IDLE"  # TODO: could save a cycle by checking valid_i to see if there's more work to do
+                with m.If(self.last_o):
+                    m.d.sync += self.data_o.eq(0)
+                    m.d.sync += self.valid_o.eq(0)
+                    m.d.sync += self.last_o.eq(0)
+                    m.next = "IDLE"  # TODO: could save a cycle by checking valid_i to see if there's more work to do
 
             with m.State("WRITE_WAIT_FOR_ADDR"):
                 with m.If(self.valid_i):
