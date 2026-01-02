@@ -3,8 +3,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from random import sample
 
-from amaranth import Elaboratable
+from amaranth import Elaboratable, unsigned
 from amaranth.lib import data
+from amaranth.lib.enum import IntEnum
 from amaranth.sim import Simulator
 
 
@@ -93,13 +94,21 @@ class InternalBus(data.StructLayout):
     def __init__(self):
         super().__init__(
             {
-                "addr": 16,
-                "data": 16,
+                "addr": 32,
+                "data": 32,
                 "rw": 1,
                 "valid": 1,
                 "last": 1,
             }
         )
+
+
+class MessageTypes(IntEnum, shape=unsigned(3)):
+    READ_REQUEST = 0
+    WRITE_REQUEST = 1
+    READ_RESPONSE = 2
+    WRITE_RESPONSE = 3
+    NACK = 4
 
 
 def warn(message):
@@ -110,6 +119,47 @@ def warn(message):
     (ie, Users don't care about the stacktrace or the filename/line number.)
     """
     print("Warning: " + message)
+
+
+def part_select(value, start, end):
+    # Ensure the start bit is less than or equal to the end bit
+    if start > end:
+        raise ValueError(
+            "Start bit position must be less than or equal to end bit position."
+        )
+
+    # Create a mask to isolate the bits from `start` to `end`
+    mask = (1 << (end - start + 1)) - 1
+
+    # Shift the number to the right by `start` bits and apply the mask
+    return (value >> start) & mask
+
+
+def parse_sequences(numbers):
+    """
+    Takes a list of integers and identifies runs of sequential numbers
+    (where each number is exactly 1 more than the previous). Returns
+    a list of tuples, where each tuple contains the starting number
+    and the length of that sequence.
+    """
+
+    if not numbers:
+        return []
+
+    sequences = []
+    start = numbers[0]
+    length = 1
+
+    for i in range(1, len(numbers)):
+        if numbers[i] == numbers[i - 1] + 1:
+            length += 1
+        else:
+            sequences.append((start, length))
+            start = numbers[i]
+            length = 1
+
+    sequences.append((start, length))
+    return sequences
 
 
 def words_to_value(data):
