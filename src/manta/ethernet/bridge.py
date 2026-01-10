@@ -44,7 +44,11 @@ class EthernetBridge(Elaboratable):
                         # Otherwise, NACK immediately
                         with m.Else():
                             m.d.sync += self.data_o.eq(
-                                Cat(MessageTypes.NACK, seq_num_expected)
+                                Cat(
+                                    C(0, unsigned(16)),
+                                    seq_num_expected,
+                                    MessageTypes.NACK,
+                                )
                             )
                             m.d.sync += self.valid_o.eq(1)
                             m.d.sync += self.last_o.eq(1)
@@ -56,7 +60,11 @@ class EthernetBridge(Elaboratable):
                         m.d.sync += read_len.eq(self.data_i[16:23] - 1)
 
                         m.d.sync += self.data_o.eq(
-                            Cat(MessageTypes.READ_RESPONSE, seq_num_expected + 1)
+                            Cat(
+                                C(0, unsigned(16)),
+                                seq_num_expected,
+                                MessageTypes.READ_RESPONSE,
+                            )
                         )
                         m.d.sync += self.valid_o.eq(1)
                         m.next = "READ_WAIT_FOR_ADDR"
@@ -155,7 +163,9 @@ class EthernetBridge(Elaboratable):
 
             with m.State("NACK_WAIT_FOR_LAST"):
                 with m.If(self.last_i):
-                    m.d.sync += self.data_o.eq(Cat(MessageTypes.NACK, seq_num_expected))
+                    m.d.sync += self.data_o.eq(
+                        Cat(C(0, unsigned(16)), seq_num_expected, MessageTypes.NACK)
+                    )
                     m.d.sync += self.valid_o.eq(1)
                     m.d.sync += self.last_o.eq(1)
                     m.d.sync += self.ready_o.eq(0)

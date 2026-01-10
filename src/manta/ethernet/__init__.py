@@ -90,6 +90,11 @@ class EthernetInterface(Elaboratable):
         self._sink_ready = Signal()
         self._sink_valid = Signal()
 
+        self._seq_num = 0
+        self._max_retries = 3
+        self._max_read_len = 126
+        self._max_write_len = 126
+
     def _check_config(self):
         # Make sure UDP port is an integer in the range 0-65535
         if not isinstance(self._udp_port, int):
@@ -457,6 +462,51 @@ class EthernetInterface(Elaboratable):
             ("o", "sgmii_link_up", sgmii_link_up),
         ]
 
+    def generate_liteeth_core(self):
+        """
+        Generate a LiteEth core by calling a slightly modified form of the
+        LiteEth standalone core generator. This passes the contents of the
+        'ethernet' section of the Manta configuration file to LiteEth, after
+        modifying it slightly.
+        """
+        liteeth_config = self.to_config()
+
+        # Randomly assign a MAC address if one is not specified in the
+        # configuration. This will choose a MAC address in the Locally
+        # Administered, Administratively Assigned group. Please reference:
+        # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
+
+        if "mac_address" not in liteeth_config:
+            addr = list(f"{getrandbits(48):012x}")
+            addr[1] = "2"
+            liteeth_config["mac_address"] = int("".join(addr), 16)
+            print(liteeth_config["mac_address"])
+
+        # Force use of DHCP
+        liteeth_config["dhcp"] = True
+
+        # Use UDP
+        liteeth_config["core"] = "udp"
+
+        # Use 32-bit words. Might be redundant, as I think using DHCP forces
+        # LiteEth to use 32-bit words
+        liteeth_config["data_width"] = 32
+
+        # Add UDP port
+        liteeth_config["udp_ports"] = {
+            "udp0": {
+                "udp_port": self._udp_port,
+                "data_width": 32,
+                "tx_fifo_depth": 64,
+                "rx_fifo_depth": 64,
+            }
+        }
+
+        # Generate the core
+        from manta.ethernet.liteeth_gen import main
+
+        return main(liteeth_config)
+
     def elaborate(self, platform):
         m = Module()
 
@@ -525,6 +575,108 @@ class EthernetInterface(Elaboratable):
 
         return m
 
+    @staticmethod
+    def _read_request_bytes(seq_num, addr, length):
+        message = [
+            (length << 16) | (seq_num << 3) | MessageTypes.READ_REQUEST,
+            addr,
+        ]
+
+        return b"".join([i.to_bytes(4, "little") for i in message])
+
+    @staticmethod
+    def _write_request_bytes(seq_num, addr, datas):
+        message = [
+            (seq_num << 3) | MessageTypes.WRITE_REQUEST,
+            addr,
+            *datas,
+        ]
+
+        return b"".join([i.to_bytes(4, "little") for i in message])
+
+    def _read_request(self, addr, length):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind((self._host_ip_addr, self._udp_port))
+
+        retry_count = 0
+        while retry_count < self._max_retries:
+            request = self._read_request_bytes(self._seq_num, addr, length)
+            sock.sendto(request, (self._fpga_ip_addr, self._udp_port))
+            data, ip_addr = sock.recvfrom(4 + (length * 4))
+
+            if ip_addr != self._fpga_ip_addr:
+                raise ValueError("Non-Manta traffic detected on this UDP port!")
+
+            data = [
+                int.from_bytes(data[i : i + 4], "little")
+                for i in range(0, len(data), 4)
+            ]
+
+            response_type = MessageTypes(part_select(data[0], 29, 31))
+            if response_type == MessageTypes.READ_RESPONSE:
+                assert len(data) == length - 1
+                return data[1:]
+
+            elif response_type == MessageTypes.NACK:
+                self._seq_num = part_select(data[0], 16, 28)
+                retry_count += 1
+
+            else:
+                raise ValueError("Unexpected message format received!")
+
+        raise ValueError("Maximum number of retries exceeded!")
+
+    def _write_request(self, addr, datas):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind((self._host_ip_addr, self._udp_port))
+
+        retry_count = 0
+        while retry_count < self._max_retries:
+            request = self._write_request_bytes(self._seq_num, addr, datas)
+            sock.sendto(request, (self._fpga_ip_addr, self._udp_port))
+            data, (ip_addr, port) = sock.recvfrom(4)
+
+            assert port == self._udp_port
+
+            if ip_addr != self._fpga_ip_addr:
+                raise ValueError("Non-Manta traffic detected on this UDP port!")
+
+            data = [
+                int.from_bytes(data[i : i + 4], "little")
+                for i in range(0, len(data), 4)
+            ]
+
+            response_type = MessageTypes(part_select(data[0], 29, 31))
+            if response_type == MessageTypes.WRITE_RESPONSE:
+                return
+
+            elif response_type == MessageTypes.NACK:
+                self._seq_num = part_select(data[0], 16, 28)
+                retry_count += 1
+
+            else:
+                raise ValueError("Unexpected message format received!")
+
+        raise ValueError("Maximum number of retries exceeded!")
+
+    def read_block(self, base_addr, length):
+        data = []
+        offset = 0
+
+        while offset < length:
+            chunk_size = min(self._max_read_len, length - offset)
+            data += self._read_request(base_addr + offset, chunk_size)
+            offset += chunk_size
+
+        assert len(data) == length
+        return data
+
+    def write_block(self, base_addr, data):
+        data_chunks = split_into_chunks(data, self._max_write_len)
+
+        for i, chunk in enumerate(data_chunks):
+            self._write_request(base_addr + (i * self._max_write_len), chunk)
+
     def read(self, addrs):
         """
         Read the data stored in a set of address on Manta's internal memory.
@@ -539,30 +691,12 @@ class EthernetInterface(Elaboratable):
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Read address must be an integer or list of integers.")
 
-        # Send read requests, and get responses
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((self._host_ip_addr, self._udp_port))
-        chunk_size = 64  # 128
-        addr_chunks = split_into_chunks(addrs, chunk_size)
-        datas = []
+        data = []
+        seqs = parse_sequences(addrs)
+        for base_addr, length in seqs:
+            data += self.read_block(base_addr, length)
 
-        for addr_chunk in addr_chunks:
-            bytes_out = b""
-            for addr in addr_chunk:
-                bytes_out += int(0).to_bytes(4, byteorder="little")
-                bytes_out += int(addr).to_bytes(2, byteorder="little")
-                bytes_out += int(0).to_bytes(2, byteorder="little")
-
-            sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
-            data, addr = sock.recvfrom(4 * chunk_size)
-
-            # Split into groups of four bytes
-            datas += [int.from_bytes(d, "little") for d in split_into_chunks(data, 4)]
-
-        if len(datas) != len(addrs):
-            raise ValueError("Got less data than expected from FPGA.")
-
-        return datas
+        return data
 
     def write(self, addrs, datas):
         """
@@ -585,61 +719,8 @@ class EthernetInterface(Elaboratable):
         if not all(isinstance(d, int) for d in datas):
             raise TypeError("Write data must all be integers.")
 
-        # Since the FPGA doesn't issue any responses to write requests, we
-        # the host's input buffer isn't written to, and we don't need to
-        # send the data as chunks as the to avoid overflowing the input buffer.
-
-        # Encode addrs and datas into write requests
-        bytes_out = b""
-        for addr, data in zip(addrs, datas):
-            bytes_out += int(1).to_bytes(4, byteorder="little")
-            bytes_out += int(addr).to_bytes(2, byteorder="little")
-            bytes_out += int(data).to_bytes(2, byteorder="little")
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
-
-    def generate_liteeth_core(self):
-        """
-        Generate a LiteEth core by calling a slightly modified form of the
-        LiteEth standalone core generator. This passes the contents of the
-        'ethernet' section of the Manta configuration file to LiteEth, after
-        modifying it slightly.
-        """
-        liteeth_config = self.to_config()
-
-        # Randomly assign a MAC address if one is not specified in the
-        # configuration. This will choose a MAC address in the Locally
-        # Administered, Administratively Assigned group. Please reference:
-        # https://en.wikipedia.org/wiki/MAC_address#Ranges_of_group_and_locally_administered_addresses
-
-        if "mac_address" not in liteeth_config:
-            addr = list(f"{getrandbits(48):012x}")
-            addr[1] = "2"
-            liteeth_config["mac_address"] = int("".join(addr), 16)
-            print(liteeth_config["mac_address"])
-
-        # Force use of DHCP
-        liteeth_config["dhcp"] = True
-
-        # Use UDP
-        liteeth_config["core"] = "udp"
-
-        # Use 32-bit words. Might be redundant, as I think using DHCP forces
-        # LiteEth to use 32-bit words
-        liteeth_config["data_width"] = 32
-
-        # Add UDP port
-        liteeth_config["udp_ports"] = {
-            "udp0": {
-                "udp_port": self._udp_port,
-                "data_width": 32,
-                "tx_fifo_depth": 64,
-                "rx_fifo_depth": 64,
-            }
-        }
-
-        # Generate the core
-        from manta.ethernet.liteeth_gen import main
-
-        return main(liteeth_config)
+        seqs = parse_sequences(addrs)
+        offset = 0
+        for base_addr, length in seqs:
+            self.write_block(base_addr, datas[offset : offset + length])
+            offset += length
