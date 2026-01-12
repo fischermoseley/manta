@@ -602,7 +602,7 @@ class EthernetInterface(Elaboratable):
         while retry_count < self._max_retries:
             request = self._read_request_bytes(self._seq_num, addr, length)
             sock.sendto(request, (self._fpga_ip_addr, self._udp_port))
-            data, ip_addr = sock.recvfrom(4 + (length * 4))
+            data, (ip_addr, port) = sock.recvfrom(4 + (length * 4))
 
             if ip_addr != self._fpga_ip_addr:
                 raise ValueError("Non-Manta traffic detected on this UDP port!")
@@ -614,7 +614,8 @@ class EthernetInterface(Elaboratable):
 
             response_type = MessageTypes(part_select(data[0], 29, 31))
             if response_type == MessageTypes.READ_RESPONSE:
-                assert len(data) == length - 1
+                assert len(data) - 1 == length
+                self._seq_num += 1
                 return data[1:]
 
             elif response_type == MessageTypes.NACK:
@@ -648,6 +649,7 @@ class EthernetInterface(Elaboratable):
 
             response_type = MessageTypes(part_select(data[0], 29, 31))
             if response_type == MessageTypes.WRITE_RESPONSE:
+                self._seq_num += 1
                 return
 
             elif response_type == MessageTypes.NACK:
