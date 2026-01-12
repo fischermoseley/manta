@@ -27,8 +27,13 @@ class EthernetBridge(Elaboratable):
         with m.FSM(init="IDLE"):
             with m.State("IDLE"):
                 m.d.sync += self.ready_o.eq(1)
+                m.d.sync += self.valid_o.eq(0)
 
-                with m.If(self.valid_i):
+                # TODO: not necessary, but makes debugging way easier
+                m.d.sync += self.last_o.eq(0)
+                m.d.sync += self.data_o.eq(0)
+
+                with m.If(self.valid_i & self.ready_o):
                     # First 32 bits was presented, which contains message type (first 3 bits)
                     # as well as sequence number (next 13 bits). The remaining 16 bits are unused.
 
@@ -70,7 +75,6 @@ class EthernetBridge(Elaboratable):
                         m.next = "READ_WAIT_FOR_ADDR"
 
                     with m.Elif(self.data_i[:3] == MessageTypes.WRITE_REQUEST):
-                        m.d.sync += seq_num_expected.eq(seq_num_expected + 1)
                         m.next = "WRITE_WAIT_FOR_ADDR"
 
             with m.State("READ_WAIT_FOR_ADDR"):
@@ -140,22 +144,31 @@ class EthernetBridge(Elaboratable):
                         m.next = "WRITE"
 
             with m.State("WRITE"):
-                with m.If(self.valid_i):
-                    m.d.sync += self.bus_o.addr.eq(self.bus_i.addr + 1)
+                with m.If(self.valid_i & self.ready_o):
+                    m.d.sync += self.bus_o.addr.eq(self.bus_o.addr + 1)
                     m.d.sync += self.bus_o.data.eq(self.data_i)
                     m.d.sync += self.bus_o.rw.eq(1)
                     m.d.sync += self.bus_o.valid.eq(1)
                     m.d.sync += self.bus_o.last.eq(self.last_i)
 
+                    with m.If(self.last_i):
+                        m.d.sync += self.ready_o.eq(0)
+
                 with m.Else():
                     m.d.sync += self.bus_o.eq(0)
 
-                with m.If(self.bus_o.last):
-                    m.d.sync += self.bus_o.valid.eq(0)
-                    m.d.sync += self.bus_o.addr.eq(0)
-                    m.d.sync += self.bus_o.data.eq(0)
-                    m.d.sync += self.bus_o.last.eq(0)
-                    m.d.sync += self.bus_o.rw.eq(0)
+                with m.If(self.bus_i.last):
+                    m.d.sync += seq_num_expected.eq(seq_num_expected + 1)
+
+                    m.d.sync += self.data_o.eq(
+                        Cat(
+                            C(0, unsigned(16)),
+                            seq_num_expected,
+                            MessageTypes.WRITE_RESPONSE,
+                        )
+                    )
+                    m.d.sync += self.valid_o.eq(1)
+                    m.d.sync += self.last_o.eq(1)
                     m.next = "IDLE"  # TODO: could save a cycle by checking valid_i to see if there's more work to do
 
                 with m.Else():
