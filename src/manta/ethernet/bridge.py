@@ -138,13 +138,14 @@ class EthernetBridge(Elaboratable):
                     m.d.sync += self.bus_o.last.eq(self.last_i)
 
                     with m.If(self.last_i):
-                        m.next = "IDLE"  # TODO: could save a cycle by checking valid_i to see if there's more work to do
+                        m.d.sync += self.ready_o.eq(0)
+                        m.next = "WRITE_WAIT_FOR_LAST"
 
                     with m.Else():
                         m.next = "WRITE"
 
             with m.State("WRITE"):
-                with m.If(self.valid_i & self.ready_o):
+                with m.If(self.valid_i):
                     m.d.sync += self.bus_o.addr.eq(self.bus_o.addr + 1)
                     m.d.sync += self.bus_o.data.eq(self.data_i)
                     m.d.sync += self.bus_o.rw.eq(1)
@@ -153,9 +154,16 @@ class EthernetBridge(Elaboratable):
 
                     with m.If(self.last_i):
                         m.d.sync += self.ready_o.eq(0)
+                        m.next = "WRITE_WAIT_FOR_LAST"
+
+                    with m.Else():
+                        m.next = "WRITE"
 
                 with m.Else():
-                    m.d.sync += self.bus_o.eq(0)
+                    m.next = "WRITE"
+
+            with m.State("WRITE_WAIT_FOR_LAST"):
+                m.d.sync += self.bus_o.eq(0)
 
                 with m.If(self.bus_i.last):
                     m.d.sync += seq_num_expected.eq(seq_num_expected + 1)
@@ -170,9 +178,6 @@ class EthernetBridge(Elaboratable):
                     m.d.sync += self.valid_o.eq(1)
                     m.d.sync += self.last_o.eq(1)
                     m.next = "IDLE"  # TODO: could save a cycle by checking valid_i to see if there's more work to do
-
-                with m.Else():
-                    m.next = "WRITE"
 
             with m.State("NACK_WAIT_FOR_LAST"):
                 with m.If(self.last_i):
