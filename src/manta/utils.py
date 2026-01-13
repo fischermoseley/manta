@@ -3,8 +3,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from random import sample
 
-from amaranth import Elaboratable, unsigned
+from amaranth import Cat, Const, Elaboratable, Signal, unsigned
 from amaranth.lib import data
+from amaranth.lib.data import Struct
 from amaranth.lib.enum import IntEnum
 from amaranth.sim import Simulator
 
@@ -111,6 +112,47 @@ class MessageTypes(IntEnum, shape=unsigned(3)):
     NACK = 4
 
 
+class EthernetMessageHeader(Struct):
+    msg_type: MessageTypes
+    seq_num: 13
+    length: 7 = 0
+    zero_padding: 9 = 0
+
+    MAX_READ_LENGTH = 126
+    MAX_WRITE_LENGTH = 126
+
+    @classmethod
+    def from_params(cls, msg_type, seq_num, length=0):
+        return cls.const(
+            init={"msg_type": msg_type, "seq_num": seq_num, "length": length}
+        )
+
+    @classmethod
+    def concat_signals(
+        cls, msg_type: MessageTypes, seq_num: Signal, length: Signal = None
+    ):
+        # Make sure each signal is the right width!
+        widths = cls.from_bits(0).shape().members
+
+        if Const(msg_type).shape().width != MessageTypes.as_shape().width:
+            raise TypeError
+
+        if seq_num.shape().width != widths["seq_num"]:
+            raise TypeError
+
+        zp_width = widths["zero_padding"]
+        len_width = widths["length"]
+
+        if length is None:
+            return Cat(msg_type, seq_num, Const(0, len_width), Const(0, zp_width))
+
+        else:
+            if length.shape().width != len_width:
+                raise TypeError
+
+            return Cat(msg_type, seq_num, length, Const(0, zp_width))
+
+
 def warn(message):
     """
     Prints a warning to the user's terminal. Originally the warn() method
@@ -119,20 +161,6 @@ def warn(message):
     (ie, Users don't care about the stacktrace or the filename/line number.)
     """
     print("Warning: " + message)
-
-
-def part_select(value, start, end):
-    # Ensure the start bit is less than or equal to the end bit
-    if start > end:
-        raise ValueError(
-            "Start bit position must be less than or equal to end bit position."
-        )
-
-    # Create a mask to isolate the bits from `start` to `end`
-    mask = (1 << (end - start + 1)) - 1
-
-    # Shift the number to the right by `start` bits and apply the mask
-    return (value >> start) & mask
 
 
 def parse_sequences(numbers):
@@ -201,6 +229,22 @@ def check_value_fits_in_bits(value, n_bits):
 
     if value < 0 and value < -(2 ** (n_bits - 1)):
         raise ValueError("Signed integer too large.")
+
+
+def ints_from_bytestring(bytes, byteorder="little"):
+    """
+    Takes a list of ints, interprets them as 32-bit integers, and returns a
+    bytestring of the constituent bytes joined together.
+    """
+    return [int.from_bytes(chunk, byteorder) for chunk in split_into_chunks(bytes, 4)]
+
+
+def bytestring_from_ints(ints, byteorder="little"):
+    """
+    Takes a list of ints, interprets them as 32-bit integers, and returns a
+    bytestring of the constituent bytes joined together.
+    """
+    return b"".join(i.to_bytes(4, byteorder) for i in ints)
 
 
 def split_into_chunks(data, chunk_size):

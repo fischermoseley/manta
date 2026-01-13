@@ -49,10 +49,9 @@ class EthernetBridge(Elaboratable):
                         # Otherwise, NACK immediately
                         with m.Else():
                             m.d.sync += self.data_o.eq(
-                                Cat(
-                                    C(0, unsigned(16)),
-                                    seq_num_expected,
+                                EthernetMessageHeader.concat_signals(
                                     MessageTypes.NACK,
+                                    seq_num_expected,
                                 )
                             )
                             m.d.sync += self.valid_o.eq(1)
@@ -65,10 +64,9 @@ class EthernetBridge(Elaboratable):
                         m.d.sync += read_len.eq(self.data_i[16:23] - 1)
 
                         m.d.sync += self.data_o.eq(
-                            Cat(
-                                C(0, unsigned(16)),
-                                seq_num_expected,
+                            EthernetMessageHeader.concat_signals(
                                 MessageTypes.READ_RESPONSE,
+                                seq_num_expected,
                             )
                         )
                         m.d.sync += self.valid_o.eq(1)
@@ -167,12 +165,10 @@ class EthernetBridge(Elaboratable):
 
                 with m.If(self.bus_i.last):
                     m.d.sync += seq_num_expected.eq(seq_num_expected + 1)
-
                     m.d.sync += self.data_o.eq(
-                        Cat(
-                            C(0, unsigned(16)),
-                            seq_num_expected,
+                        EthernetMessageHeader.concat_signals(
                             MessageTypes.WRITE_RESPONSE,
+                            seq_num_expected,
                         )
                     )
                     m.d.sync += self.valid_o.eq(1)
@@ -182,7 +178,10 @@ class EthernetBridge(Elaboratable):
             with m.State("NACK_WAIT_FOR_LAST"):
                 with m.If(self.last_i):
                     m.d.sync += self.data_o.eq(
-                        Cat(C(0, unsigned(16)), seq_num_expected, MessageTypes.NACK)
+                        EthernetMessageHeader.concat_signals(
+                            MessageTypes.NACK,
+                            seq_num_expected,
+                        )
                     )
                     m.d.sync += self.valid_o.eq(1)
                     m.d.sync += self.last_o.eq(1)
