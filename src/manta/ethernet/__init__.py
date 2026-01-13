@@ -92,8 +92,6 @@ class EthernetInterface(Elaboratable):
 
         self._seq_num = 0
         self._max_retries = 3
-        self._max_read_len = 126
-        self._max_write_len = 126
 
     def _check_config(self):
         # Make sure UDP port is an integer in the range 0-65535
@@ -575,54 +573,36 @@ class EthernetInterface(Elaboratable):
 
         return m
 
-    @staticmethod
-    def _read_request_bytes(seq_num, addr, length):
-        message = [
-            (length << 16) | (seq_num << 3) | MessageTypes.READ_REQUEST,
-            addr,
-        ]
-
-        return b"".join([i.to_bytes(4, "little") for i in message])
-
-    @staticmethod
-    def _write_request_bytes(seq_num, addr, datas):
-        message = [
-            (seq_num << 3) | MessageTypes.WRITE_REQUEST,
-            addr,
-            *datas,
-        ]
-
-        return b"".join([i.to_bytes(4, "little") for i in message])
-
     def _read_request(self, addr, length):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind((self._host_ip_addr, self._udp_port))
 
-        retry_count = 0
-        while retry_count < self._max_retries:
-            request = self._read_request_bytes(self._seq_num, addr, length)
+        for _ in range(self._max_retries):
+            header = EthernetMessageHeader.from_params(
+                MessageTypes.READ_REQUEST, self._seq_num, length
+            )
+            request = bytestring_from_ints([header.as_bits(), addr])
+
             sock.sendto(request, (self._fpga_ip_addr, self._udp_port))
             data, (ip_addr, port) = sock.recvfrom(4 + (length * 4))
+            response = ints_from_bytestring(data)
 
             if ip_addr != self._fpga_ip_addr:
                 raise ValueError("Non-Manta traffic detected on this UDP port!")
 
-            data = [
-                int.from_bytes(data[i : i + 4], "little")
-                for i in range(0, len(data), 4)
-            ]
+            header = EthernetMessageHeader.from_bits(response[0])
+            read_data = response[1:]
 
-            response_type = MessageTypes(part_select(data[0], 29, 31))
-            if response_type == MessageTypes.READ_RESPONSE:
-                assert len(data) - 1 == length
+            if header.msg_type == MessageTypes.READ_RESPONSE:
+                assert len(read_data) == length
                 self._seq_num += 1
-                return data[1:]
+                return read_data
 
-            elif response_type == MessageTypes.NACK:
-                self._seq_num = part_select(data[0], 16, 28)
-                retry_count += 1
+            elif header.msg_type == MessageTypes.NACK:
+                self._seq_num = header.seq_num
 
             else:
+                print(MessageTypes(header.msg_type).name)
                 raise ValueError("Unexpected message format received!")
 
         raise ValueError("Maximum number of retries exceeded!")
@@ -631,30 +611,28 @@ class EthernetInterface(Elaboratable):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind((self._host_ip_addr, self._udp_port))
 
-        retry_count = 0
-        while retry_count < self._max_retries:
-            request = self._write_request_bytes(self._seq_num, addr, datas)
+        for _ in range(self._max_retries):
+            header = EthernetMessageHeader.from_params(
+                MessageTypes.WRITE_REQUEST, self._seq_num
+            )
+            request = bytestring_from_ints([header.as_bits(), addr, *datas])
+
             sock.sendto(request, (self._fpga_ip_addr, self._udp_port))
             data, (ip_addr, port) = sock.recvfrom(4)
+            response = ints_from_bytestring(data)
 
             assert port == self._udp_port
 
             if ip_addr != self._fpga_ip_addr:
                 raise ValueError("Non-Manta traffic detected on this UDP port!")
 
-            data = [
-                int.from_bytes(data[i : i + 4], "little")
-                for i in range(0, len(data), 4)
-            ]
-
-            response_type = MessageTypes(part_select(data[0], 29, 31))
-            if response_type == MessageTypes.WRITE_RESPONSE:
+            header = EthernetMessageHeader.from_bits(response[0])
+            if header.msg_type == MessageTypes.WRITE_RESPONSE:
                 self._seq_num += 1
                 return
 
-            elif response_type == MessageTypes.NACK:
-                self._seq_num = part_select(data[0], 16, 28)
-                retry_count += 1
+            elif header.msg_type == MessageTypes.NACK:
+                self._seq_num = header.seq_num
 
             else:
                 raise ValueError("Unexpected message format received!")
@@ -666,7 +644,7 @@ class EthernetInterface(Elaboratable):
         offset = 0
 
         while offset < length:
-            chunk_size = min(self._max_read_len, length - offset)
+            chunk_size = min(EthernetMessageHeader.MAX_READ_LENGTH, length - offset)
             data += self._read_request(base_addr + offset, chunk_size)
             offset += chunk_size
 
@@ -674,10 +652,12 @@ class EthernetInterface(Elaboratable):
         return data
 
     def write_block(self, base_addr, data):
-        data_chunks = split_into_chunks(data, self._max_write_len)
+        data_chunks = split_into_chunks(data, EthernetMessageHeader.MAX_WRITE_LENGTH)
 
         for i, chunk in enumerate(data_chunks):
-            self._write_request(base_addr + (i * self._max_write_len), chunk)
+            self._write_request(
+                base_addr + (i * EthernetMessageHeader.MAX_WRITE_LENGTH), chunk
+            )
 
     def read(self, addrs):
         """
