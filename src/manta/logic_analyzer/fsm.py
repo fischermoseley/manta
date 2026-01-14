@@ -1,3 +1,5 @@
+import time
+
 from amaranth import *
 from amaranth.lib.enum import IntEnum
 
@@ -187,10 +189,17 @@ class LogicAnalyzerFSM(Elaboratable):
         self.registers.set_probe("request_start", 1)
         self.registers.set_probe("request_start", 0)
 
-    def wait_for_capture(self):
+    def wait_for_capture(self, timeout=None):
         # Poll the state machine, and wait for the capture to complete
+
+        start_time = time.monotonic()
         while self.registers.get_probe("state") != States.CAPTURED:
-            pass
+            if timeout is not None and (time.monotonic() - start_time) >= timeout:
+                raise TimeoutError(
+                    f"Capture did not complete within {timeout} seconds!"
+                )
+
+            time.sleep(0.1)
 
     def read_register(self, name):
         return self.registers.get_probe(name)
