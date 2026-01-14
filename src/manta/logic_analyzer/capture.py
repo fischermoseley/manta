@@ -129,9 +129,11 @@ class LogicAnalyzerCapture:
 
         # Use the same datetime format that iVerilog uses
         timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
-        vcd_file = open(path, "w")
 
-        with VCDWriter(vcd_file, timescale, timestamp, "manta") as writer:
+        with (
+            open(path, "w") as vcd_file,
+            VCDWriter(vcd_file, timescale, timestamp, "manta") as writer,
+        ):
             # Each probe has a name, width, and writer associated with it
             signals = []
             for p in self._probes:
@@ -167,8 +169,6 @@ class LogicAnalyzerCapture:
                     sample = signal["data"][sample_index // 2]
 
                     writer.change(var, sample_timestamp, sample)
-
-        vcd_file.close()
 
     def get_playback_module(self):
         """
