@@ -664,8 +664,5 @@ def main(core_config):
         builder = Builder(soc, compile_gateware=False, output_dir=path)
         builder.build(build_name="liteeth_core")
 
-        file = open(path + "/gateware/liteeth_core.v")
-        data = file.read()
-        file.close()
-
-    return data
+        with open(path + "/gateware/liteeth_core.v") as f:
+            return f.read()
