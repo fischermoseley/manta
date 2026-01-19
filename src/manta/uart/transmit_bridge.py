@@ -14,13 +14,13 @@ class TransmitBridge(Elaboratable):
         self.valid_i = Signal()
 
         self.data_o = Signal(8)
-        self.start_o = Signal(1)
+        self.start_o = Signal()
         self.done_i = Signal()
 
         # Internal Signals
         self._buffer = Signal(16)
         self._count = Signal(4)
-        self._busy = Signal(1)
+        self._busy = Signal()
         self._to_ascii_hex = Signal(8)
         self._n = Signal(4)
 

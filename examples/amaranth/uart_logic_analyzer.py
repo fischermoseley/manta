@@ -20,7 +20,7 @@ class UARTLogicAnalyzerExample(Elaboratable):
             clock_freq=platform.default_clk_frequency,
         )
 
-        self.probe0 = Signal(1)
+        self.probe0 = Signal()
         self.probe1 = Signal(2)
         self.probe2 = Signal(3)
         self.probe3 = Signal(4)
