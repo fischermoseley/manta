@@ -13,7 +13,7 @@ class UARTReceiver(Elaboratable):
         # Top-Level Ports
         self.rx = Signal()
         self.data_o = Signal(8)
-        self.valid_o = Signal(1)
+        self.valid_o = Signal()
 
         # Internal Signals
         self._busy = Signal()

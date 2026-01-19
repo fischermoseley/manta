@@ -13,8 +13,8 @@ class LogicAnalyzerPlayback(Elaboratable):
         self._data = data
 
         # State Machine
-        self.start = Signal(1)
-        self.valid = Signal(1)
+        self.start = Signal()
+        self.valid = Signal()
 
     def elaborate(self, platform):
         m = Module()
@@ -32,7 +32,7 @@ class LogicAnalyzerPlayback(Elaboratable):
         m.d.comb += read_port.en.eq(1)
 
         # State Machine
-        busy = Signal(1)
+        busy = Signal()
         with m.If(~busy):
             with m.If(self.start):
                 m.d.sync += busy.eq(1)

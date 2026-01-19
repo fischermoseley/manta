@@ -31,8 +31,8 @@ class LogicAnalyzerFSM(Elaboratable):
         self._sample_depth = sample_depth
 
         # Outputs to rest of Logic Analyzer
-        self.trigger = Signal(1)
-        self.write_enable = Signal(1)
+        self.trigger = Signal()
+        self.write_enable = Signal()
 
         # Outputs from FSM, inputs from IOCore
         self.state = Signal(States)

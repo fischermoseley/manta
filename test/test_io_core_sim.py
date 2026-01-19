@@ -5,7 +5,7 @@ from amaranth import *
 from manta import *
 from manta.utils import *
 
-probe0 = Signal(1)
+probe0 = Signal()
 probe1 = Signal(2)
 probe2 = Signal(8)
 probe3 = Signal(20)

@@ -4,7 +4,7 @@ from manta.logic_analyzer import LogicAnalyzerCore
 from manta.logic_analyzer.trigger_block import Operations
 from manta.utils import *
 
-larry = Signal(1)
+larry = Signal()
 curly = Signal(3)
 moe = Signal(9)
 

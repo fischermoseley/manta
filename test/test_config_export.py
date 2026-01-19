@@ -8,7 +8,7 @@ from manta import *
 
 def test_io_core_dump():
     # Create some dummy signals to pass to the IO Core
-    probe0 = Signal(1)
+    probe0 = Signal()
     probe1 = Signal(2)
     probe2 = Signal(3)
     probe3 = Signal(4, init=13)
@@ -84,7 +84,7 @@ def test_memory_core_dump():
 
 def test_logic_analyzer_core_dump():
     # Create some dummy signals to pass to the Logic Analyzer
-    probe0 = Signal(1)
+    probe0 = Signal()
     probe1 = Signal(2)
     probe2 = Signal(3)
 

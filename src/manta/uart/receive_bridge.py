@@ -22,8 +22,8 @@ class ReceiveBridge(Elaboratable):
 
         self.addr_o = Signal(16)
         self.data_o = Signal(16)
-        self.rw_o = Signal(1)
-        self.valid_o = Signal(1)
+        self.rw_o = Signal()
+        self.valid_o = Signal()
 
         # Internal Signals
         self._buffer = Signal(ArrayLayout(4, 8))
