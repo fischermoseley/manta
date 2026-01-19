@@ -478,7 +478,6 @@ class EthernetInterface(Elaboratable):
             addr = list(f"{getrandbits(48):012x}")
             addr[1] = "2"
             liteeth_config["mac_address"] = int("".join(addr), 16)
-            print(liteeth_config["mac_address"])
 
         # Force use of DHCP
         liteeth_config["dhcp"] = True
