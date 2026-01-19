@@ -304,8 +304,7 @@ class LogicAnalyzerCore(MantaCore):
         self._fsm.wait_for_capture()
 
         print(" -> Reading sample memory contents...")
-        addrs = list(range(self._sample_depth))
-        raw_capture = self._sample_mem.read(addrs)
+        raw_capture = self._sample_mem.read_block(0, self._sample_depth)
 
         # Revolve the memory around the read_pointer, such that all the beginning
         # of the capture is at the first element
