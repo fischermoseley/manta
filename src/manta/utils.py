@@ -118,8 +118,9 @@ class EthernetMessageHeader(Struct):
     length: 7 = 0
     zero_padding: 9 = 0
 
-    MAX_READ_LENGTH = 126
-    MAX_WRITE_LENGTH = 126
+    # TODO: determine if observed 63 word limit is a bug or just a limitation of LiteEth
+    MAX_READ_LENGTH = 63
+    MAX_WRITE_LENGTH = 63
 
     @classmethod
     def from_params(cls, msg_type, seq_num, length=0):
@@ -190,15 +191,19 @@ def parse_sequences(numbers):
     return sequences
 
 
-def words_to_value(data):
+def words_to_value(data, width=32):
     """
-    Takes a list of integers, interprets them as 16-bit integers, and
+    Takes a list of integers, interprets them as n-bit integers, and
     concatenates them together in little-endian order.
     """
 
-    [check_value_fits_in_bits(d, 16) for d in data]
+    for d in data:
+        check_value_fits_in_bits(d, width)
 
-    return int("".join([f"{i:016b}" for i in data[::-1]]), 2)
+    result = 0
+    for word in reversed(data):
+        result = (result << width) | word
+    return result
 
 
 def value_to_words(data, n_words):

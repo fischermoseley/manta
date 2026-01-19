@@ -37,7 +37,7 @@ class MemoryCore(MantaCore):
         self._width = width
         self._depth = depth
 
-        self._n_mems = ceil(self._width / 16)
+        self._n_mems = ceil(self._width / 32)
 
         # Bus Connections
         self.bus_i = Signal(InternalBus())
@@ -75,11 +75,11 @@ class MemoryCore(MantaCore):
             ]
 
         # Define memories
-        n_full = self._width // 16
-        n_partial = self._width % 16
+        n_full = self._width // 32
+        n_partial = self._width % 32
 
         self._mems = [
-            Memory(shape=16, depth=self._depth, init=[0] * self._depth) for _ in range(n_full)
+            Memory(shape=32, depth=self._depth, init=[0] * self._depth) for _ in range(n_full)
         ]
         if n_partial > 0:
             self._mems += [Memory(shape=n_partial, depth=self._depth, init=[0] * self._depth)]
@@ -214,7 +214,7 @@ class MemoryCore(MantaCore):
             for i, mem in enumerate(self._mems):
                 write_port = mem.write_port()
                 m.d.comb += write_port.addr.eq(self.user_addr)
-                m.d.comb += write_port.data.eq(self.user_data_in[16 * i : 16 * (i + 1)])
+                m.d.comb += write_port.data.eq(self.user_data_in[32 * i : 32 * (i + 1)])
                 m.d.comb += write_port.en.eq(self.user_write_enable)
 
         # Handle read ports
@@ -264,6 +264,25 @@ class MemoryCore(MantaCore):
                 bus_addrs.append(self.base_addr + addr + (i * self._depth))
 
         return bus_addrs
+
+    def read_block(self, base_addr, length):
+        # base_addr is in user's address space, not the bus address space
+
+        assert base_addr <= self._depth
+        assert base_addr + length <= self._depth
+
+        words_by_mem = [
+            self.interface.read_block(
+                self.base_addr + base_addr + (i * self._depth), length
+            )
+            for i in range(self._n_mems)
+        ]
+
+        # transpose
+        words_by_addr = list(zip(*words_by_mem))
+        assert len(words_by_addr) == length
+        assert len(words_by_addr[0]) == self._n_mems
+        return [words_to_value(words) for words in words_by_addr]
 
     def read(self, addrs):
         """
