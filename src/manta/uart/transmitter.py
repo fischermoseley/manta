@@ -1,57 +1,64 @@
 from amaranth import *
+from amaranth.lib import wiring
+from amaranth.lib.wiring import In, Out
+
+from manta.utils import *
 
 
-class UARTTransmitter(Elaboratable):
+class UARTTransmitter(wiring.Component):
     """
     A module for transmitting bytes on a 8N1 UART at a configurable baudrate.
     Accepts bytes as a stream.
     """
 
+    sink: In(StreamSignature(8, has_last=False))
+    tx: Out(1, init=1)
+
     def __init__(self, clocks_per_baud):
+        super().__init__()
         self._clocks_per_baud = clocks_per_baud
-
-        # Top-Level Ports
-        self.data_i = Signal(8)
-        self.start_i = Signal()
-        self.done_o = Signal(init=1)
-
-        self.tx = Signal(init=1)
-
-        # Internal Signals
-        self._baud_counter = Signal(range(self._clocks_per_baud))
-        self._buffer = Signal(9)
-        self._bit_index = Signal(4)
 
     def elaborate(self, platform):
         m = Module()
 
-        with m.If((self.start_i) & (self.done_o)):
-            m.d.sync += self._baud_counter.eq(self._clocks_per_baud - 1)
-            m.d.sync += self._buffer.eq(Cat(self.data_i, 1))
-            m.d.sync += self._bit_index.eq(0)
-            m.d.sync += self.done_o.eq(0)
-            m.d.sync += self.tx.eq(0)
+        # Defining an internal idle signal and combinationally assigning it to
+        # self.sink.ready allows us to specify an initial value for the signal
+        # without having to modify the members of StreamSignature
+        idle = Signal(init=1)
+        m.d.comb += self.sink.ready.eq(idle)
 
-        with m.Elif(~self.done_o):
-            m.d.sync += self._baud_counter.eq(self._baud_counter - 1)
-            m.d.sync += self.done_o.eq((self._baud_counter == 1) & (self._bit_index == 9))
+        baud_counter = Signal(range(self._clocks_per_baud))
+        buffer = Signal(9)
+        bit_index = Signal(4)
+
+        with m.If(idle):
+            with m.If(self.sink.valid):
+                m.d.sync += baud_counter.eq(self._clocks_per_baud - 1)
+                m.d.sync += buffer.eq(Cat(self.sink.data, 1))
+                m.d.sync += bit_index.eq(0)
+                m.d.sync += idle.eq(0)
+                m.d.sync += self.tx.eq(0)
+
+        with m.Else():
+            m.d.sync += baud_counter.eq(baud_counter - 1)
+            m.d.sync += idle.eq((baud_counter == 1) & (bit_index == 9))
 
             # A baud period has elapsed
-            with m.If(self._baud_counter == 0):
-                m.d.sync += self._baud_counter.eq(self._clocks_per_baud - 1)
+            with m.If(baud_counter == 0):
+                m.d.sync += baud_counter.eq(self._clocks_per_baud - 1)
 
                 # Clock out another bit if there are any left
-                with m.If(self._bit_index < 9):
-                    m.d.sync += self.tx.eq(self._buffer.bit_select(self._bit_index, 1))
-                    m.d.sync += self._bit_index.eq(self._bit_index + 1)
+                with m.If(bit_index < 9):
+                    m.d.sync += self.tx.eq(buffer.bit_select(bit_index, 1))
+                    m.d.sync += bit_index.eq(bit_index + 1)
 
                 # Byte has been sent, send out next one or go to idle
                 with m.Else():
-                    with m.If(self.start_i):
-                        m.d.sync += self._buffer.eq(Cat(self.data_i, 1))
-                        m.d.sync += self._bit_index.eq(0)
+                    with m.If(self.sink.valid):
+                        m.d.sync += buffer.eq(Cat(self.sink.data, 1))
+                        m.d.sync += bit_index.eq(0)
                         m.d.sync += self.tx.eq(0)
 
                     with m.Else():
-                        m.d.sync += self.done_o.eq(1)
+                        m.d.sync += idle.eq(1)
         return m

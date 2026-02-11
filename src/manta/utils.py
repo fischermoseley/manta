@@ -4,9 +4,10 @@ from pathlib import Path
 from random import sample
 
 from amaranth import Cat, Const, Elaboratable, Signal, unsigned
-from amaranth.lib import data
+from amaranth.lib import data, wiring
 from amaranth.lib.data import Struct
 from amaranth.lib.enum import IntEnum
+from amaranth.lib.wiring import In, Out
 from amaranth.sim import Simulator
 
 
@@ -102,6 +103,25 @@ class InternalBus(data.StructLayout):
                 "last": 1,
             }
         )
+
+
+class StreamSignature(wiring.Signature):
+    def __init__(self, data_shape, has_last=True, has_ready=True):
+        sig = {
+            "data": Out(data_shape),
+            "valid": Out(1),
+        }
+
+        if has_last:
+            sig["last"] = Out(1)
+
+        if has_ready:
+            sig["ready"] = In(1)
+
+        super().__init__(sig)
+
+    def __eq__(self, other):
+        return self.members == other.members
 
 
 class MessageTypes(IntEnum, shape=unsigned(3)):
