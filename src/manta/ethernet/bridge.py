@@ -11,6 +11,8 @@ class EthernetBridge(wiring.Component):
 
     def __init__(self):
         super().__init__()
+
+        # TODO: use In() and Out() for InternalBus connections
         self.bus_o = Signal(InternalBus())
         self.bus_i = Signal(InternalBus())
 
