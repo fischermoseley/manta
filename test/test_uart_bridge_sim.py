@@ -1,5 +1,7 @@
 from amaranth import *
+from cobs import cobs
 
+from manta import *
 from manta.ethernet.bridge import EthernetBridge
 from manta.uart.cobs_decode import COBSDecode
 from manta.uart.cobs_encode import COBSEncode
@@ -32,27 +34,15 @@ class UARTHardware(Elaboratable):
         m.submodules.cobs_encode = cobs_encode = COBSEncode()
         m.submodules.uart_tx = uart_tx = UARTTransmitter(self._clocks_per_baud)
 
+        wiring.connect(m, uart_rx.source, cobs_decode.sink)
+        wiring.connect(m, cobs_decode.source, stream_packer.sink)
+        wiring.connect(m, stream_packer.source, bridge.sink)
+        wiring.connect(m, bridge.source, stream_unpacker.sink)
+        wiring.connect(m, stream_unpacker.source, cobs_encode.sink)
+        wiring.connect(m, cobs_encode.source, uart_tx.sink)
+
         m.d.comb += [
             uart_rx.rx.eq(self.rx),
-            cobs_decode.data_i.eq(uart_rx.data_o),
-            cobs_decode.valid_i.eq(uart_rx.valid_o),
-            stream_packer.data_i.eq(cobs_decode.data_o),
-            stream_packer.valid_i.eq(cobs_decode.valid_o),
-            stream_packer.last_i.eq(cobs_decode.last_o),
-            bridge.data_i.eq(stream_packer.data_o),
-            stream_packer.ready_i.eq(bridge.ready_o),
-            bridge.valid_i.eq(stream_packer.valid_o),
-            bridge.last_i.eq(stream_packer.last_o),
-            stream_unpacker.data_i.eq(bridge.data_o),
-            bridge.ready_i.eq(stream_unpacker.ready_o),
-            stream_unpacker.valid_i.eq(bridge.valid_o),
-            stream_unpacker.last_i.eq(bridge.last_o),
-            cobs_encode.data_i.eq(stream_unpacker.data_o),
-            cobs_encode.valid_i.eq(stream_unpacker.valid_o),
-            # not quite sure what the rest of these signals will be...
-            uart_tx.data_i.eq(cobs_encode.data_o),
-            uart_tx.start_i.eq(cobs_encode.valid_o),
-            cobs_encode.ready_i.eq(uart_tx.done_o),
             self.tx.eq(uart_tx.tx),
             self.bus_o.eq(bridge.bus_o),
             bridge.bus_i.eq(self.bus_i),
@@ -61,7 +51,31 @@ class UARTHardware(Elaboratable):
         return m
 
 
-uart_hw = UARTHardware()
+class UARTHardwarePlusMemoryCore(Elaboratable):
+    def __init__(self):
+        self.rx = Signal()
+        self.tx = Signal()
+
+        self._clocks_per_baud = 10
+
+    def elaborate(self, platform):
+        m = Module()
+        m.submodules.uart = uart = UARTHardware()
+        m.submodules.mem_core = mem_core = MemoryCore("bidirectional", 32, 1024)
+        mem_core.base_addr = 0
+
+        m.d.comb += uart.bus_i.eq(mem_core.bus_o)
+        m.d.comb += mem_core.bus_i.eq(uart.bus_o)
+
+        m.d.comb += [
+            self.tx.eq(uart.tx),
+            uart.rx.eq(self.rx),
+        ]
+
+        return m
+
+
+uart_hw = UARTHardwarePlusMemoryCore()
 
 
 async def send_byte(ctx, module, data):
@@ -77,5 +91,21 @@ async def send_byte(ctx, module, data):
 
 @simulate(uart_hw)
 async def test_read_request(ctx):
-    await send_byte(ctx, uart_hw, 0)
+    addr = 0x5678_9ABC
+    header = EthernetMessageHeader.from_params(
+        MessageTypes.READ_REQUEST, seq_num=0x0, length=1
+    )
+    request = bytestring_from_ints([header.as_bits(), addr], byteorder="little")
+    encoded = cobs.encode(request)
+    encoded = encoded + int(0).to_bytes(1)
+
+    ctx.set(uart_hw.rx, 1)
+    await ctx.tick()
+    await ctx.tick()
+    await ctx.tick()
+
+    for byte in encoded:
+        await send_byte(ctx, uart_hw, int(byte))
+        print(hex(int(byte)))
+
     await ctx.tick()
