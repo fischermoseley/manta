@@ -15,9 +15,9 @@ async def verify_receive(ctx, data):
         bit_index = i // uart_rx._clocks_per_baud
 
         # Every cycle, run checks on uart_rx:
-        if ctx.get(uart_rx.valid_o):
-            if ctx.get(uart_rx.data_o) != data:
-                a = ctx.get(uart_rx.data_o)
+        if ctx.get(uart_rx.source.valid):
+            if ctx.get(uart_rx.source.data) != data:
+                a = ctx.get(uart_rx.source.data)
                 print(data_bits)
                 raise ValueError(
                     f"Incorrect byte presented - gave {hex(a)} instead of {hex(data)}!"

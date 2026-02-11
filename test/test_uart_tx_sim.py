@@ -10,12 +10,12 @@ async def verify_bit_sequence(ctx, byte):
     """
 
     # Request byte to be transmitted
-    ctx.set(uart_tx.data_i, byte)
-    ctx.set(uart_tx.start_i, 1)
+    ctx.set(uart_tx.sink.data, byte)
+    ctx.set(uart_tx.sink.valid, 1)
     await ctx.tick()
 
-    ctx.set(uart_tx.data_i, 0)
-    ctx.set(uart_tx.start_i, 0)
+    ctx.set(uart_tx.sink.data, 0)
+    ctx.set(uart_tx.sink.valid, 0)
 
     # Check that data bit is correct on every clock baud period
 
@@ -29,12 +29,12 @@ async def verify_bit_sequence(ctx, byte):
         if ctx.get(uart_tx.tx) != data_bits[bit_index]:
             raise ValueError("Wrong bit in sequence!")
 
-        if ctx.get(uart_tx.done_o) and (bit_index != 9):
+        if ctx.get(uart_tx.sink.ready) and (bit_index != 9):
             raise ValueError("Done asserted too early!")
 
         await ctx.tick()
 
-    if not ctx.get(uart_tx.done_o):
+    if not ctx.get(uart_tx.sink.ready):
         raise ValueError("Done not asserted at end of transmission!")
 
 
