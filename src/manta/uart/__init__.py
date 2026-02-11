@@ -1,9 +1,12 @@
 from amaranth import *
 from serial import Serial
 
-from manta.uart.receive_bridge import ReceiveBridge
+from manta.ethernet.bridge import EthernetBridge
+from manta.uart.cobs_decode import COBSDecode
+from manta.uart.cobs_encode import COBSEncode
 from manta.uart.receiver import UARTReceiver
-from manta.uart.transmit_bridge import TransmitBridge
+from manta.uart.stream_packer import StreamPacker
+from manta.uart.stream_unpacker import StreamUnpacker
 from manta.uart.transmitter import UARTTransmitter
 from manta.utils import *
 
@@ -316,26 +319,24 @@ class UARTInterface(Elaboratable):
         m = Module()
 
         m.submodules.uart_rx = uart_rx = UARTReceiver(self._clocks_per_baud)
-        m.submodules.bridge_rx = bridge_rx = ReceiveBridge()
-        m.submodules.bridge_tx = bridge_tx = TransmitBridge()
+        m.submodules.cobs_decode = cobs_decode = COBSDecode()
+        m.submodules.stream_packer = stream_packer = StreamPacker()
+        m.submodules.bridge = bridge = EthernetBridge()
+        m.submodules.stream_unpacker = stream_unpacker = StreamUnpacker()
+        m.submodules.cobs_encode = cobs_encode = COBSEncode()
         m.submodules.uart_tx = uart_tx = UARTTransmitter(self._clocks_per_baud)
 
-        m.d.comb += [
-            # UART RX -> Internal Bus
-            uart_rx.rx.eq(self.rx),
-            bridge_rx.data_i.eq(uart_rx.data_o),
-            bridge_rx.valid_i.eq(uart_rx.valid_o),
-            self.bus_o.data.eq(bridge_rx.data_o),
-            self.bus_o.addr.eq(bridge_rx.addr_o),
-            self.bus_o.rw.eq(bridge_rx.rw_o),
-            self.bus_o.valid.eq(bridge_rx.valid_o),
-            # Internal Bus -> UART TX
-            bridge_tx.data_i.eq(self.bus_i.data),
-            bridge_tx.rw_i.eq(self.bus_i.rw),
-            bridge_tx.valid_i.eq(self.bus_i.valid),
-            uart_tx.data_i.eq(bridge_tx.data_o),
-            uart_tx.start_i.eq(bridge_tx.start_o),
-            bridge_tx.done_i.eq(uart_tx.done_o),
-            self.tx.eq(uart_tx.tx),
-        ]
+        m.d.comb += uart_rx.rx.eq(self.rx)
+        wiring.connect(m, uart_rx.source, cobs_decode.sink)
+        wiring.connect(m, cobs_decode.source, stream_packer.sink)
+        wiring.connect(m, stream_packer.source, bridge.sink)
+        wiring.connect(m, bridge.source, stream_unpacker.sink)
+        wiring.connect(m, stream_unpacker.source, cobs_encode.sink)
+        wiring.connect(m, cobs_encode.source, uart_tx.sink)
+        m.d.comb += self.tx.eq(uart_tx.tx)
+
+        # TODO: replace these with wiring.Connect
+        m.d.comb += self.bus_o.eq(bridge.bus_o)
+        m.d.comb += bridge.bus_i.eq(self.bus_i)
+
         return m
