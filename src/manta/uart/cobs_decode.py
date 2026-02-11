@@ -23,17 +23,18 @@ class COBSDecode(Elaboratable):
 
         # State Machine:
         with m.FSM():
-            with m.State("WAIT_FOR_PACKET_START"):
-                with m.If((self.data_i == 0) & (self.valid_i)):
-                    m.next = "START_OF_PACKET"
+            # TODO: determine if wait for packet logic should stay
+            # with m.State("WAIT_FOR_PACKET_START"):
+            #     with m.If((self.data_i == 0) & (self.valid_i)):
+            #         m.next = "START_OF_PACKET"
 
             with m.State("START_OF_PACKET"):
                 with m.If(self.valid_i):
                     m.d.sync += counter.eq(self.data_i - 1)
                     m.next = "DECODING"
 
-                with m.Else():
-                    m.next = "START_OF_PACKET"
+                # with m.Else():
+                #     m.next = "START_OF_PACKET"
 
             with m.State("DECODING"):
                 with m.If(self.valid_i):

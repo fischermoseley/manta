@@ -5,13 +5,11 @@ from amaranth.lib.memory import Memory
 class COBSEncode(Elaboratable):
     def __init__(self):
         # Top-Level IO
-        self.start = Signal()
-        self.done = Signal()
-
         # Stream-like data input
         self.data_i = Signal(8)
         self.valid_i = Signal()
         self.ready_o = Signal()
+        self.last_i = Signal()
 
         # Stream-like data output
         self.data_o = Signal(8)
@@ -44,7 +42,7 @@ class COBSEncode(Elaboratable):
         # State Machine:
         with m.FSM() as fsm:
             with m.State("IDLE"):
-                with m.If(self.start):
+                with m.If(self.last_i):
                     m.d.sync += head_pointer.eq(0)
                     m.d.sync += tail_pointer.eq(0)
                     m.d.sync += rd_port.addr.eq(0)
@@ -107,5 +105,7 @@ class COBSEncode(Elaboratable):
         m.d.comb += wr_port.en.eq((fsm.ongoing("IDLE")) & (self.valid_i))
         m.d.comb += wr_port.data.eq(self.data_i)
         m.d.sync += wr_port.addr.eq(wr_port.addr + wr_port.en)
+
+        m.d.comb += self.ready_o.eq(fsm.ongoing("IDLE"))
 
         return m
