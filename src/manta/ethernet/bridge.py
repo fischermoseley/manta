@@ -6,15 +6,11 @@ from manta.utils import *
 
 
 class EthernetBridge(wiring.Component):
-    sink: In(StreamSignature(32))
     source: Out(StreamSignature(32))
+    sink: In(StreamSignature(32))
 
-    def __init__(self):
-        super().__init__()
-
-        # TODO: use In() and Out() for InternalBus connections
-        self.bus_o = Signal(InternalBus())
-        self.bus_i = Signal(InternalBus())
+    bus_source: Out(InternalBusSignature)
+    bus_sink: In(InternalBusSignature)
 
     def elaborate(self, platform):
         m = Module()
@@ -79,14 +75,14 @@ class EthernetBridge(wiring.Component):
 
                 with m.If(self.sink.valid):
                     # we have the length and the address to read from, let's go!
-                    m.d.sync += self.bus_o.addr.eq(self.sink.data)
-                    m.d.sync += self.bus_o.data.eq(0)
-                    m.d.sync += self.bus_o.rw.eq(0)
-                    m.d.sync += self.bus_o.valid.eq(1)
+                    m.d.sync += self.bus_source.p.addr.eq(self.sink.data)
+                    m.d.sync += self.bus_source.p.data.eq(0)
+                    m.d.sync += self.bus_source.p.rw.eq(0)
+                    m.d.sync += self.bus_source.p.valid.eq(1)
 
                     with m.If(read_len == 0):
                         # we've sent the last read request in this batch to the bus
-                        m.d.sync += self.bus_o.last.eq(1)
+                        m.d.sync += self.bus_source.p.last.eq(1)
                         m.d.sync += read_len.eq(0)
 
                     m.next = "READ"
@@ -96,22 +92,22 @@ class EthernetBridge(wiring.Component):
 
                 # Clock out read requests to the bus
                 with m.If(read_len > 0):
-                    m.d.sync += self.bus_o.addr.eq(self.bus_o.addr + 1)
+                    m.d.sync += self.bus_source.p.addr.eq(self.bus_source.p.addr + 1)
                     m.d.sync += read_len.eq(read_len - 1)
 
                     with m.If(read_len == 1):
-                        m.d.sync += self.bus_o.last.eq(1)
+                        m.d.sync += self.bus_source.p.last.eq(1)
 
                 with m.Else():
-                    m.d.sync += self.bus_o.eq(
+                    m.d.sync += self.bus_source.p.eq(
                         0
                     )  # TODO: it's probably overzealous to set the whole bus to zero, but it makes debugging easy so we're doing it xD
 
                 # Clock out any read data from the bus
-                with m.If(self.bus_i.valid):
-                    m.d.sync += self.source.data.eq(self.bus_i.data)
+                with m.If(self.bus_sink.p.valid):
+                    m.d.sync += self.source.data.eq(self.bus_sink.p.data)
                     m.d.sync += self.source.valid.eq(1)
-                    m.d.sync += self.source.last.eq(self.bus_i.last)
+                    m.d.sync += self.source.last.eq(self.bus_sink.p.last)
 
                 with m.If(self.source.last):
                     m.d.sync += self.source.data.eq(0)
@@ -121,17 +117,17 @@ class EthernetBridge(wiring.Component):
 
             with m.State("WRITE_WAIT_FOR_ADDR"):
                 with m.If(self.sink.valid):
-                    m.d.sync += self.bus_o.addr.eq(self.sink.data)
+                    m.d.sync += self.bus_source.p.addr.eq(self.sink.data)
                     m.next = "WRITE_FIRST"
 
             # Don't want to increment address on the first write,
             # and I'm lazy so I'm making a new state to keep track of that
             with m.State("WRITE_FIRST"):
                 with m.If(self.sink.valid):
-                    m.d.sync += self.bus_o.data.eq(self.sink.data)
-                    m.d.sync += self.bus_o.rw.eq(1)
-                    m.d.sync += self.bus_o.valid.eq(1)
-                    m.d.sync += self.bus_o.last.eq(self.sink.last)
+                    m.d.sync += self.bus_source.p.data.eq(self.sink.data)
+                    m.d.sync += self.bus_source.p.rw.eq(1)
+                    m.d.sync += self.bus_source.p.valid.eq(1)
+                    m.d.sync += self.bus_source.p.last.eq(self.sink.last)
 
                     with m.If(self.sink.last):
                         m.d.sync += self.sink.ready.eq(0)
@@ -142,11 +138,11 @@ class EthernetBridge(wiring.Component):
 
             with m.State("WRITE"):
                 with m.If(self.sink.valid):
-                    m.d.sync += self.bus_o.addr.eq(self.bus_o.addr + 1)
-                    m.d.sync += self.bus_o.data.eq(self.sink.data)
-                    m.d.sync += self.bus_o.rw.eq(1)
-                    m.d.sync += self.bus_o.valid.eq(1)
-                    m.d.sync += self.bus_o.last.eq(self.sink.last)
+                    m.d.sync += self.bus_source.p.addr.eq(self.bus_source.p.addr + 1)
+                    m.d.sync += self.bus_source.p.data.eq(self.sink.data)
+                    m.d.sync += self.bus_source.p.rw.eq(1)
+                    m.d.sync += self.bus_source.p.valid.eq(1)
+                    m.d.sync += self.bus_source.p.last.eq(self.sink.last)
 
                     with m.If(self.sink.last):
                         m.d.sync += self.sink.ready.eq(0)
@@ -159,9 +155,9 @@ class EthernetBridge(wiring.Component):
                     m.next = "WRITE"
 
             with m.State("WRITE_WAIT_FOR_LAST"):
-                m.d.sync += self.bus_o.eq(0)
+                m.d.sync += self.bus_source.p.eq(0)
 
-                with m.If(self.bus_i.last):
+                with m.If(self.bus_sink.p.last):
                     m.d.sync += seq_num_expected.eq(seq_num_expected + 1)
                     m.d.sync += self.source.data.eq(
                         EthernetMessageHeader.concat_signals(
