@@ -11,7 +11,7 @@ from amaranth.lib.wiring import In, Out
 from amaranth.sim import Simulator
 
 
-class MantaCore(ABC, Elaboratable):
+class MantaCore(ABC, wiring.Component):
     # These attributes are meant to be settable and gettable, but max_addr and
     # top_level_ports are intended to be only gettable. Do not implement
     # setters for them in subclasses.
@@ -26,15 +26,6 @@ class MantaCore(ABC, Elaboratable):
         Return the maximum addresses in memory used by the core. The address
         space used by the core extends from `base_addr` to the number returned
         by this function (including the endpoints).
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def top_level_ports(self):
-        """
-        Return the Amaranth signals that should be included as ports in the
-        top-level Manta module.
         """
         pass
 
@@ -87,22 +78,17 @@ class CoreContainer:
             self._last_used_addr = value.max_addr + 1
 
 
-class InternalBus(data.StructLayout):
-    """
-    Describes the layout of Manta's internal bus, such that signals of
-    the appropriate dimension can be instantiated with Signal(InternalBus()).
-    """
+InternalBusLayout = data.StructLayout(
+    {
+        "addr": 32,
+        "data": 32,
+        "rw": 1,
+        "valid": 1,
+        "last": 1,
+    }
+)
 
-    def __init__(self):
-        super().__init__(
-            {
-                "addr": 32,
-                "data": 32,
-                "rw": 1,
-                "valid": 1,
-                "last": 1,
-            }
-        )
+InternalBusSignature = wiring.Signature({"p": Out(InternalBusLayout)})
 
 
 class StreamSignature(wiring.Signature):

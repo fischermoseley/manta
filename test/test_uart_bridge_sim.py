@@ -26,8 +26,8 @@ class UARTHardwarePlusMemoryCore(wiring.Component):
         # the _clocks_per_baud attribute
         self.uart = uart
 
-        m.d.comb += uart.bus_i.eq(mem_core.bus_o)
-        m.d.comb += mem_core.bus_i.eq(uart.bus_o)
+        wiring.connect(m, uart.bus_source, mem_core.bus_sink)
+        wiring.connect(m, mem_core.bus_source, uart.bus_sink)
 
         m.d.comb += self.tx.eq(uart.tx)
         m.d.comb += uart.rx.eq(self.rx)

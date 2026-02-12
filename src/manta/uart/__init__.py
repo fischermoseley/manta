@@ -11,11 +11,18 @@ from manta.uart.transmitter import UARTTransmitter
 from manta.utils import *
 
 
-class UARTInterface(Elaboratable):
+class UARTInterface(wiring.Component):
     """
     A synthesizable module for UART communication between a host machine and
     the FPGA.
     """
+
+    # Top-Level Ports
+    rx: In(1)
+    tx: Out(1)
+
+    bus_source: Out(InternalBusSignature)
+    bus_sink: In(InternalBusSignature)
 
     def __init__(self, port, baudrate, clock_freq, stall_interval=16, chunk_size=256):
         """
@@ -60,6 +67,7 @@ class UARTInterface(Elaboratable):
                 provided, or the clock frequency or baudrate is invalid.
 
         """
+        super().__init__()
 
         self._port = port
         self._baudrate = baudrate
@@ -68,13 +76,6 @@ class UARTInterface(Elaboratable):
         self._chunk_size = chunk_size
         self._stall_interval = stall_interval
         self._check_config()
-
-        # Top-Level Ports
-        self.rx = Signal()
-        self.tx = Signal()
-
-        self.bus_o = Signal(InternalBus())
-        self.bus_i = Signal(InternalBus())
 
     @classmethod
     def from_config(cls, config):
@@ -193,13 +194,6 @@ class UARTInterface(Elaboratable):
 
         self._serial_device = Serial(chosen_port, self._baudrate, timeout=1)
         return self._serial_device
-
-    def get_top_level_ports(self):
-        """
-        Return the Amaranth signals that should be included as ports in the
-        top-level Manta module.
-        """
-        return [self.rx, self.tx]
 
     @property
     def clock_freq(self):
@@ -335,8 +329,7 @@ class UARTInterface(Elaboratable):
         wiring.connect(m, cobs_encode.source, uart_tx.sink)
         m.d.comb += self.tx.eq(uart_tx.tx)
 
-        # TODO: replace these with wiring.Connect
-        m.d.comb += self.bus_o.eq(bridge.bus_o)
-        m.d.comb += bridge.bus_i.eq(self.bus_i)
+        wiring.connect(m, bridge.bus_source, wiring.flipped(self.bus_source))
+        wiring.connect(m, wiring.flipped(self.bus_sink), bridge.bus_sink)
 
         return m
