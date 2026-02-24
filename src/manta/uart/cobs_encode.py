@@ -27,10 +27,16 @@ class COBSEncode(wiring.Component):
             with m.State("COUNT_BYTES"):
                 with m.If(self.sink.valid & self.sink.ready):
                     # End of packet or zero found, clock out length
-                    with m.If((self.sink.last) | (self.sink.data == 0)):
-                        m.d.sync += fsm_data.eq(
-                            fifo.r_level + fifo_written_to_last_cycle + 1
-                        )
+                    with m.If(
+                        (self.sink.last) | (self.sink.data == 0) | (fifo.r_level == 253)
+                    ):
+                        with m.If(fifo.r_level == 253):
+                            m.d.sync += fsm_data.eq(255)
+
+                        with m.Else():
+                            m.d.sync += fsm_data.eq(
+                                fifo.r_level + fifo_written_to_last_cycle + 1
+                            )
 
                         m.d.sync += was_last.eq(self.sink.last)
                         m.next = "WAIT_FOR_LENGTH"
