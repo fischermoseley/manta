@@ -20,7 +20,6 @@ async def test_cobs_encode(ctx):
     ctx.set(ce.source.ready, 1)
 
     await encode_and_compare(ctx, [0x11, 0x22, 0x33, 0x44])
-    # await encode_and_compare(ctx, [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99])
     await ctx.tick()
     await ctx.tick()
     await ctx.tick()
@@ -37,7 +36,7 @@ async def test_cobs_encode_random(ctx):
 
     num_tests = random.randint(1, 5)
     for _ in range(num_tests):
-        length = random.randint(1, 254)
+        length = random.randint(1, 2000)
         input_data = [random.randint(0, 255) for _ in range(length)]
         result = await encode_and_compare(ctx, input_data, quiet=True)
         await ctx.tick()
@@ -59,7 +58,9 @@ async def encode(ctx, data):
 
     while not (tx_done and rx_done):
         # Feed data to encoder
-        if not tx_done:
+        tx_stall = random.randint(0, 1)
+
+        if not tx_done and not tx_stall:
             ctx.set(ce.sink.valid, 1)
             ctx.set(ce.sink.data, data[tx_index])
             ctx.set(ce.sink.last, tx_index == len(data) - 1)
@@ -76,8 +77,7 @@ async def encode(ctx, data):
             ctx.set(ce.sink.last, 0)
 
         # Randomly set source.ready
-        # ctx.set(ce.source.ready, random.randint(0, 1))
-        ctx.set(ce.source.ready, 1)
+        ctx.set(ce.source.ready, random.randint(0, 1))
 
         # Pull output data from buffer
         if ctx.get(ce.source.valid) and ctx.get(ce.source.ready):
