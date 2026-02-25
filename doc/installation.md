@@ -18,13 +18,16 @@ The latest development snapshot of Manta can be installed with:
 pip install --upgrade git+https://github.com/fischermoseley/manta.git
 ```
 
+It's recommended to install Manta into a virtual environment, instead of your system Python. Among the many other benefits virtual environments offer, this will conveniently add the `manta` executable to your PATH. This allows you to invoke the tool with `manta`, rather than the more verbose `python3 -m manta`.
+
 ## Editable Development Install
 If you're working on the source, you might want an editable installation with some extra dependencies used for development:
 
 ```bash
 git clone https://github.com/fischermoseley/manta.git
 cd manta
-pip install -e ".[dev]"
+uv sync
+source .venv/bin/activate
 pre-commit install
 ```
 
@@ -41,13 +44,3 @@ Be sure to reload your udev rules after saving the file. On most distributions, 
 ```bash
 udevadm control --reload-rules && udevadm trigger
 ```
-
-## Adding Manta to PATH (Optional)
-
-Although optional, it is convenient to add the `manta` executable to your system's path. This allows you to invoke Manta's CLI with `manta`, rather than the more verbose `python3 -m manta`. The location of this executable depends on both your platform and if you're using a virtual environment. For example:
-
-- Windows: `%APPDATA%\Python\Scripts`, or `path\to\venv\Scripts` if using a virtual environment.
-
-- macOS/Linux/BSD: `$HOME/.local/bin`, or `path\to\venv\bin` if using a virtual environment.
-
-This also adds any other Python scripts exposed by your installed packages to your PATH.
