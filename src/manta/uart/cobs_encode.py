@@ -18,6 +18,7 @@ class COBSEncode(wiring.Component):
 
         fsm_data = Signal(8)
         was_last = Signal(1)
+        was_zero = Signal(1)
         fifo_written_to_last_cycle = Signal(1)
         m.d.comb += fifo_written_to_last_cycle.eq(
             (self.sink.ready) & (self.sink.valid) & (self.sink.data != 0)
@@ -26,12 +27,18 @@ class COBSEncode(wiring.Component):
         with m.FSM() as fsm:
             with m.State("COUNT_BYTES"):
                 with m.If(self.sink.valid & self.sink.ready):
-                    # End of packet or zero found, clock out length
+                    # Send the length byte, as either a zero has been found, the end of the packet
+                    # has been reached, or 254 bytes have been read in.
                     with m.If(
                         (self.sink.last) | (self.sink.data == 0) | (fifo.r_level == 253)
                     ):
+                        # Handle edge case where 254th byte is a zero
                         with m.If(fifo.r_level == 253):
-                            m.d.sync += fsm_data.eq(255)
+                            with m.If(self.sink.data == 0):
+                                m.d.sync += fsm_data.eq(254)
+
+                            with m.Else():
+                                m.d.sync += fsm_data.eq(255)
 
                         with m.Else():
                             m.d.sync += fsm_data.eq(
@@ -39,22 +46,34 @@ class COBSEncode(wiring.Component):
                             )
 
                         m.d.sync += was_last.eq(self.sink.last)
-                        m.next = "WAIT_FOR_LENGTH"
+                        m.d.sync += was_zero.eq(self.sink.data == 0)
+                        m.next = "SEND_LENGTH"
 
-            with m.State("WAIT_FOR_LENGTH"):
+            with m.State("SEND_LENGTH"):
                 with m.If(self.source.valid & self.source.ready):
                     m.next = "SEND_BYTES"
 
             with m.State("SEND_BYTES"):
                 # Wait until the FIFO will be empty on next cycle
                 with m.If(
-                    (fifo.r_level == 1) & (self.source.ready) & (self.source.valid)
+                    ((fifo.r_level == 1) & (self.source.ready) & (self.source.valid))
+                    | (fifo.r_level == 0)
                 ):
                     m.next = "COUNT_BYTES"
 
                     with m.If(was_last):
-                        m.d.sync += fsm_data.eq(0)
-                        m.next = "SEND_DELIMITER"
+                        with m.If(was_zero):
+                            m.d.sync += fsm_data.eq(1)
+                            m.next = "SEND_ONE"
+
+                        with m.Else():
+                            m.d.sync += fsm_data.eq(0)
+                            m.next = "SEND_DELIMITER"
+
+            with m.State("SEND_ONE"):
+                with m.If(self.source.valid & self.source.ready):
+                    m.d.sync += fsm_data.eq(0)
+                    m.next = "SEND_DELIMITER"
 
             with m.State("SEND_DELIMITER"):
                 with m.If(self.source.valid & self.source.ready):
@@ -68,7 +87,11 @@ class COBSEncode(wiring.Component):
         m.d.comb += self.sink.ready.eq(fifo.w_rdy & fsm.ongoing("COUNT_BYTES"))
 
         # Wire FIFO output to source, allow FSM to preempt FIFO
-        with m.If(fsm.ongoing("WAIT_FOR_LENGTH") | fsm.ongoing("SEND_DELIMITER")):
+        with m.If(
+            fsm.ongoing("SEND_LENGTH")
+            | fsm.ongoing("SEND_ONE")
+            | fsm.ongoing("SEND_DELIMITER")
+        ):
             m.d.comb += self.source.data.eq(fsm_data)
             m.d.comb += self.source.valid.eq(1)
             m.d.comb += fifo.r_en.eq(0)
