@@ -98,9 +98,7 @@ class IOCoreLoopbackTest(Elaboratable):
                 )
 
             else:
-                print(
-                    f"Reading {o.name} through {i.name} yielded {readback} as expected."
-                )
+                print(f"Reading {o.name} through {i.name} yielded {readback} as expected.")
 
     def verify(self):
         self.build_and_program()

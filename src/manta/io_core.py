@@ -72,9 +72,7 @@ class IOCore(MantaCore):
         input_signals = []
         for name, width in inputs.items():
             if not isinstance(name, str):
-                raise ValueError(
-                    f"Input probe '{name}' has invalid name, names must be strings."
-                )
+                raise ValueError(f"Input probe '{name}' has invalid name, names must be strings.")
 
             if not isinstance(width, int):
                 raise ValueError(f"Input probe '{name}' must have integer width.")
@@ -88,9 +86,7 @@ class IOCore(MantaCore):
         output_signals = []
         for name, attrs in outputs.items():
             if not isinstance(name, str):
-                raise ValueError(
-                    f"Output probe '{name}' has invalid name, names must be strings."
-                )
+                raise ValueError(f"Output probe '{name}' has invalid name, names must be strings.")
 
             if not isinstance(attrs, int) and not isinstance(attrs, dict):
                 raise ValueError(f"Unrecognized format for output probe '{name}'.")
@@ -151,9 +147,7 @@ class IOCore(MantaCore):
         self._memory_map = {}
 
         # Add strobe register
-        self._memory_map["strobe"] = dict(
-            signals=[self._strobe], addrs=[self.base_addr]
-        )
+        self._memory_map["strobe"] = dict(signals=[self._strobe], addrs=[self.base_addr])
 
         # Assign memory to all inputs and outputs
         ios = self._inputs + self._outputs
@@ -252,9 +246,7 @@ class IOCore(MantaCore):
             raise KeyError(f"Probe '{probe.name}' is not an output of the IO core.")
 
         if len(probes) > 1:
-            raise ValueError(
-                f"Multiple output probes found in IO core for name '{probe.name}'."
-            )
+            raise ValueError(f"Multiple output probes found in IO core for name '{probe.name}'.")
 
         # Check that value isn't too big for the register
         check_value_fits_in_bits(value, len(probe))
@@ -307,9 +299,7 @@ class IOCore(MantaCore):
                 raise ValueError(f"Probe with name '{probe}' not found in IO core.")
 
             if len(probes) > 1:
-                raise ValueError(
-                    f"Multiple probes found in IO core for name '{probe}'."
-                )
+                raise ValueError(f"Multiple probes found in IO core for name '{probe}'.")
 
             return self.get_probe(probes[0])
 
@@ -321,9 +311,7 @@ class IOCore(MantaCore):
             raise KeyError(f"Probe with name '{probe.name}' not found in IO core.")
 
         if len(probes) > 1:
-            raise ValueError(
-                f"Multiple probes found in IO core for name '{probe.name}'."
-            )
+            raise ValueError(f"Multiple probes found in IO core for name '{probe.name}'.")
 
         # Pulse strobe register
         self.interface.write(self.base_addr, 0)

@@ -100,9 +100,7 @@ class UARTInterface(Elaboratable):
                 sanitized_config[option] = config[option]
 
             else:
-                warn(
-                    f"Ignoring unrecognized option '{option}' in UART interface config."
-                )
+                warn(f"Ignoring unrecognized option '{option}' in UART interface config.")
 
         return cls(**sanitized_config)
 
@@ -244,9 +242,7 @@ class UARTInterface(Elaboratable):
             bytes_in = set.read(bytes_expected)
 
             if len(bytes_in) != bytes_expected:
-                raise ValueError(
-                    f"Only got {len(bytes_in)} out of {bytes_expected} bytes."
-                )
+                raise ValueError(f"Only got {len(bytes_in)} out of {bytes_expected} bytes.")
 
             # Split received bytes into individual responses and decode
             responses = split_into_chunks(bytes_in, 7)
@@ -268,9 +264,7 @@ class UARTInterface(Elaboratable):
 
         # Make sure address and data are all integers
         if not isinstance(addrs, list) or not isinstance(data, list):
-            raise TypeError(
-                "Write addresses and data must be an integer or list of integers."
-            )
+            raise TypeError("Write addresses and data must be an integer or list of integers.")
 
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Write addresses must be all be integers.")
@@ -301,9 +295,7 @@ class UARTInterface(Elaboratable):
         response_ascii = response_bytes.decode("ascii")
 
         if len(response_ascii) != 7:
-            raise ValueError(
-                "Unable to decode read response - wrong number of bytes received."
-            )
+            raise ValueError("Unable to decode read response - wrong number of bytes received.")
 
         if response_ascii[0] != "D":
             raise ValueError("Unable to decode read response - incorrect preamble.")

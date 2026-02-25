@@ -50,9 +50,7 @@ class LogicAnalyzerCapture:
             raise ValueError(f"Probe {name} not found in LogicAnalyzerCapture!")
 
         if len(indices) > 1:
-            raise ValueError(
-                f"Probe {name} found multiple times in LogicAnalyzerCapture!"
-            )
+            raise ValueError(f"Probe {name} found multiple times in LogicAnalyzerCapture!")
 
         idx = indices[0]
 

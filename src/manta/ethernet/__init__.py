@@ -15,9 +15,7 @@ class EthernetInterface(Elaboratable):
     machine and the FPGA.
     """
 
-    def __init__(
-        self, phy, clk_freq, fpga_ip_addr, host_ip_addr, udp_port=2001, **kwargs
-    ):
+    def __init__(self, phy, clk_freq, fpga_ip_addr, host_ip_addr, udp_port=2001, **kwargs):
         """
         This function is the main mechanism for configuring an Ethernet
         Interface in an Amaranth-native design.
@@ -96,18 +94,14 @@ class EthernetInterface(Elaboratable):
     def _check_config(self):
         # Make sure UDP port is an integer in the range 0-65535
         if not isinstance(self._udp_port, int):
-            raise TypeError(
-                "UDP Port must be specified as an integer between 0 and 65535."
-            )
+            raise TypeError("UDP Port must be specified as an integer between 0 and 65535.")
 
         if not 0 <= self._udp_port <= 65535:
             raise ValueError("UDP Port must be between 0 and 65535.")
 
         # Make sure Host IP address is four bytes separated by a period
         if not isinstance(self._host_ip_addr, str):
-            raise TypeError(
-                "Host IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'."
-            )
+            raise TypeError("Host IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'.")
 
         if len(self._host_ip_addr.split(".")) != 4:
             raise ValueError("Host IP must be specified in the form 'xxx.xxx.xxx.xxx'.")
@@ -118,9 +112,7 @@ class EthernetInterface(Elaboratable):
 
         # Make sure FPGA IP is four bytes separated by a period
         if not isinstance(self._fpga_ip_addr, str):
-            raise TypeError(
-                "FPGA IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'."
-            )
+            raise TypeError("FPGA IP must be specified as a string in the form 'xxx.xxx.xxx.xxx'.")
 
         if len(self._fpga_ip_addr.split(".")) != 4:
             raise ValueError("FPGA IP must be specified in the form 'xxx.xxx.xxx.xxx'.")
@@ -587,9 +579,7 @@ class EthernetInterface(Elaboratable):
 
         # Make sure address and datas are all integers
         if not isinstance(addrs, list) or not isinstance(datas, list):
-            raise TypeError(
-                "Write addresses and data must be an integer or list of integers."
-            )
+            raise TypeError("Write addresses and data must be an integer or list of integers.")
 
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Write addresses must be all be integers.")

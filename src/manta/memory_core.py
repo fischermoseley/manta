@@ -79,13 +79,10 @@ class MemoryCore(MantaCore):
         n_partial = self._width % 16
 
         self._mems = [
-            Memory(shape=16, depth=self._depth, init=[0] * self._depth)
-            for _ in range(n_full)
+            Memory(shape=16, depth=self._depth, init=[0] * self._depth) for _ in range(n_full)
         ]
         if n_partial > 0:
-            self._mems += [
-                Memory(shape=n_partial, depth=self._depth, init=[0] * self._depth)
-            ]
+            self._mems += [Memory(shape=n_partial, depth=self._depth, init=[0] * self._depth)]
 
     @property
     def top_level_ports(self):
@@ -334,9 +331,7 @@ class MemoryCore(MantaCore):
 
         # Make sure address and datas are all integers
         if not isinstance(addrs, list) or not isinstance(datas, list):
-            raise TypeError(
-                "Write addresses and data must be an integer or list of integers."
-            )
+            raise TypeError("Write addresses and data must be an integer or list of integers.")
 
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Write addresses must be all be integers.")

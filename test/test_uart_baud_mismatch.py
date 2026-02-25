@@ -89,9 +89,7 @@ nexys4ddr_pass_cases = [
 
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-@pytest.mark.parametrize(
-    "baudrate, percent_slowdown, stall_interval", nexys4ddr_pass_cases
-)
+@pytest.mark.parametrize("baudrate, percent_slowdown, stall_interval", nexys4ddr_pass_cases)
 def test_baudrate_mismatch_xilinx_passes(baudrate, percent_slowdown, stall_interval):
     UARTBaudrateMismatchTest(
         platform=Nexys4DDRPlatform(),
@@ -109,9 +107,7 @@ nexys4ddr_fail_cases = [
 
 
 @pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-@pytest.mark.parametrize(
-    "baudrate, percent_slowdown, stall_interval", nexys4ddr_fail_cases
-)
+@pytest.mark.parametrize("baudrate, percent_slowdown, stall_interval", nexys4ddr_fail_cases)
 def test_baudrate_mismatch_xilinx_fails(baudrate, percent_slowdown, stall_interval):
     with pytest.raises(ValueError, match="Only got"):
         UARTBaudrateMismatchTest(
