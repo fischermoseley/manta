@@ -194,9 +194,7 @@ class LogicAnalyzerCore(MantaCore):
 
                 # Check operation
                 if operation not in ["DISABLE", "RISING", "FALLING", "CHANGING"]:
-                    raise ValueError(
-                        f"Unable to interpret trigger condition '{trigger}'."
-                    )
+                    raise ValueError(f"Unable to interpret trigger condition '{trigger}'.")
 
             # Check three-token triggers
             elif len(trigger) == 3:
@@ -208,9 +206,7 @@ class LogicAnalyzerCore(MantaCore):
 
                 # Check operation
                 if operation not in ["GT", "LT", "GEQ", "LEQ", "EQ", "NEQ"]:
-                    raise ValueError(
-                        f"Unable to interpret trigger condition '{trigger}'."
-                    )
+                    raise ValueError(f"Unable to interpret trigger condition '{trigger}'.")
 
             else:
                 raise ValueError(f"Unable to interpret trigger condition '{trigger}'.")
@@ -242,9 +238,7 @@ class LogicAnalyzerCore(MantaCore):
 
             # Warn on trigger location
             if trigger_location:
-                warn(
-                    "Ignoring provided trigger_location as trigger mode is set to Immediate."
-                )
+                warn("Ignoring provided trigger_location as trigger mode is set to Immediate.")
 
             self._trigger_mode = mode
             self._triggers = []
@@ -253,9 +247,7 @@ class LogicAnalyzerCore(MantaCore):
         elif mode == TriggerModes.INCREMENTAL:
             # Warn on trigger location
             if trigger_location:
-                warn(
-                    "Ignoring provided trigger_location as trigger mode is set to Incremental."
-                )
+                warn("Ignoring provided trigger_location as trigger mode is set to Incremental.")
 
             # Validate triggers
             self._validate_triggers(triggers)

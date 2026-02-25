@@ -17,9 +17,7 @@ class MemoryCoreTests:
         self.n_full = self.width // 16
         self.n_mems = ceil(self.width / 16)
 
-        self.bus_addrs = list(
-            range(self.base_addr, self.max_addr)
-        )  # include the endpoint!
+        self.bus_addrs = list(range(self.base_addr, self.max_addr))  # include the endpoint!
         self.user_addrs = list(range(self.mem_core._depth))
 
         # A model of what each bus address contains
@@ -115,8 +113,7 @@ class MemoryCoreTests:
         for _ in range(5):
             for user_addr in jumble(self.user_addrs):
                 bus_addrs = [
-                    self.base_addr + user_addr + (i * self.depth)
-                    for i in range(self.n_mems)
+                    self.base_addr + user_addr + (i * self.depth) for i in range(self.n_mems)
                 ]
 
                 operation = choice(["read", "write"])
@@ -238,9 +235,7 @@ class MemoryCoreTests:
 
         data = self.ctx.get(self.mem_core.user_data_out)
         if data != expected_data:
-            raise ValueError(
-                f"Read from {addr} yielded {data} instead of {expected_data}"
-            )
+            raise ValueError(f"Read from {addr} yielded {data} instead of {expected_data}")
 
     async def write_user_side(self, addr, data):
         # convert value to words, and save to self.model
@@ -263,9 +258,7 @@ widths = [23, randint(0, 128)]
 depths = [512, randint(0, 1024)]
 base_addrs = [0, randint(0, 32678)]
 
-cases = [
-    (m, w, d, ba) for m in modes for w in widths for d in depths for ba in base_addrs
-]
+cases = [(m, w, d, ba) for m in modes for w in widths for d in depths for ba in base_addrs]
 
 
 @pytest.mark.parametrize("mode, width, depth, base_addr", cases)

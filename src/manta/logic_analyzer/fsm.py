@@ -139,9 +139,7 @@ class LogicAnalyzerFSM(Elaboratable):
                 with m.If(write_pointer > trigger_location):
                     m.d.sync += read_pointer.eq(write_pointer - trigger_location)
                 with m.Else():
-                    m.d.sync += read_pointer.eq(
-                        write_pointer - trigger_location + sample_depth
-                    )
+                    m.d.sync += read_pointer.eq(write_pointer - trigger_location + sample_depth)
 
                 # ok that's all for horrible
 

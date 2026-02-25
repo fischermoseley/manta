@@ -55,9 +55,7 @@ class ReceiveBridge(Elaboratable):
             m.d.comb += self._is_eol.eq(0)
 
     def _drive_output_bus(self, m):
-        with m.If(
-            (self._state == States.READ) & (self._byte_num == 4) & (self._is_eol)
-        ):
+        with m.If((self._state == States.READ) & (self._byte_num == 4) & (self._is_eol)):
             m.d.comb += self.addr_o.eq(
                 Cat(self._buffer[3], self._buffer[2], self._buffer[1], self._buffer[0])
             )
@@ -65,9 +63,7 @@ class ReceiveBridge(Elaboratable):
             m.d.comb += self.valid_o.eq(1)
             m.d.comb += self.rw_o.eq(0)
 
-        with m.Elif(
-            (self._state == States.WRITE) & (self._byte_num == 8) & (self._is_eol)
-        ):
+        with m.Elif((self._state == States.WRITE) & (self._byte_num == 8) & (self._is_eol)):
             m.d.comb += self.addr_o.eq(
                 Cat(self._buffer[3], self._buffer[2], self._buffer[1], self._buffer[0])
             )
@@ -103,9 +99,7 @@ class ReceiveBridge(Elaboratable):
 
                     # otherwise buffer them
                     with m.Else():
-                        m.d.sync += self._buffer[self._byte_num].eq(
-                            self._from_ascii_hex
-                        )
+                        m.d.sync += self._buffer[self._byte_num].eq(self._from_ascii_hex)
                         m.d.sync += self._byte_num.eq(self._byte_num + 1)
 
                 with m.Else():
@@ -120,9 +114,7 @@ class ReceiveBridge(Elaboratable):
 
                     # otherwise buffer them
                     with m.Else():
-                        m.d.sync += self._buffer[self._byte_num].eq(
-                            self._from_ascii_hex
-                        )
+                        m.d.sync += self._buffer[self._byte_num].eq(self._from_ascii_hex)
                         m.d.sync += self._byte_num.eq(self._byte_num + 1)
 
                 with m.Else():

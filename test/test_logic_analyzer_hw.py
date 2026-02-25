@@ -28,9 +28,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
         manta.interface = UARTInterface(
             port=self.port, baudrate=3e6, clock_freq=platform.default_clk_frequency
         )
-        manta.cores.la = LogicAnalyzerCore(
-            sample_depth=1024, probes=[probe0, probe1, probe2]
-        )
+        manta.cores.la = LogicAnalyzerCore(sample_depth=1024, probes=[probe0, probe1, probe2])
 
         m = Module()
         m.submodules.manta = manta

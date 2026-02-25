@@ -90,9 +90,7 @@ def test_logic_analyzer_core_dump():
 
     # Create Manta instance
     manta = Manta()
-    manta.cores.test_core = LogicAnalyzerCore(
-        sample_depth=2048, probes=[probe0, probe1, probe2]
-    )
+    manta.cores.test_core = LogicAnalyzerCore(sample_depth=2048, probes=[probe0, probe1, probe2])
 
     # Create Temporary File
     tf = tempfile.NamedTemporaryFile(delete=False)
@@ -122,9 +120,7 @@ def test_logic_analyzer_core_dump():
 
 def test_uart_interface_dump():
     manta = Manta()
-    manta.interface = UARTInterface(
-        port="/dev/ttyUSB0", baudrate=115200, clock_freq=100e6
-    )
+    manta.interface = UARTInterface(port="/dev/ttyUSB0", baudrate=115200, clock_freq=100e6)
 
     # Create Temporary File
     tf = tempfile.NamedTemporaryFile(delete=False)

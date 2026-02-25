@@ -34,9 +34,7 @@ class UARTTransmitter(Elaboratable):
 
         with m.Elif(~self.done_o):
             m.d.sync += self._baud_counter.eq(self._baud_counter - 1)
-            m.d.sync += self.done_o.eq(
-                (self._baud_counter == 1) & (self._bit_index == 9)
-            )
+            m.d.sync += self.done_o.eq((self._baud_counter == 1) & (self._bit_index == 9))
 
             # A baud period has elapsed
             with m.If(self._baud_counter == 0):

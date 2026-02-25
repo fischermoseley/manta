@@ -32,9 +32,7 @@ class Manta(Elaboratable):
         # Load config from YAML
         extension = config_path.split(".")[-1]
         if extension not in ["yaml", "yml"]:
-            raise ValueError(
-                f"Configuration file {config_path} has unrecognized file type."
-            )
+            raise ValueError(f"Configuration file {config_path} has unrecognized file type.")
 
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)

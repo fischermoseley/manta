@@ -16,9 +16,7 @@ verilog_root_dirs = [
 
 @pytest.mark.parametrize("root_dir", verilog_root_dirs)
 def test_verilog_examples_build(root_dir):
-    result = subprocess.run(
-        ["./build.sh"], cwd=root_dir, capture_output=True, text=True
-    )
+    result = subprocess.run(["./build.sh"], cwd=root_dir, capture_output=True, text=True)
 
     if result.returncode != 0:
         raise ValueError(f"Command failed with return code {result.returncode}.")

@@ -260,9 +260,7 @@ class PHYCore(SoCMini):
         phy = core_config["phy"]
         # MII.
         if phy in [liteeth_phys.LiteEthPHYMII]:
-            ethphy = phy(
-                clock_pads=platform.request("mii_clocks"), pads=platform.request("mii")
-            )
+            ethphy = phy(clock_pads=platform.request("mii_clocks"), pads=platform.request("mii"))
         # RMII.
         elif phy in [liteeth_phys.LiteEthPHYRMII]:
             ethphy = phy(
@@ -367,9 +365,7 @@ class PHYCore(SoCMini):
         if not isinstance(ethphy, LiteEthPHYModel):
             self.platform.add_period_constraint(eth_rx_clk, 1e9 / phy.rx_clk_freq)
             self.platform.add_period_constraint(eth_tx_clk, 1e9 / phy.tx_clk_freq)
-            self.platform.add_false_path_constraints(
-                self.crg.cd_sys.clk, eth_rx_clk, eth_tx_clk
-            )
+            self.platform.add_false_path_constraints(self.crg.cd_sys.clk, eth_rx_clk, eth_tx_clk)
 
 
 # MAC Core -----------------------------------------------------------------------------------------
@@ -409,9 +405,7 @@ class MACCore(PHYCore):
             # Wishbone Interface -----------------------------------------------------------------------
             wb_bus = wishbone.Interface()
             platform.add_extension(wb_bus.get_ios("wishbone"))
-            self.comb += wb_bus.connect_to_pads(
-                self.platform.request("wishbone"), mode="slave"
-            )
+            self.comb += wb_bus.connect_to_pads(self.platform.request("wishbone"), mode="slave")
             self.bus.add_master(master=wb_bus)
 
         if bus_standard == "axi-lite":
@@ -419,9 +413,7 @@ class MACCore(PHYCore):
             axil_bus = axi.AXILiteInterface(address_width=32, data_width=32)
             platform.add_extension(axil_bus.get_ios("bus"))
             self.submodules += axi.Wishbone2AXILite(ethmac.bus, axil_bus)
-            self.comb += axil_bus.connect_to_pads(
-                self.platform.request("bus"), mode="slave"
-            )
+            self.comb += axil_bus.connect_to_pads(self.platform.request("bus"), mode="slave")
             self.bus.add_master(master=axil_bus)
 
         ethmac_region_size = (nrxslots + ntxslots) * buffer_depth
@@ -512,9 +504,7 @@ class UDPCore(PHYCore):
 
         port_ios = platform.request(name)
 
-        raw_port = self.core.udp.crossbar.get_port(
-            port_ios.sink_dst_port, dw=data_width
-        )
+        raw_port = self.core.udp.crossbar.get_port(port_ios.sink_dst_port, dw=data_width)
 
         # Connect IOs.
         # ------------
@@ -618,12 +608,8 @@ class UDPCore(PHYCore):
             )
             axil_bus = axi.AXILiteInterface(address_width=32, data_width=32)
             platform.add_extension(axil_bus.get_ios("mmap"))
-            self.submodules += axi.Wishbone2AXILite(
-                self.etherbone.wishbone.bus, axil_bus
-            )
-            self.comb += axil_bus.connect_to_pads(
-                platform.request("mmap"), mode="master"
-            )
+            self.submodules += axi.Wishbone2AXILite(self.etherbone.wishbone.bus, axil_bus)
+            self.comb += axil_bus.connect_to_pads(platform.request("mmap"), mode="master")
 
         # UDP Ports --------------------------------------------------------------------------------
         for name, port_cfg in core_config["udp_ports"].items():
