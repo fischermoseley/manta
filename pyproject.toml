@@ -18,7 +18,7 @@ requires-python = ">=3.9"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
   "pytest",
   "pytest-cov",
