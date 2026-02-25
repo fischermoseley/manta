@@ -40,11 +40,27 @@ async def test_cobs_encode_static(ctx):
 
 @simulate(ce)
 async def test_cobs_encode_random(ctx):
-    num_tests = random.randint(1, 5)
-    for _ in range(num_tests):
+    for _ in range(10):
         length = random.randint(1, 2000)
-        data = [random.randint(0, 255) for _ in range(length)]
-        await encode_and_compare(ctx, data, tx_irritate=True, rx_irritate=True)
+
+        population = [i for i in range(256)]
+        no_preference = [1] * 256
+        prefer_zeros = [10] + [1] * 255
+        prefer_nonzeros = [1] + [10] * 255
+
+        data_no_pref = random.choices(population, weights=no_preference, k=length)
+        data_pref_zeros = random.choices(population, weights=prefer_zeros, k=length)
+        data_pref_nonzeros = random.choices(
+            population, weights=prefer_nonzeros, k=length
+        )
+
+        await encode_and_compare(ctx, data_no_pref, tx_irritate=True, rx_irritate=True)
+        await encode_and_compare(
+            ctx, data_pref_zeros, tx_irritate=True, rx_irritate=True
+        )
+        await encode_and_compare(
+            ctx, data_pref_nonzeros, tx_irritate=True, rx_irritate=True
+        )
 
 
 async def encode(ctx, data, tx_irritate, rx_irritate):
