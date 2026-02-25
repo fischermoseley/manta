@@ -6,31 +6,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Manta from source
-        run: |
-          # Omitting the following command causes the version of setuptools
-          # used by python to get confused, and it doesn't detect the name
-          # or version of the package from pyproject.toml - so the following
-          # workaround is used:
-          # https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
-          export DEB_PYTHON_INSTALL_LAYOUT=deb_system
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
 
-          python3 -m venv venv/
-          source venv/bin/activate
-          python3 -m pip install -U pip
-          python3 -m pip install -e ".[dev]"
-          python3 -m pip install git+https://github.com/amaranth-lang/amaranth-boards.git
+      - name: Set up Python
+        run: |
+          uv python install
+          uv sync --locked
 
       - name: Run pre-commit against all files
-        run: |
-          source venv/bin/activate
-          pre-commit run --all-files
+        run: uv run pre-commit run --all-files
 
       - name: Run tests
         run: |
           source ./environment.sh
-          source venv/bin/activate
-          make test
+          uv run make test
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -42,11 +32,7 @@ jobs:
             coverage.xml
 
       - name: Show coverage report
-        run: |
-          source venv/bin/activate
-          coverage report
+        run: uv run coverage report
 
       - name: Upload results to Codecov
-        run: |
-          source venv/bin/activate
-          python3 -m codecov -t ${{ secrets.CODECOV_TOKEN }}
+        run: uv run codecov -t ${{ secrets.CODECOV_TOKEN }}
