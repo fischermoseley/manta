@@ -12,6 +12,7 @@ dependencies = [
   "pyserial",
   "liteeth==2023.12",
   "pyvcd",
+  "cobs",
 ]
 
 requires-python = ">=3.9"
