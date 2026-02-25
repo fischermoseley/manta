@@ -195,9 +195,7 @@ class LogicAnalyzerFSM(Elaboratable):
         start_time = time.monotonic()
         while self.registers.get_probe("state") != States.CAPTURED:
             if timeout is not None and (time.monotonic() - start_time) >= timeout:
-                raise TimeoutError(
-                    f"Capture did not complete within {timeout} seconds!"
-                )
+                raise TimeoutError(f"Capture did not complete within {timeout} seconds!")
 
             time.sleep(0.1)
 

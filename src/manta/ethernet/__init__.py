@@ -654,9 +654,7 @@ class EthernetInterface(Elaboratable):
         data_chunks = split_into_chunks(data, EthernetMessageHeader.MAX_WRITE_LENGTH)
 
         for i, chunk in enumerate(data_chunks):
-            self._write_request(
-                base_addr + (i * EthernetMessageHeader.MAX_WRITE_LENGTH), chunk
-            )
+            self._write_request(base_addr + (i * EthernetMessageHeader.MAX_WRITE_LENGTH), chunk)
 
     def read(self, addrs):
         """

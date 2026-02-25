@@ -64,9 +64,7 @@ async def send_bytes_sporadic(ctx, bytes):
 
 
 async def send_write_request(ctx, module, seq_num, addr, write_data):
-    await send_bytes(
-        ctx, module, [(seq_num << 3) | MessageTypes.WRITE_REQUEST, addr] + write_data
-    )
+    await send_bytes(ctx, module, [(seq_num << 3) | MessageTypes.WRITE_REQUEST, addr] + write_data)
 
 
 async def send_read_request(ctx, module, seq_num, addr, read_length):
@@ -99,9 +97,7 @@ async def test_ether_bridge(ctx):
     #     write_data=[0x0000_0000, 0x1111_1111, 0x2222_2222, 0x3333_3333],
     # )
     # await send_write_request(ctx, seq_num=4, addr=0x1234_5678, write_data=[0x0000_0000, 0x1111_1111, 0x2222_2222])
-    await send_read_request(
-        ctx, ether_bridge, seq_num=0, addr=0x1234_5678, read_length=1
-    )
+    await send_read_request(ctx, ether_bridge, seq_num=0, addr=0x1234_5678, read_length=1)
     # await send_bytes(ctx, [0x0123_4567])
     # await send_bytes(ctx, [0x0123_4567, 0x89AB_CDEF])
     # await send_bytes(ctx, [0x0123_4567, 0x89AB_CDEF, 0x0123_4567])
@@ -173,9 +169,7 @@ async def test_ether_bridge_plus_mem_core(ctx):
     #     write_data=[0x0000_0000, 0x1111_1111, 0x2222_2222, 0x3333_3333],
     # )
     # await send_write_request(ctx, seq_num=4, addr=0x1234_5678, write_data=[0x0000_0000, 0x1111_1111, 0x2222_2222])
-    await send_read_request(
-        ctx, bridge_plus_mem_core, seq_num=0, addr=0x1234_5678, read_length=1
-    )
+    await send_read_request(ctx, bridge_plus_mem_core, seq_num=0, addr=0x1234_5678, read_length=1)
     # await send_bytes(ctx, [0x0123_4567])
     # await send_bytes(ctx, [0x0123_4567, 0x89AB_CDEF])
     # await send_bytes(ctx, [0x0123_4567, 0x89AB_CDEF, 0x0123_4567])

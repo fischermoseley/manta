@@ -50,17 +50,11 @@ async def test_cobs_encode_random(ctx):
 
         data_no_pref = random.choices(population, weights=no_preference, k=length)
         data_pref_zeros = random.choices(population, weights=prefer_zeros, k=length)
-        data_pref_nonzeros = random.choices(
-            population, weights=prefer_nonzeros, k=length
-        )
+        data_pref_nonzeros = random.choices(population, weights=prefer_nonzeros, k=length)
 
         await encode_and_compare(ctx, data_no_pref, tx_irritate=True, rx_irritate=True)
-        await encode_and_compare(
-            ctx, data_pref_zeros, tx_irritate=True, rx_irritate=True
-        )
-        await encode_and_compare(
-            ctx, data_pref_nonzeros, tx_irritate=True, rx_irritate=True
-        )
+        await encode_and_compare(ctx, data_pref_zeros, tx_irritate=True, rx_irritate=True)
+        await encode_and_compare(ctx, data_pref_nonzeros, tx_irritate=True, rx_irritate=True)
 
 
 async def encode(ctx, data, tx_irritate, rx_irritate):

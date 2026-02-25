@@ -52,9 +52,7 @@ async def send_byte(ctx, module, data):
 @simulate(uart_hw)
 async def test_read_request(ctx):
     addr = 0x5678_9ABC
-    header = EthernetMessageHeader.from_params(
-        MessageTypes.READ_REQUEST, seq_num=0x0, length=1
-    )
+    header = EthernetMessageHeader.from_params(MessageTypes.READ_REQUEST, seq_num=0x0, length=1)
     request = bytestring_from_ints([header.as_bits(), addr], byteorder="little")
     encoded = cobs.encode(request)
     encoded = encoded + int(0).to_bytes(1)
