@@ -29,9 +29,7 @@ class COBSEncode(wiring.Component):
                 with m.If(self.sink.valid & self.sink.ready):
                     # Send the length byte, as either a zero has been found, the end of the packet
                     # has been reached, or 254 bytes have been read in.
-                    with m.If(
-                        (self.sink.last) | (self.sink.data == 0) | (fifo.r_level == 253)
-                    ):
+                    with m.If((self.sink.last) | (self.sink.data == 0) | (fifo.r_level == 253)):
                         # Handle edge case where 254th byte is a zero
                         with m.If(fifo.r_level == 253):
                             with m.If(self.sink.data == 0):
@@ -41,9 +39,7 @@ class COBSEncode(wiring.Component):
                                 m.d.sync += fsm_data.eq(255)
 
                         with m.Else():
-                            m.d.sync += fsm_data.eq(
-                                fifo.r_level + fifo_written_to_last_cycle + 1
-                            )
+                            m.d.sync += fsm_data.eq(fifo.r_level + fifo_written_to_last_cycle + 1)
 
                         m.d.sync += was_last.eq(self.sink.last)
                         m.d.sync += was_zero.eq(self.sink.data == 0)
@@ -81,16 +77,12 @@ class COBSEncode(wiring.Component):
 
         # Wire FIFO input to sink
         m.d.comb += fifo.w_data.eq(self.sink.data)
-        m.d.comb += fifo.w_en.eq(
-            (self.sink.ready) & (self.sink.valid) & (self.sink.data != 0)
-        )
+        m.d.comb += fifo.w_en.eq((self.sink.ready) & (self.sink.valid) & (self.sink.data != 0))
         m.d.comb += self.sink.ready.eq(fifo.w_rdy & fsm.ongoing("COUNT_BYTES"))
 
         # Wire FIFO output to source, allow FSM to preempt FIFO
         with m.If(
-            fsm.ongoing("SEND_LENGTH")
-            | fsm.ongoing("SEND_ONE")
-            | fsm.ongoing("SEND_DELIMITER")
+            fsm.ongoing("SEND_LENGTH") | fsm.ongoing("SEND_ONE") | fsm.ongoing("SEND_DELIMITER")
         ):
             m.d.comb += self.source.data.eq(fsm_data)
             m.d.comb += self.source.valid.eq(1)

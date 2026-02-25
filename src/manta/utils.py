@@ -130,14 +130,10 @@ class EthernetMessageHeader(Struct):
 
     @classmethod
     def from_params(cls, msg_type, seq_num, length=0):
-        return cls.const(
-            init={"msg_type": msg_type, "seq_num": seq_num, "length": length}
-        )
+        return cls.const(init={"msg_type": msg_type, "seq_num": seq_num, "length": length})
 
     @classmethod
-    def concat_signals(
-        cls, msg_type: MessageTypes, seq_num: Signal, length: Signal = None
-    ):
+    def concat_signals(cls, msg_type: MessageTypes, seq_num: Signal, length: Signal = None):
         # Make sure each signal is the right width!
         widths = cls.from_bits(0).shape().members
 

@@ -22,9 +22,7 @@ class StreamPacker(wiring.Component):
 
         with m.If(idle):
             with m.If(self.sink.valid):
-                m.d.sync += self.source.data.eq(
-                    Cat(self.source.data[8:], self.sink.data)
-                )
+                m.d.sync += self.source.data.eq(Cat(self.source.data[8:], self.sink.data))
                 m.d.sync += count.eq(count + 1)
 
                 with m.If(count == 3):
