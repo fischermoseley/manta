@@ -36,7 +36,7 @@ async def test_cobs_decode_static(ctx):
     ]
 
     for data in testcases:
-        await decode_and_compare(ctx, data, tx_irritate=False, rx_irritate=False)
+        await decode_and_compare(ctx, data, tx_irritate=True, rx_irritate=True)
 
 
 async def decode(ctx, data, tx_irritate, rx_irritate):
@@ -54,11 +54,11 @@ async def decode(ctx, data, tx_irritate, rx_irritate):
         # Feed data to decoder
         tx_stall = random.randint(0, 1) if tx_irritate else False
 
-        if tx_done:
+        if tx_done or tx_stall:
             ctx.set(cd.sink.data, 0)
             ctx.set(cd.sink.valid, 0)
 
-        elif not tx_stall:
+        else:
             ctx.set(cd.sink.valid, 1)
             ctx.set(cd.sink.data, data[tx_index])
 
