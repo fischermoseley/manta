@@ -69,7 +69,7 @@ class COBSDecode(wiring.Component):
 
         m.d.comb += [
             self.source.data.eq(fifo.r_data),
-            self.source.valid.eq(fifo.r_rdy),
+            self.source.valid.eq(fifo.r_rdy & (fsm.ongoing("IDLE") | (fifo.r_level > 1))),
             self.source.last.eq(fsm.ongoing("IDLE") & self.source.valid & (fifo.r_level == 1)),
             fifo.r_en.eq(self.source.valid & self.source.ready),
         ]
