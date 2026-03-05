@@ -19,7 +19,7 @@ class COBSDecode(wiring.Component):
         skip_zero_injection = Signal()
 
         with m.FSM() as fsm:
-            # m.d.comb += fsm_inject_zero.eq(0)
+            m.d.comb += fsm_inject_zero.eq(0)
 
             with m.State("IDLE"):
                 with m.If(self.sink.ready & self.sink.valid):
@@ -48,24 +48,15 @@ class COBSDecode(wiring.Component):
                         m.next = "IDLE"
 
                     with m.Elif(self.sink.data == 1):
-                        # m.d.comb += fsm_inject_zero.eq(~skip_zero_injection)
+                        m.d.comb += fsm_inject_zero.eq(~skip_zero_injection)
                         m.next = "END_OF_GROUP"
 
                     with m.Else():
-                        # m.d.comb += fsm_inject_zero.eq(~skip_zero_injection)
+                        m.d.comb += fsm_inject_zero.eq(~skip_zero_injection)
                         m.next = "STREAM"
                         m.d.sync += count.eq(self.sink.data - 2)
 
                     m.d.sync += skip_zero_injection.eq(self.sink.data == 255)
-
-        # an attempt to fix the combo glitch on fsm_inject_zero
-        m.d.comb += fsm_inject_zero.eq(
-            fsm.ongoing("END_OF_GROUP")
-            & self.sink.ready
-            & self.sink.valid
-            & (self.sink.data != 0)
-            & (~skip_zero_injection)
-        )
 
         m.d.comb += [
             self.source.data.eq(fifo.r_data),
