@@ -49,7 +49,7 @@ class StreamUnpacker(wiring.Component):
 
                 # if not done, clock out next byte
                 with m.Else():
-                    m.d.sync += self.source.data.eq(buf[8:])
+                    m.d.sync += self.source.data.eq(buf[:8])
                     m.d.sync += buf.eq(buf >> 8)
                     m.d.sync += count.eq(count + 1)
 
