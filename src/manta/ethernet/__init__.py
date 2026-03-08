@@ -70,8 +70,8 @@ class EthernetInterface(Elaboratable):
         self._additional_config = kwargs
         self._check_config()
 
-        self.bus_i = Signal(InternalBus())
-        self.bus_o = Signal(InternalBus())
+        self.bus_i = Signal(InternalBusLayout)
+        self.bus_o = Signal(InternalBusLayout)
 
         # Define PHY IO, assuming that we're in a Verilog-based workflow.
         self._define_phy_io(self._phy)

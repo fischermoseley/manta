@@ -34,8 +34,8 @@ class IOCore(MantaCore):
         self._outputs = outputs
 
         # Bus Connections
-        self.bus_i = Signal(InternalBus())
-        self.bus_o = Signal(InternalBus())
+        self.bus_i = Signal(InternalBusLayout)
+        self.bus_o = Signal(InternalBusLayout)
 
         # Internal Signals
         self._strobe = Signal()
