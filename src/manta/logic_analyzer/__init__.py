@@ -41,8 +41,8 @@ class LogicAnalyzerCore(MantaCore):
         self._triggers = []
 
         # Bus Input/Output
-        self.bus_i = Signal(InternalBus())
-        self.bus_o = Signal(InternalBus())
+        self.bus_i = Signal(InternalBusLayout)
+        self.bus_o = Signal(InternalBusLayout)
 
     @property
     def max_addr(self):
