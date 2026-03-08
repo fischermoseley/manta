@@ -26,7 +26,7 @@ If you're working on the source, you might want an editable installation with so
 ```bash
 git clone https://github.com/fischermoseley/manta.git
 cd manta
-uv sync
+uv sync --locked
 source .venv/bin/activate
 pre-commit install
 ```
