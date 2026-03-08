@@ -22,7 +22,7 @@ This project uses the [uv](https://docs.astral.sh/uv/) package manager, which wi
 ```bash
 git clone https://github.com/fischermoseley/manta.git
 cd manta
-uv sync
+uv sync --locked
 uv run pre-commit install
 source .venv/bin/activate # optional, but convenient!
 ```
