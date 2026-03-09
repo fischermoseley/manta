@@ -30,7 +30,7 @@ class StreamUnpacker(wiring.Component):
                 m.d.sync += last.eq(self.sink.last)
                 m.d.sync += idle.eq(0)
 
-                m.d.sync += self.source.data.eq(self.sink.data[:7])
+                m.d.sync += self.source.data.eq(self.sink.data[:8])
                 m.d.sync += self.source.valid.eq(1)
 
                 m.d.sync += count.eq(0)
