@@ -84,7 +84,6 @@ InternalBusLayout = data.StructLayout(
         "data": 32,
         "rw": 1,
         "valid": 1,
-        "last": 1,
     }
 )
 
