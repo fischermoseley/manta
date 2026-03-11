@@ -1,4 +1,5 @@
 from amaranth import *
+from cobs import cobs
 from serial import Serial
 
 from manta.ethernet.bridge import EthernetBridge
@@ -11,18 +12,11 @@ from manta.uart.transmitter import UARTTransmitter
 from manta.utils import *
 
 
-class UARTInterface(wiring.Component):
+class UARTInterface(Elaboratable):
     """
     A synthesizable module for UART communication between a host machine and
     the FPGA.
     """
-
-    # Top-Level Ports
-    rx: In(1)
-    tx: Out(1)
-
-    bus_source: Out(InternalBusSignature)
-    bus_sink: In(InternalBusSignature)
 
     def __init__(self, port, baudrate, clock_freq, stall_interval=16, chunk_size=256):
         """
@@ -76,6 +70,16 @@ class UARTInterface(wiring.Component):
         self._chunk_size = chunk_size
         self._stall_interval = stall_interval
         self._check_config()
+
+        # Top-Level Ports
+        self.rx = Signal()
+        self.tx = Signal()
+
+        self.bus_o = Signal(InternalBusLayout)
+        self.bus_i = Signal(InternalBusLayout)
+
+        self._seq_num = 0
+        self._max_retries = 3
 
     @classmethod
     def from_config(cls, config):
@@ -195,9 +199,93 @@ class UARTInterface(wiring.Component):
         self._serial_device = Serial(chosen_port, self._baudrate, timeout=1)
         return self._serial_device
 
+    def get_top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
+        """
+        return [self.rx, self.tx]
+
     @property
     def clock_freq(self):
         return self._clock_freq
+
+    def _read_request(self, addr, length):
+        for _ in range(self._max_retries):
+            header = EthernetMessageHeader.from_params(
+                MessageTypes.READ_REQUEST, self._seq_num, length
+            )
+            request = bytestring_from_ints([header.as_bits(), addr], byteorder="little")
+            request_encoded = cobs.encode(request) + b"\x00"
+
+            ser = self._get_serial_device()
+            ser.write(request_encoded)
+
+            response = ser.read_until(b"\x00")
+            response = cobs.decode(response[:-1])  # remove zero delimiter
+            # response = [words_to_value(b[::-1], 8) for b in split_into_chunks(response, 4)]
+            response = [words_to_value(b, 8) for b in split_into_chunks(response, 4)]
+
+            header = EthernetMessageHeader.from_bits(response[0])
+            read_data = response[1:]
+
+            if header.msg_type == MessageTypes.READ_RESPONSE:
+                assert len(read_data) == length
+                self._seq_num += 1
+                return read_data
+
+            elif header.msg_type == MessageTypes.NACK:
+                self._seq_num = header.seq_num
+
+            else:
+                raise ValueError("Unexpected message format received!")
+
+        raise ValueError("Maximum number of retries exceeded!")
+
+    def _write_request(self, addr, datas):
+        for _ in range(self._max_retries):
+            header = EthernetMessageHeader.from_params(MessageTypes.WRITE_REQUEST, self._seq_num)
+            request = bytestring_from_ints([header.as_bits(), addr, *datas], byteorder="little")
+            request_encoded = cobs.encode(request) + b"\x00"
+
+            ser = self._get_serial_device()
+            ser.write(request_encoded)
+
+            response = ser.read_until(b"\x00")
+            response = cobs.decode(response[:-1])  # remove zero delimiter
+            response = [words_to_value(b, 8) for b in split_into_chunks(response, 4)]
+
+            header = EthernetMessageHeader.from_bits(response[0])
+
+            if header.msg_type == MessageTypes.WRITE_RESPONSE:
+                self._seq_num += 1
+                return
+
+            elif header.msg_type == MessageTypes.NACK:
+                self._seq_num = header.seq_num
+
+            else:
+                raise ValueError("Unexpected message format received!")
+
+        raise ValueError("Maximum number of retries exceeded!")
+
+    def read_block(self, base_addr, length):
+        data = []
+        offset = 0
+
+        while offset < length:
+            chunk_size = min(EthernetMessageHeader.MAX_READ_LENGTH, length - offset)
+            data += self._read_request(base_addr + offset, chunk_size)
+            offset += chunk_size
+
+        assert len(data) == length
+        return data
+
+    def write_block(self, base_addr, data):
+        data_chunks = split_into_chunks(data, EthernetMessageHeader.MAX_WRITE_LENGTH)
+
+        for i, chunk in enumerate(data_chunks):
+            self._write_request(base_addr + (i * EthernetMessageHeader.MAX_WRITE_LENGTH), chunk)
 
     def read(self, addrs):
         """
@@ -213,42 +301,14 @@ class UARTInterface(wiring.Component):
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Read address must be an integer or list of integers.")
 
-        # Send read requests in chunks, and read bytes after each.
-        # The input buffer exposed by the OS on most hosts isn't terribly deep,
-        # so sending in chunks (instead of all at once) prevents the OS's input
-        # buffer from overflowing and dropping bytes, as the FPGA will send
-        # responses instantly after it's received a request.
-
-        set = self._get_serial_device()
-        addr_chunks = split_into_chunks(addrs, self._chunk_size)
         data = []
-
-        for addr_chunk in addr_chunks:
-            # Encode addrs into read requests
-            bytes_out = "".join([f"R{a:04X}\r\n" for a in addr_chunk])
-
-            # Add a \n after every N packets, see:
-            # https://github.com/fischermoseley/manta/issues/18
-            bytes_out = split_into_chunks(bytes_out, 7 * self._stall_interval)
-            bytes_out = "\n".join(bytes_out)
-
-            set.write(bytes_out.encode("ascii"))
-
-            # Read responses have the same length as read requests
-            bytes_expected = 7 * len(addr_chunk)
-            bytes_in = set.read(bytes_expected)
-
-            if len(bytes_in) != bytes_expected:
-                raise ValueError(f"Only got {len(bytes_in)} out of {bytes_expected} bytes.")
-
-            # Split received bytes into individual responses and decode
-            responses = split_into_chunks(bytes_in, 7)
-            data_chunk = [self._decode_read_response(r) for r in responses]
-            data += data_chunk
+        seqs = parse_sequences(addrs)
+        for base_addr, length in seqs:
+            data += self.read_block(base_addr, length)
 
         return data
 
-    def write(self, addrs, data):
+    def write(self, addrs, datas):
         """
         Write the provided data into the provided addresses in Manta's internal
         memory. Addresses and data must be specified as either integers or a
@@ -256,58 +316,24 @@ class UARTInterface(wiring.Component):
         """
 
         # Handle a single integer address and data
-        if isinstance(addrs, int) and isinstance(data, int):
-            return self.write([addrs], [data])
+        if isinstance(addrs, int) and isinstance(datas, int):
+            return self.write([addrs], [datas])
 
-        # Make sure address and data are all integers
-        if not isinstance(addrs, list) or not isinstance(data, list):
+        # Make sure address and datas are all integers
+        if not isinstance(addrs, list) or not isinstance(datas, list):
             raise TypeError("Write addresses and data must be an integer or list of integers.")
 
         if not all(isinstance(a, int) for a in addrs):
             raise TypeError("Write addresses must be all be integers.")
 
-        if not all(isinstance(d, int) for d in data):
+        if not all(isinstance(d, int) for d in datas):
             raise TypeError("Write data must all be integers.")
 
-        # Since the FPGA doesn't issue any responses to write requests, we
-        # the host's input buffer isn't written to, and we don't need to
-        # send the data as chunks as the to avoid overflowing the input buffer.
-
-        # Encode addrs and data into write requests
-        bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, data)])
-        set = self._get_serial_device()
-        set.write(bytes_out.encode("ascii"))
-
-    def _decode_read_response(self, response_bytes):
-        """
-        Check that read response is formatted properly, and return the encoded
-        data if so.
-        """
-
-        # Make sure response is not empty
-        if response_bytes is None:
-            raise ValueError("Unable to decode read response - no bytes received.")
-
-        # Make sure response is properly encoded
-        response_ascii = response_bytes.decode("ascii")
-
-        if len(response_ascii) != 7:
-            raise ValueError("Unable to decode read response - wrong number of bytes received.")
-
-        if response_ascii[0] != "D":
-            raise ValueError("Unable to decode read response - incorrect preamble.")
-
-        for i in range(1, 5):
-            if response_ascii[i] not in "0123456789ABCDEF":
-                raise ValueError("Unable to decode read response - invalid data byte.")
-
-        if response_ascii[5] != "\r":
-            raise ValueError("Unable to decode read response - incorrect EOL.")
-
-        if response_ascii[6] != "\n":
-            raise ValueError("Unable to decode read response - incorrect EOL.")
-
-        return int(response_ascii[1:5], 16)
+        seqs = parse_sequences(addrs)
+        offset = 0
+        for base_addr, length in seqs:
+            self.write_block(base_addr, datas[offset : offset + length])
+            offset += length
 
     def elaborate(self, platform):
         m = Module()
@@ -321,15 +347,28 @@ class UARTInterface(wiring.Component):
         m.submodules.uart_tx = uart_tx = UARTTransmitter(self._clocks_per_baud)
 
         m.d.comb += uart_rx.rx.eq(self.rx)
-        wiring.connect(m, uart_rx.source, cobs_decode.sink)
+
+        # Use m.d.comb instead of wiring.connect because the signatures don't match exactly
+        # (cobs_decode.sink accepts a ready signal, but uart_rx.source doesn't provide one)
+        m.d.comb += cobs_decode.sink.data.eq(uart_rx.source.data)
+        m.d.comb += cobs_decode.sink.valid.eq(uart_rx.source.valid)
+
         wiring.connect(m, cobs_decode.source, stream_packer.sink)
         wiring.connect(m, stream_packer.source, bridge.sink)
         wiring.connect(m, bridge.source, stream_unpacker.sink)
         wiring.connect(m, stream_unpacker.source, cobs_encode.sink)
-        wiring.connect(m, cobs_encode.source, uart_tx.sink)
+
+        # Use m.d.comb instead of wiring.connect because the signatures don't match exactly
+        # (cobs_encode.source has a last signal, but uart_tx.sink doesn't)
+        m.d.comb += uart_tx.sink.data.eq(cobs_encode.source.data)
+        m.d.comb += uart_tx.sink.valid.eq(cobs_encode.source.valid)
+        m.d.comb += cobs_encode.source.ready.eq(uart_tx.sink.ready)
+
         m.d.comb += self.tx.eq(uart_tx.tx)
 
-        wiring.connect(m, bridge.bus_source, wiring.flipped(self.bus_source))
-        wiring.connect(m, wiring.flipped(self.bus_sink), bridge.bus_sink)
+        # Use m.d.comb instead of wiring.connect as self.bus_o and self.bus_i are just Signals,
+        # not Signatures.
+        m.d.comb += self.bus_o.eq(bridge.bus_source.p)
+        m.d.comb += bridge.bus_sink.p.eq(self.bus_i)
 
         return m

@@ -13,9 +13,6 @@ class MemoryCore(MantaCore):
     and the other provided to user logic.
     """
 
-    bus_source: Out(InternalBusSignature)
-    bus_sink: In(InternalBusSignature)
-
     def __init__(self, mode, width, depth):
         """
         Create a Memory Core with the given width and depth.
@@ -36,28 +33,46 @@ class MemoryCore(MantaCore):
 
             depth (int): The depth of the memory, in entries.
         """
-        super().__init__()
         self._mode = mode
         self._width = width
         self._depth = depth
 
         self._n_mems = ceil(self._width / 32)
 
+        # Bus Connections
+        self.bus_i = Signal(InternalBusLayout)
+        self.bus_o = Signal(InternalBusLayout)
+
         # User Ports
         if self._mode == "fpga_to_host":
             self.user_addr = Signal(range(self._depth))
             self.user_data_in = Signal(self._width)
             self.user_write_enable = Signal()
+            self._top_level_ports = [
+                self.user_addr,
+                self.user_data_in,
+                self.user_write_enable,
+            ]
 
         elif self._mode == "host_to_fpga":
             self.user_addr = Signal(range(self._depth))
             self.user_data_out = Signal(self._width)
+            self._top_level_ports = [
+                self.user_addr,
+                self.user_data_out,
+            ]
 
         elif self._mode == "bidirectional":
             self.user_addr = Signal(range(self._depth))
             self.user_data_in = Signal(self._width)
             self.user_data_out = Signal(self._width)
             self.user_write_enable = Signal()
+            self._top_level_ports = [
+                self.user_addr,
+                self.user_data_in,
+                self.user_data_out,
+                self.user_write_enable,
+            ]
 
         # Define memories
         n_full = self._width // 32
@@ -68,6 +83,10 @@ class MemoryCore(MantaCore):
         ]
         if n_partial > 0:
             self._mems += [Memory(shape=n_partial, depth=self._depth, init=[0] * self._depth)]
+
+    @property
+    def top_level_ports(self):
+        return self._top_level_ports
 
     @property
     def max_addr(self):
@@ -133,11 +152,11 @@ class MemoryCore(MantaCore):
 
                 # Throw BRAM operations into the front of the pipeline
                 with m.If(
-                    (self.bus_sink.p.valid)
-                    & (self.bus_sink.p.addr >= start_addr)
-                    & (self.bus_sink.p.addr <= stop_addr)
+                    (self.bus_i.valid)
+                    & (self.bus_i.addr >= start_addr)
+                    & (self.bus_i.addr <= stop_addr)
                 ):
-                    m.d.sync += read_port.addr.eq(self.bus_sink.p.addr - start_addr)
+                    m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
 
                 # Pull BRAM reads from the back of the pipeline
                 with m.If(
@@ -146,7 +165,7 @@ class MemoryCore(MantaCore):
                     & (self._bus_pipe[2].addr >= start_addr)
                     & (self._bus_pipe[2].addr <= stop_addr)
                 ):
-                    m.d.sync += self.bus_source.p.data.eq(read_port.data)
+                    m.d.sync += self.bus_o.data.eq(read_port.data)
 
             elif self._mode == "host_to_fpga":
                 write_port = mem.write_port()
@@ -154,13 +173,13 @@ class MemoryCore(MantaCore):
 
                 # Throw BRAM operations into the front of the pipeline
                 with m.If(
-                    (self.bus_sink.p.valid)
-                    & (self.bus_sink.p.addr >= start_addr)
-                    & (self.bus_sink.p.addr <= stop_addr)
+                    (self.bus_i.valid)
+                    & (self.bus_i.addr >= start_addr)
+                    & (self.bus_i.addr <= stop_addr)
                 ):
-                    m.d.sync += write_port.addr.eq(self.bus_sink.p.addr - start_addr)
-                    m.d.sync += write_port.data.eq(self.bus_sink.p.data)
-                    m.d.sync += write_port.en.eq(self.bus_sink.p.rw)
+                    m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
+                    m.d.sync += write_port.data.eq(self.bus_i.data)
+                    m.d.sync += write_port.en.eq(self.bus_i.rw)
 
             elif self._mode == "bidirectional":
                 read_port = mem.read_port()
@@ -171,14 +190,14 @@ class MemoryCore(MantaCore):
 
                 # Throw BRAM operations into the front of the pipeline
                 with m.If(
-                    (self.bus_sink.p.valid)
-                    & (self.bus_sink.p.addr >= start_addr)
-                    & (self.bus_sink.p.addr <= stop_addr)
+                    (self.bus_i.valid)
+                    & (self.bus_i.addr >= start_addr)
+                    & (self.bus_i.addr <= stop_addr)
                 ):
-                    m.d.sync += read_port.addr.eq(self.bus_sink.p.addr - start_addr)
-                    m.d.sync += write_port.addr.eq(self.bus_sink.p.addr - start_addr)
-                    m.d.sync += write_port.data.eq(self.bus_sink.p.data)
-                    m.d.sync += write_port.en.eq(self.bus_sink.p.rw)
+                    m.d.sync += read_port.addr.eq(self.bus_i.addr - start_addr)
+                    m.d.sync += write_port.addr.eq(self.bus_i.addr - start_addr)
+                    m.d.sync += write_port.data.eq(self.bus_i.data)
+                    m.d.sync += write_port.en.eq(self.bus_i.rw)
 
                 # Pull BRAM reads from the back of the pipeline
                 with m.If(
@@ -187,7 +206,7 @@ class MemoryCore(MantaCore):
                     & (self._bus_pipe[2].addr >= start_addr)
                     & (self._bus_pipe[2].addr <= stop_addr)
                 ):
-                    m.d.sync += self.bus_source.p.data.eq(read_port.data)
+                    m.d.sync += self.bus_o.data.eq(read_port.data)
 
     def _tie_mems_to_user_logic(self, m):
         # Handle write ports
@@ -218,12 +237,12 @@ class MemoryCore(MantaCore):
 
         # Pipeline the bus to accommodate the two clock-cycle delay in the memories
         self._bus_pipe = [Signal(InternalBusLayout, name=f"bus_pipe_{i}") for i in range(3)]
-        m.d.sync += self._bus_pipe[0].eq(self.bus_sink.p)
+        m.d.sync += self._bus_pipe[0].eq(self.bus_i)
 
         for i in range(1, 3):
             m.d.sync += self._bus_pipe[i].eq(self._bus_pipe[i - 1])
 
-        m.d.sync += self.bus_source.p.eq(self._bus_pipe[2])
+        m.d.sync += self.bus_o.eq(self._bus_pipe[2])
 
         self._tie_mems_to_bus(m)
         self._tie_mems_to_user_logic(m)
