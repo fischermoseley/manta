@@ -11,7 +11,7 @@ from amaranth.lib.wiring import In, Out
 from amaranth.sim import Simulator
 
 
-class MantaCore(ABC, wiring.Component):
+class MantaCore(ABC, Elaboratable):
     # These attributes are meant to be settable and gettable, but max_addr and
     # top_level_ports are intended to be only gettable. Do not implement
     # setters for them in subclasses.
@@ -26,6 +26,15 @@ class MantaCore(ABC, wiring.Component):
         Return the maximum addresses in memory used by the core. The address
         space used by the core extends from `base_addr` to the number returned
         by this function (including the endpoints).
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def top_level_ports(self):
+        """
+        Return the Amaranth signals that should be included as ports in the
+        top-level Manta module.
         """
         pass
 
