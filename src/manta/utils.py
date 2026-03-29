@@ -218,16 +218,16 @@ def words_to_value(data, width=32):
 
 def value_to_words(data, n_words):
     """
-    Takes a integer, interprets it as a set of 16-bit integers
-    concatenated together, and splits it into a list of 16-bit numbers.
+    Takes a integer, interprets it as a set of 32-bit integers
+    concatenated together, and splits it into a list of 32-bit numbers.
     """
 
     if not isinstance(data, int) or data < 0:
         raise ValueError("Behavior is only defined for nonnegative integers.")
 
-    # Convert to binary, split into 16-bit chunks, and then convert back to list of int
-    binary = f"{data:0b}".zfill(n_words * 16)
-    return [int(binary[i : i + 16], 2) for i in range(0, 16 * n_words, 16)][::-1]
+    # Convert to binary, split into 32-bit chunks, and then convert back to list of int
+    binary = f"{data:0b}".zfill(n_words * 32)
+    return [int(binary[i : i + 32], 2) for i in range(0, 32 * n_words, 32)][::-1]
 
 
 def check_value_fits_in_bits(value, n_bits):
@@ -248,8 +248,8 @@ def check_value_fits_in_bits(value, n_bits):
 
 def ints_from_bytestring(bytes, byteorder="little"):
     """
-    Takes a list of ints, interprets them as 32-bit integers, and returns a
-    bytestring of the constituent bytes joined together.
+    Takes a bytestring, breaks it into 32-bit words, and returns these as a
+    list of ints.
     """
     return [int.from_bytes(chunk, byteorder) for chunk in split_into_chunks(bytes, 4)]
 
