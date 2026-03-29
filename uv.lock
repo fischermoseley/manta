@@ -249,6 +249,8 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/4f/5418d9decdc4cf27a814fc189bc4fa44d216d37b871d633654f37ed331f8/cobs-1.2.2-cp312-cp312-win_amd64.whl", hash = "sha256:4da6048f6e16cbd6c8ec5e95e8520e226248ffb8d31e9d6fc5e0888b3b65c54b", size = 27776, upload-time = "2025-07-20T01:08:31.377Z" },
     { url = "https://files.pythonhosted.org/packages/b4/df/7f07559954d53d09680aa4f5c72db999e7643253e2ca4e431023fe5c1c40/cobs-1.2.2-cp313-cp313-win32.whl", hash = "sha256:a8fdf6ca70247e7271caea6f2f6f9c0343f5e872e2fd47e21f71831fa9ababa8", size = 26401, upload-time = "2025-07-20T01:08:32.508Z" },
     { url = "https://files.pythonhosted.org/packages/0c/00/5b063105ff567bb7fb72c3cd3e96116a3889381fa2c0e7747497391dbecc/cobs-1.2.2-cp313-cp313-win_amd64.whl", hash = "sha256:fe3f7194d5fbbc02e8fb03d26ad626a33fa0d420b50d66ed60ac4bf516322d8e", size = 27774, upload-time = "2025-07-20T01:08:33.692Z" },
+    { url = "https://files.pythonhosted.org/packages/78/35/de1e889c26fcfc9ae6852b8f99e744e6690a3baae99f63e2b9fffdd21710/cobs-1.2.2-cp314-cp314-win32.whl", hash = "sha256:bcf08cb0b68c1824a87cfa89e0684d5a3eaee9b9e08b02ce4a54d5589536f01c", size = 26779, upload-time = "2026-03-09T02:18:48.711Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/64/390e226843cc83066acc60257e0e71ebdbce6dd915ec4f3d34101b9ac31b/cobs-1.2.2-cp314-cp314-win_amd64.whl", hash = "sha256:1f27b7a553d809487287e4ed88540b2c30ed9c9bb596173bfcf549e705af7bf0", size = 28205, upload-time = "2026-03-09T02:18:20.193Z" },
 ]
 
 [[package]]
@@ -758,6 +760,7 @@ dev = [
     { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "pytest", version = "9.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest-cov" },
+    { name = "pytest-randomly" },
     { name = "ruff" },
 ]
 
@@ -781,6 +784,7 @@ dev = [
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-randomly" },
     { name = "ruff" },
 ]
 
@@ -1325,6 +1329,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5e/f7/c933acc76f5208b3b00089573cf6a2bc26dc80a8aece8f52bb7d6b1855ca/pytest_cov-7.0.0.tar.gz", hash = "sha256:33c97eda2e049a0c5298e91f519302a1334c26ac65c1a483d6206fd458361af1", size = 54328, upload-time = "2025-09-09T10:57:02.113Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/49/1377b49de7d0c1ce41292161ea0f721913fa8722c19fb9c1e3aa0367eecb/pytest_cov-7.0.0-py3-none-any.whl", hash = "sha256:3b8e9558b16cc1479da72058bdecf8073661c7f57f7d3c5f22a1c23507f2d861", size = 22424, upload-time = "2025-09-09T10:57:00.695Z" },
+]
+
+[[package]]
+name = "pytest-randomly"
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "importlib-metadata", marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "9.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c4/1d/258a4bf1109258c00c35043f40433be5c16647387b6e7cd5582d638c116b/pytest_randomly-4.0.1.tar.gz", hash = "sha256:174e57bb12ac2c26f3578188490bd333f0e80620c3f47340158a86eca0593cd8", size = 14130, upload-time = "2025-09-12T15:23:00.085Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/3e/a4a9227807b56869790aad3e24472a554b585974fe7e551ea350f50897ae/pytest_randomly-4.0.1-py3-none-any.whl", hash = "sha256:e0dfad2fd4f35e07beff1e47c17fbafcf98f9bf4531fd369d9260e2f858bfcb7", size = 8304, upload-time = "2025-09-12T15:22:58.946Z" },
 ]
 
 [[package]]

@@ -23,6 +23,7 @@ classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)
 dev = [
   "pytest",
   "pytest-cov",
+  "pytest-randomly",
   "codecov",
   "pre-commit",
   "ruff",
