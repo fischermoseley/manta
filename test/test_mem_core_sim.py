@@ -14,8 +14,8 @@ class MemoryCoreTests:
         self.max_addr = mem_core.max_addr
         self.width = self.mem_core._width
         self.depth = self.mem_core._depth
-        self.n_full = self.width // 16
-        self.n_mems = ceil(self.width / 16)
+        self.n_full = self.width // 32
+        self.n_mems = ceil(self.width / 32)
 
         self.bus_addrs = list(range(self.base_addr, self.max_addr))  # include the endpoint!
         self.user_addrs = list(range(self.mem_core._depth))
@@ -201,13 +201,13 @@ class MemoryCoreTests:
     def get_data_width(self, addr):
         # this part is a little hard to check since we might have a
         # memory at the end of the address space that's less than
-        # 16-bits wide. so we'll have to calculate how wide our
+        # 32-bits wide. so we'll have to calculate how wide our
         # memory is
 
         if addr < self.base_addr + (self.n_full * self.depth):
-            return 16
+            return 32
         else:
-            return self.width % 16
+            return self.width % 32
 
     async def verify_bus_side(self, addr):
         await verify_register(self.mem_core, self.ctx, addr, self.model[addr])
