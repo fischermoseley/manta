@@ -18,6 +18,7 @@ class EthernetBridge(wiring.Component):
         msg_type = Signal(MessageTypes)
         seq_num_expected = Signal(13)
 
+        seen_first = Signal()
         seen_last = Signal()
 
         count = Signal(7)
@@ -67,18 +68,18 @@ class EthernetBridge(wiring.Component):
                 # Once that hits zero and seen_last is high, we're done!
                 # Send write response and wait for it to clock out
 
-                m.d.sync += seen_last.eq(
-                    seen_last | (self.sink.last & self.sink.valid & self.sink.ready)
-                )
                 m.d.sync += count.eq(
                     count + (self.sink.valid & self.sink.ready) - self.bus_sink.p.valid
                 )
 
                 with m.If(self.sink.valid & self.sink.ready):
-                    m.d.sync += self.bus_source.p.addr.eq(self.bus_source.p.addr + 1)
+                    m.d.sync += self.bus_source.p.addr.eq(self.bus_source.p.addr + seen_first)
                     m.d.sync += self.bus_source.p.data.eq(self.sink.data)
                     m.d.sync += self.bus_source.p.rw.eq(1)
                     m.d.sync += self.bus_source.p.valid.eq(1)
+
+                    m.d.sync += seen_first.eq(1)
+                    m.d.sync += seen_last.eq(seen_last | self.sink.last)
 
                 with m.Else():
                     m.d.sync += self.bus_source.p.data.eq(0)  # just for clarity of debugging
@@ -90,6 +91,7 @@ class EthernetBridge(wiring.Component):
                         m.d.sync += self.source.valid.eq(0)
                         m.d.sync += self.source.last.eq(0)  # just for clarity of debugging
                         m.d.sync += self.source.data.eq(0)  # just for clarity of debugging
+                        m.d.sync += seen_first.eq(0)
                         m.next = "IDLE"
 
                     with m.Else():
