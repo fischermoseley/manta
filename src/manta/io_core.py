@@ -155,8 +155,8 @@ class IOCore(MantaCore):
         last_used_addr = self.base_addr
 
         for io, io_buf in zip(ios, io_bufs):
-            n_slices = ceil(len(io) / 16)
-            signals = split_into_chunks(io_buf, 16)
+            n_slices = ceil(len(io) / 32)
+            signals = split_into_chunks(io_buf, 32)
             addrs = [i + last_used_addr + 1 for i in range(n_slices)]
 
             self._memory_map[io.name] = dict(signals=signals, addrs=addrs)
