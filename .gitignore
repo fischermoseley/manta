@@ -18,4 +18,6 @@ manta.v
 *.vcd
 *.csv
 *.xml
-.coverage*
+.coverage
+coverage.xml
+coverage.md
