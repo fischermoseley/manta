@@ -14,7 +14,7 @@ Both the [Use Cases](../use_cases) page and the repository's [examples](https
 
 ### Verilog-Based Workflows
 
-The UART interface is used by adding a `ethernet` entry at the bottom of the configuration file. This is best shown by example:
+The Ethernet interface is used by adding a `ethernet` entry at the bottom of the configuration file. This is best shown by example:
 
 ```yaml
 ethernet:
@@ -54,7 +54,7 @@ Lastly, any additional arguments provided in the `ethernet` section of the confi
 
 ### Amaranth-Native Designs
 
-Since Amaranth modules are Python objects, the configuration of the IO Core is given by the arguments given during initialization. See the documentation for the `EthernetInterface` [class constructor](#manta.EthernetInterface) below, as well as the Amaranth [examples](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) in the repo.
+Since Amaranth modules are Python objects, the configuration of the Ethernet interface is given by the arguments given during initialization. See the documentation for the `EthernetInterface` [class constructor](#manta.EthernetInterface) below, as well as the Amaranth [examples](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) in the repo.
 
 !!! note "Don't use `.eq()` when connecting to PHY IO pins!"
 

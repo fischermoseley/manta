@@ -96,7 +96,7 @@ Using this `ExampleDesign` in the configure-build-operate flow might look like t
 >>> design = ExampleDesign()
 >>> ICEStickPlatform.build(design, do_program=True)
 >>> design.operate()
->>> design.manta.my_io_core.get_probe(bar)
+>>> design.manta.cores.my_io_core.get_probe(bar)
 ```
 
 Here, Amaranth’s board definitions and build system are being used to build and program an iCEstick development board. More examples of Amaranth-based designs can be found in the [examples/amaranth](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) folder of the repo.

@@ -32,7 +32,7 @@ Inside this configuration, the following parameters may be set:
 
 ### Amaranth-Native Designs
 
-Since Amaranth modules are Python objects, the configuration of the IO Core is given by the arguments given during initialization. See the documentation for the `UARTInterface` [class constructor](#manta.UARTInterface) below, as well as the Amaranth [examples](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) in the repo.
+Since Amaranth modules are Python objects, the configuration of the UART interface is given by the arguments given during initialization. See the documentation for the `UARTInterface` [class constructor](#manta.UARTInterface) below, as well as the Amaranth [examples](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) in the repo.
 
 ::: manta.UARTInterface
     options:

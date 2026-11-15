@@ -18,7 +18,7 @@ Manta and its source code are released under a [GPLv3 license](https://github.co
     author={Fischer Moseley},
     title={Manta: An In-Situ Debugging Tool for Programmable Hardware},
     year={2023},
-    month={may}
+    month={may},
     howpublished={\url{https://hdl.handle.net/1721.1/151223}}
 }
 ```
