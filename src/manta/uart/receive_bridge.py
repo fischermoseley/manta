@@ -119,7 +119,6 @@ class ReceiveBridge(Elaboratable):
 
                 with m.Else():
                     m.d.sync += self._state.eq(States.IDLE)
-        pass
 
     def elaborate(self, platform):
         m = Module()

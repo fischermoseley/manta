@@ -8,15 +8,15 @@ from manta.memory_core import MemoryCore
 from manta.uart import UARTInterface
 
 __all__ = [
-    "Manta",
-    "UARTInterface",
     "EthernetInterface",
-    "LogicAnalyzerCore",
-    "TriggerModes",
-    "LogicAnalyzerCapture",
-    "LogicAnalyzerPlayback",
     "IOCore",
+    "LogicAnalyzerCapture",
+    "LogicAnalyzerCore",
+    "LogicAnalyzerPlayback",
+    "Manta",
     "MemoryCore",
+    "TriggerModes",
+    "UARTInterface",
 ]
 
 if __name__ == "__main__":

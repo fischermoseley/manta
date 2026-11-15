@@ -106,7 +106,7 @@ class LogicAnalyzerCore(MantaCore):
         triggers = config.get("triggers", [])
         for trigger in triggers:
             if not isinstance(trigger, str):
-                raise ValueError("Trigger must be specified with a string.")
+                raise TypeError("Trigger must be specified with a string.")
 
         # Convert triggers to list
         triggers = [t.strip().split(" ") for t in triggers]
@@ -117,7 +117,7 @@ class LogicAnalyzerCore(MantaCore):
 
         # If any trigger-related configuration was provided, set the triggers with it
         keys = ["trigger_mode", "triggers", "trigger_location"]
-        if any([key in config for key in keys]):
+        if any(key in config for key in keys):
             core.set_triggers(
                 trigger_mode=config.get("trigger_mode"),
                 triggers=triggers,
@@ -198,7 +198,7 @@ class LogicAnalyzerCore(MantaCore):
 
             # Check three-token triggers
             elif len(trigger) == 3:
-                name, operation, argument = trigger
+                name, operation, _argument = trigger
 
                 # Check name
                 if name not in [p.name for p in self._probes]:
@@ -228,7 +228,7 @@ class LogicAnalyzerCore(MantaCore):
             mode = TriggerModes[trigger_mode.upper()]
 
         else:
-            raise ValueError(f"Unrecognized trigger mode {trigger_mode} provided.")
+            raise TypeError(f"Unrecognized trigger mode {trigger_mode} provided.")
 
         # Perform checks based on trigger mode
         if mode == TriggerModes.IMMEDIATE:
@@ -258,11 +258,10 @@ class LogicAnalyzerCore(MantaCore):
 
         elif mode == TriggerModes.SINGLE_SHOT:
             # Validate trigger location, if provided
-            if trigger_location:
-                if not 0 <= trigger_location < self._sample_depth:
-                    raise ValueError(
-                        "Trigger location must be a positive integer between 0 and sample_depth."
-                    )
+            if trigger_location and not (0 <= trigger_location < self._sample_depth):
+                raise ValueError(
+                    "Trigger location must be a positive integer between 0 and sample_depth."
+                )
 
             # Validate triggers
             self._validate_triggers(triggers)

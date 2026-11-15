@@ -34,7 +34,7 @@ class Manta(Elaboratable):
         if extension not in ["yaml", "yml"]:
             raise ValueError(f"Configuration file {config_path} has unrecognized file type.")
 
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             config = yaml.safe_load(f)
 
         # Validate config
@@ -111,7 +111,7 @@ class Manta(Elaboratable):
         """
         ports = self.interface.get_top_level_ports()
 
-        for name, instance in self.cores._cores.items():
+        for instance in self.cores._cores.values():
             ports += instance.top_level_ports
 
         return ports

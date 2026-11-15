@@ -114,7 +114,7 @@ class MemoryCore(MantaCore):
             raise ValueError("Depth of memory core must be specified.")
 
         if not isinstance(depth, int):
-            raise ValueError("Depth of memory core must be an integer.")
+            raise TypeError("Depth of memory core must be an integer.")
 
         if not depth > 0:
             raise ValueError("Depth of memory core must be positive. ")
@@ -125,7 +125,7 @@ class MemoryCore(MantaCore):
             raise ValueError("Width of memory core must be specified.")
 
         if not isinstance(width, int):
-            raise ValueError("Width of memory core must be an integer.")
+            raise TypeError("Width of memory core must be an integer.")
 
         if not width > 0:
             raise ValueError("Width of memory core must be positive. ")

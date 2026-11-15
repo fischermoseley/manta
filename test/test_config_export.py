@@ -1,12 +1,10 @@
-import tempfile
-
 import yaml
 from amaranth import *
 
 from manta import *
 
 
-def test_io_core_dump():
+def test_io_core_dump(tmp_path):
     # Create some dummy signals to pass to the IO Core
     probe0 = Signal(1)
     probe1 = Signal(2)
@@ -17,15 +15,12 @@ def test_io_core_dump():
     manta = Manta()
     manta.cores.test_core = IOCore(inputs=[probe0, probe1], outputs=[probe2, probe3])
 
-    # Create Temporary File
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    tf.close()
-
     # Export Manta configuration
-    manta.export_config(tf.name)
+    path = tmp_path / "manta.yaml"
+    manta.export_config(path)
 
     # Parse the exported YAML
-    with open(tf.name, "r") as f:
+    with open(path, "r") as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -46,7 +41,7 @@ def test_io_core_dump():
         raise ValueError("Exported YAML does not match configuration!")
 
 
-def test_memory_core_dump():
+def test_memory_core_dump(tmp_path):
     # Create Manta instance
     manta = Manta()
     manta.cores.test_core = MemoryCore(
@@ -55,15 +50,12 @@ def test_memory_core_dump():
         depth=1024,
     )
 
-    # Create Temporary File
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    tf.close()
-
     # Export Manta configuration
-    manta.export_config(tf.name)
+    path = tmp_path / "manta.yaml"
+    manta.export_config(path)
 
     # Parse the exported YAML
-    with open(tf.name, "r") as f:
+    with open(path, "r") as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -82,7 +74,7 @@ def test_memory_core_dump():
         raise ValueError("Exported YAML does not match configuration!")
 
 
-def test_logic_analyzer_core_dump():
+def test_logic_analyzer_core_dump(tmp_path):
     # Create some dummy signals to pass to the Logic Analyzer
     probe0 = Signal(1)
     probe1 = Signal(2)
@@ -92,15 +84,12 @@ def test_logic_analyzer_core_dump():
     manta = Manta()
     manta.cores.test_core = LogicAnalyzerCore(sample_depth=2048, probes=[probe0, probe1, probe2])
 
-    # Create Temporary File
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    tf.close()
-
     # Export Manta configuration
-    manta.export_config(tf.name)
+    path = tmp_path / "manta.yaml"
+    manta.export_config(path)
 
     # Parse the exported YAML
-    with open(tf.name, "r") as f:
+    with open(path, "r") as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -118,19 +107,16 @@ def test_logic_analyzer_core_dump():
         raise ValueError("Exported YAML does not match configuration!")
 
 
-def test_uart_interface_dump():
+def test_uart_interface_dump(tmp_path):
     manta = Manta()
     manta.interface = UARTInterface(port="/dev/ttyUSB0", baudrate=115200, clock_freq=100e6)
 
-    # Create Temporary File
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    tf.close()
-
     # Export Manta configuration
-    manta.export_config(tf.name)
+    path = tmp_path / "manta.yaml"
+    manta.export_config(path)
 
     # Parse the exported YAML
-    with open(tf.name, "r") as f:
+    with open(path, "r") as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -151,7 +137,7 @@ def test_uart_interface_dump():
         raise ValueError("Exported YAML does not match configuration!")
 
 
-def test_ethernet_interface_dump():
+def test_ethernet_interface_dump(tmp_path):
     manta = Manta()
     manta.interface = EthernetInterface(
         fpga_ip_addr="192.168.0.101",
@@ -164,15 +150,12 @@ def test_ethernet_interface_dump():
         toolchain="vivado",
     )
 
-    # Create Temporary File
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    tf.close()
-
     # Export Manta configuration
-    manta.export_config(tf.name)
+    path = tmp_path / "manta.yaml"
+    manta.export_config(path)
 
     # Parse the exported YAML
-    with open(tf.name, "r") as f:
+    with open(path, "r") as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration

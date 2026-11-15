@@ -551,9 +551,9 @@ class EthernetInterface(Elaboratable):
         for addr_chunk in addr_chunks:
             bytes_out = b""
             for addr in addr_chunk:
-                bytes_out += int(0).to_bytes(4, byteorder="little")
+                bytes_out += (0).to_bytes(4, byteorder="little")
                 bytes_out += int(addr).to_bytes(2, byteorder="little")
-                bytes_out += int(0).to_bytes(2, byteorder="little")
+                bytes_out += (0).to_bytes(2, byteorder="little")
 
             sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
             data, addr = sock.recvfrom(4 * chunk_size)
@@ -594,7 +594,7 @@ class EthernetInterface(Elaboratable):
         # Encode addrs and datas into write requests
         bytes_out = b""
         for addr, data in zip(addrs, datas):
-            bytes_out += int(1).to_bytes(4, byteorder="little")
+            bytes_out += (1).to_bytes(4, byteorder="little")
             bytes_out += int(addr).to_bytes(2, byteorder="little")
             bytes_out += int(data).to_bytes(2, byteorder="little")
 

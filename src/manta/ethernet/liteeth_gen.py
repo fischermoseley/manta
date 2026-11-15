@@ -226,7 +226,7 @@ def get_udp_raw_port_ios(name, data_width):
 
 
 class PHYCore(SoCMini):
-    SoCMini.csr_map = {
+    SoCMini.csr_map = {  # noqa: RUF012
         "ctrl": 0,
         "ethphy": 1,
         "ethmac": 2,
@@ -235,9 +235,7 @@ class PHYCore(SoCMini):
     def __init__(self, platform, core_config):
         for deprecated in ("csr_map", "mem_map"):
             if deprecated in core_config:
-                raise RuntimeWarning(
-                    "Config option {!r} is now a sub-option of 'soc'".format(deprecated)
-                )
+                raise RuntimeWarning(f"Config option {deprecated!r} is now a sub-option of 'soc'")
 
         # SoC parameters ---------------------------------------------------------------------------
         soc_args = {}
@@ -580,10 +578,6 @@ class UDPCore(PHYCore):
         if dhcp:
             dhcp_pads = platform.request("dhcp")
             dhcp_port = self.core.udp.crossbar.get_port(68, dw=32, cd="sys")
-            if isinstance(mac_address, Signal):
-                dhcp_mac_address = mac_address
-            else:
-                dhcp_mac_address = Signal(48, reset=0x10E2D5000001)
             self.dhcp = LiteEthDHCP(udp_port=dhcp_port, sys_clk_freq=self.sys_clk_freq)
             self.comb += [
                 self.dhcp.start.eq(dhcp_pads.start),
@@ -630,9 +624,9 @@ def main(core_config):
     # Convert YAML elements to Python/LiteX --------------------------------------------------------
     for k, v in core_config.items():
         replaces = {"False": False, "True": True, "None": None}
-        for r in replaces.keys():
-            if v == r:
-                core_config[k] = replaces[r]
+        for old, new in replaces.items():
+            if v == old:
+                core_config[k] = new
         if k == "phy":
             core_config[k] = getattr(liteeth_phys, core_config[k])
         if k in ["refclk_freq", "clk_freq"]:
@@ -664,8 +658,5 @@ def main(core_config):
         builder = Builder(soc, compile_gateware=False, output_dir=path)
         builder.build(build_name="liteeth_core")
 
-        file = open(path + "/gateware/liteeth_core.v")
-        data = file.read()
-        file.close()
-
-    return data
+        with open(path + "/gateware/liteeth_core.v") as file:
+            return file.read()
