@@ -1,13 +1,13 @@
-.PHONY: test format clean serve_docs
+.PHONY: test format clean preview_site
 test:
-	python3 -m pytest --cov-report xml --cov=src/manta
+	uv run pytest --cov-report xml --cov=src/manta
 
 format:
-	python3 -m ruff check --fix
-	python3 -m ruff format
+	uv run ruff check --fix
+	uv run ruff format
 
 clean:
 	git clean -Xdf
 
 preview_site:
-	mike serve
+	uv run mike serve
