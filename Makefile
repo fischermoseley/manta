@@ -1,4 +1,8 @@
-.PHONY: test format clean preview_site pre-commit
+.PHONY: build test format clean preview_site pre-commit
+
+build:
+	uv build
+
 test:
 	uv run pytest --cov-report xml --cov-report markdown --cov=src/manta
 

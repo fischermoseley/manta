@@ -1,11 +1,32 @@
 [project]
 name = "manta-fpga"
 version = "1.1.0"
-authors = [
-  { name="Fischer Moseley", email="fischer.moseley@gmail.com" },
-]
+authors = [{ name="Fischer Moseley", email="fischer.moseley@gmail.com" }]
 description = "A configurable and approachable tool for FPGA debugging and rapid prototyping"
 readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE.txt"]
+
+requires-python = ">=3.11"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: Software Development :: Embedded Systems",
+    "Topic :: System :: Hardware",
+]
+
+keywords = ["fpga", "debugging", "logic analyzer", "amaranth", "verilog", "uart", "ethernet"]
+
 dependencies = [
   "amaranth[builtin-yosys]>=0.5.0",
   "PyYAML",
@@ -13,10 +34,6 @@ dependencies = [
   "liteeth==2023.12",
   "pyvcd",
 ]
-
-requires-python = ">=3.11"
-license = {file = "LICENSE"}
-classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)"]
 
 [dependency-groups]
 dev = [
@@ -31,19 +48,21 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/fischermoseley/manta"
-"Documentation" = "https://fischermoseley.github.io/manta"
-"Issues" = "https://github.com/fischermoseley/manta/issues"
+Homepage = "https://github.com/fischermoseley/manta"
+Documentation = "https://fischermoseley.github.io/manta"
+Source = "https://github.com/fischermoseley/manta"
+Issues = "https://github.com/fischermoseley/manta/issues"
+Changelog = "https://github.com/fischermoseley/manta/releases"
 
 [project.scripts]
 manta = "manta:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.13.8,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "manta"
 
 [tool.ruff]
 line-length = 100
