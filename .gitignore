@@ -3,7 +3,7 @@
 *.vscode/
 
 # Python files
-venv/
+.venv/
 manta_fpga.egg-info/
 .pytest_cache
 .ruff_cache
