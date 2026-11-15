@@ -48,3 +48,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["I"]
+ignore = ["SIM117"]
