@@ -80,7 +80,7 @@ class LogicAnalyzerCapture:
 
         # Transpose list of lists so that data flows top-to-bottom instead of
         # left-to-right
-        values_transpose = [list(x) for x in zip(*values)]
+        values_transpose = [list(x) for x in zip(*values, strict=True)]
 
         import csv
 

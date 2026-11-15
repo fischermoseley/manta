@@ -20,6 +20,7 @@ def test_verilog_examples_build(root_dir):
 
 
 # Patch the PATH variable so imports from examples/ are possible
+# ruff: disable[E402]
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, parent_dir)
 
@@ -32,6 +33,8 @@ from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
 from examples.amaranth.uart_io_core import UARTIOCoreExample
 from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
 from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
+
+# ruff: enable[E402]
 
 # Manually specify a list of examples/platforms to test.
 

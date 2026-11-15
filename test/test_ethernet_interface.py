@@ -101,7 +101,7 @@ class EthernetMemoryCoreTest(Elaboratable):
             readback = self.manta.cores.mem.read(addr)
             if readback != data:
                 raise ValueError(
-                    f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}"
+                    f"Memory read from {addr:#x} returned {readback:#x} instead of {data:#x}"
                 )
 
 

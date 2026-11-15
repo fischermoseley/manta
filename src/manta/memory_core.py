@@ -220,7 +220,7 @@ class MemoryCore(MantaCore):
         # Handle read ports
         if self._mode in ["host_to_fpga", "bidirectional"]:
             read_datas = []
-            for i, mem in enumerate(self._mems):
+            for mem in self._mems:
                 read_port = mem.read_port()
                 m.d.comb += read_port.addr.eq(self.user_addr)
                 m.d.comb += read_port.en.eq(1)

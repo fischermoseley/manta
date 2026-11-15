@@ -86,7 +86,7 @@ class IOCoreLoopbackTest(Elaboratable):
         # The config is specified in such a way that the first output is
         # connected to the first output, the second output is connected
         # to the second input, and so on...
-        for i, o in zip(inputs, outputs):
+        for i, o in zip(inputs, outputs, strict=True):
             value = getrandbits(len(i))
 
             self.manta.cores.io.set_probe(o, value)

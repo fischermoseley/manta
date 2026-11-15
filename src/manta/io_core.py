@@ -154,7 +154,7 @@ class IOCore(MantaCore):
         io_bufs = self._input_bufs + self._output_bufs
         last_used_addr = self.base_addr
 
-        for io, io_buf in zip(ios, io_bufs):
+        for io, io_buf in zip(ios, io_bufs, strict=True):
             n_slices = ceil(len(io) / 16)
             signals = split_into_chunks(io_buf, 16)
             addrs = [i + last_used_addr + 1 for i in range(n_slices)]
@@ -177,18 +177,18 @@ class IOCore(MantaCore):
         m.d.sync += self.bus_o.eq(self.bus_i)
 
         # Update input_buffers from inputs
-        for i, i_buf in zip(self._inputs, self._input_bufs):
+        for i, i_buf in zip(self._inputs, self._input_bufs, strict=True):
             with m.If(self._strobe):
                 m.d.sync += i_buf.eq(i)
 
         # Update outputs from output_buffers
-        for o, o_buf in zip(self._outputs, self._output_bufs):
+        for o, o_buf in zip(self._outputs, self._output_bufs, strict=True):
             with m.If(self._strobe):
                 m.d.sync += o.eq(o_buf)
 
         # Handle register reads and writes
         for io in self._memory_map.values():
-            for addr, signal in zip(io["addrs"], io["signals"]):
+            for addr, signal in zip(io["addrs"], io["signals"], strict=True):
                 with m.If(self.bus_i.addr == addr):
                     # Writes
                     with m.If(self.bus_i.rw):

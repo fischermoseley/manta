@@ -29,7 +29,7 @@ async def print_data_at_addr(ctx, addr):
     while not ctx.get(la.bus_o.valid):
         await ctx.tick()
 
-    print(f"addr: {hex(addr)} data: {hex(ctx.get(la.bus_o.data))}")
+    print(f"addr: {addr:#x} data: {ctx.get(la.bus_o.data):#x}")
 
 
 async def set_fsm_register(ctx, name, data):

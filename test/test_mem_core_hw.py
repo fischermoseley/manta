@@ -87,7 +87,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
                 readback = self.read_user_side(addr)
                 if readback != data:
                     raise ValueError(
-                        f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}."
+                        f"Memory read from {addr:#x} returned {readback:#x} instead of {data:#x}."
                     )
 
         if self.mode in ["bidirectional", "fpga_to_host"]:
@@ -100,7 +100,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
                 readback = self.manta.cores.mem.read(addr)
                 if readback != data:
                     raise ValueError(
-                        f"Memory read from {hex(addr)} returned {hex(readback)} instead of {hex(data)}."
+                        f"Memory read from {addr:#x} returned {readback:#x} instead of {data:#x}."
                     )
 
 

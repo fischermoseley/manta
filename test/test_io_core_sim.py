@@ -46,7 +46,7 @@ async def test_output_probe_buffer_initial_value(ctx):
         addrs = io_core._memory_map[o.name]["addrs"]
         datas = value_to_words(o.init, len(addrs))
 
-        for addr, data in zip(addrs, datas):
+        for addr, data in zip(addrs, datas, strict=True):
             await verify_register(io_core, ctx, addr, data)
 
 
@@ -58,11 +58,11 @@ async def test_output_probes_are_writeable(ctx):
         datas = value_to_words(test_value, len(addrs))
 
         # write value to registers
-        for addr, data in zip(addrs, datas):
+        for addr, data in zip(addrs, datas, strict=True):
             await write_register(io_core, ctx, addr, data)
 
         # read value back from registers
-        for addr, data in zip(addrs, datas):
+        for addr, data in zip(addrs, datas, strict=True):
             await verify_register(io_core, ctx, addr, data)
 
 
@@ -74,7 +74,7 @@ async def test_output_probes_update(ctx):
         datas = value_to_words(test_value, len(addrs))
 
         # write value to registers
-        for addr, data in zip(addrs, datas):
+        for addr, data in zip(addrs, datas, strict=True):
             await write_register(io_core, ctx, addr, data)
 
         # pulse strobe register
@@ -85,7 +85,8 @@ async def test_output_probes_update(ctx):
 
         if value != test_value:
             raise ValueError(
-                f"Output probe {o.name} took value {value} instead of {test_value} after pulsing strobe."
+                f"Output probe {o.name} took value {value} instead of {test_value} "
+                "after pulsing strobe."
             )
 
         else:
@@ -106,5 +107,5 @@ async def test_input_probes_update(ctx):
         addrs = io_core._memory_map[i.name]["addrs"]
         datas = value_to_words(test_value, len(addrs))
 
-        for addr, data in zip(addrs, datas):
+        for addr, data in zip(addrs, datas, strict=True):
             await verify_register(io_core, ctx, addr, data)

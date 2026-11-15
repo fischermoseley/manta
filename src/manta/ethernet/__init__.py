@@ -593,7 +593,7 @@ class EthernetInterface(Elaboratable):
 
         # Encode addrs and datas into write requests
         bytes_out = b""
-        for addr, data in zip(addrs, datas):
+        for addr, data in zip(addrs, datas, strict=True):
             bytes_out += (1).to_bytes(4, byteorder="little")
             bytes_out += int(addr).to_bytes(2, byteorder="little")
             bytes_out += int(data).to_bytes(2, byteorder="little")

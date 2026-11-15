@@ -90,7 +90,7 @@ async def test_single_shot_wait_for_trigger(ctx):
     ctx.set(fsm.trigger, 1)
     await ctx.tick()
 
-    for i in range(4):
+    for _ in range(4):
         await ctx.tick()
 
     # Wait one clock cycle (to let BRAM contents cycle in)

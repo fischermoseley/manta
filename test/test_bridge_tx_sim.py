@@ -6,7 +6,7 @@ from manta.utils import *
 bridge_tx = TransmitBridge()
 
 
-async def verify_encoding(ctx, data, bytes):
+async def verify_encoding(ctx, data, encoded_bytes):
     """
     Place a read response on the internal bus, and verify that the sequence of bytes
     sent from TransmitBridge matches the provided bytestring `bytes`.
@@ -31,7 +31,7 @@ async def verify_encoding(ctx, data, bytes):
     sent_bytes = b""
     iters = 0
 
-    while len(sent_bytes) < len(bytes):
+    while len(sent_bytes) < len(encoded_bytes):
         # If start_o is asserted, set done_i to zero, then delay, then set it back to one
         if ctx.get(bridge_tx.start_o):
             sent_bytes += ctx.get(bridge_tx.data_o).to_bytes(1, "big")
@@ -49,7 +49,7 @@ async def verify_encoding(ctx, data, bytes):
             raise ValueError("Timed out waiting for bytes.")
 
     # Verify bytes sent from ReceiveBridge match expected_bytes
-    if sent_bytes != bytes:
+    if sent_bytes != encoded_bytes:
         raise ValueError(f"Received {sent_bytes} instead of {bytes}.")
 
 

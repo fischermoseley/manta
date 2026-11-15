@@ -55,7 +55,7 @@ Usage:
             Display the currently installed version."""
 
 
-def help():
+def print_help():
     print(usage)
 
 
@@ -125,7 +125,7 @@ def ports():
 
 def main():
     if len(sys.argv) == 1 or sys.argv[1] in ["help", "-h", "-help", "--help", "ray"]:
-        help()
+        print_help()
 
     elif sys.argv[1] == "gen":
         if len(sys.argv) != 4:
