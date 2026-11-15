@@ -1,5 +1,5 @@
+import sys
 from importlib.metadata import distribution
-from sys import argv
 
 from manta.manta import Manta
 from manta.utils import *
@@ -65,7 +65,7 @@ def version():
 
 def wrong_args():
     print('Wrong number of arguments, run "manta help" for usage.')
-    exit(1)
+    sys.exit(1)
 
 
 def gen(config_path, output_path):
@@ -124,32 +124,29 @@ def ports():
 
 
 def main():
-    if len(argv) == 1:
+    if len(sys.argv) == 1 or sys.argv[1] in ["help", "-h", "-help", "--help", "ray"]:
         help()
 
-    elif argv[1] in ["help", "-h", "-help", "--help", "ray"]:
-        help()
-
-    elif argv[1] == "gen":
-        if len(argv) != 4:
+    elif sys.argv[1] == "gen":
+        if len(sys.argv) != 4:
             wrong_args()
-        gen(argv[2], argv[3])
+        gen(sys.argv[2], sys.argv[3])
 
-    elif argv[1] == "inst":
-        if len(argv) != 3:
+    elif sys.argv[1] == "inst":
+        if len(sys.argv) != 3:
             wrong_args()
 
-        print(inst(argv[2]))
+        print(inst(sys.argv[2]))
 
-    elif argv[1] == "capture":
-        if len(argv) < 5:
+    elif sys.argv[1] == "capture":
+        if len(sys.argv) < 5:
             wrong_args()
-        capture(argv[2], argv[3], argv[4:])
+        capture(sys.argv[2], sys.argv[3], sys.argv[4:])
 
-    elif argv[1] == "ports":
+    elif sys.argv[1] == "ports":
         ports()
 
-    elif argv[1] == "version":
+    elif sys.argv[1] == "version":
         version()
 
     else:

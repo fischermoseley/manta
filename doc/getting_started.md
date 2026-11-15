@@ -71,22 +71,22 @@ Configuration is done by creating a Manta object in Python, adding cores to it, 
 from amaranth import *
 from manta import *
 
-class ExampleDesign(Elaborateable):
-	def __init__(self):
-		self.manta = Manta()
-		self.manta.interface = UARTInterface("auto", 2e6, 12e6)
-		self.manta.cores.my_io_core = IOCore(inputs=[], outputs=[])
 
+class ExampleDesign(Elaboratable):
+    def __init__(self):
+        self.manta = Manta()
+        self.manta.interface = UARTInterface("auto", 2e6, 12e6)
+        self.manta.cores.my_io_core = IOCore(inputs=[], outputs=[])
 
-	def elaborate(self, platform):
-		m = Module()
-		m.submodules.manta = self.manta
+    def elaborate(self, platform):
+        m = Module()
+        m.submodules.manta = self.manta
 
-		return m
+        return m
 
-	def operate(self):
-		self.manta.cores.my_io_core.set_probe("foo", 2)
-		self.manta.cores.my_io_core.get_probe(bar)
+    def operate(self):
+        self.manta.cores.my_io_core.set_probe("foo", 2)
+        self.manta.cores.my_io_core.get_probe(bar)
 ```
 
 Using this `ExampleDesign` in the configure-build-operate flow might look like the following:

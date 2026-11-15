@@ -44,7 +44,8 @@ class EthernetMemoryCoreTest(Elaboratable):
             ("i", "clk", ClockSignal()),
             ("o", "ethclk", ethclk.clk),
         )
-        platform.add_file("divider.sv", open("examples/common/divider.sv"))
+        with open("examples/common/divider.sv") as divider:
+            platform.add_file("divider.sv", divider)
 
         # Add Manta as a submodule
         m.submodules.manta = DomainRenamer("ethclk")(self.manta)

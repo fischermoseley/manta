@@ -46,7 +46,8 @@ class EthernetIOCoreExample(Elaboratable):
             ("o", "ethclk", ethclk.clk),
         )
         divider_sv_path = Path(__file__).parent / "../common/divider.sv"
-        platform.add_file("divider.sv", open(divider_sv_path))
+        with open(divider_sv_path) as divider_sv:
+            platform.add_file("divider.sv", divider_sv)
 
         # Add Manta as a submodule
         m.submodules.manta = DomainRenamer("ethclk")(self.manta)

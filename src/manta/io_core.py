@@ -11,7 +11,7 @@ class IOCore(MantaCore):
     arbitrary size.
     """
 
-    def __init__(self, inputs=[], outputs=[]):
+    def __init__(self, inputs=None, outputs=None):
         """
         Create an IO Core, with the given input and output probes.
 
@@ -30,8 +30,8 @@ class IOCore(MantaCore):
                 at least one probe, but it need not be an output.
 
         """
-        self._inputs = inputs
-        self._outputs = outputs
+        self._inputs = inputs if inputs is not None else []
+        self._outputs = outputs if outputs is not None else []
 
         # Bus Connections
         self.bus_i = Signal(InternalBus())
@@ -72,10 +72,10 @@ class IOCore(MantaCore):
         input_signals = []
         for name, width in inputs.items():
             if not isinstance(name, str):
-                raise ValueError(f"Input probe '{name}' has invalid name, names must be strings.")
+                raise TypeError(f"Input probe '{name}' has invalid name, names must be strings.")
 
             if not isinstance(width, int):
-                raise ValueError(f"Input probe '{name}' must have integer width.")
+                raise TypeError(f"Input probe '{name}' must have integer width.")
 
             if not width > 0:
                 raise ValueError(f"Input probe '{name}' must have positive width.")
@@ -86,10 +86,10 @@ class IOCore(MantaCore):
         output_signals = []
         for name, attrs in outputs.items():
             if not isinstance(name, str):
-                raise ValueError(f"Output probe '{name}' has invalid name, names must be strings.")
+                raise TypeError(f"Output probe '{name}' has invalid name, names must be strings.")
 
             if not isinstance(attrs, int) and not isinstance(attrs, dict):
-                raise ValueError(f"Unrecognized format for output probe '{name}'.")
+                raise TypeError(f"Unrecognized format for output probe '{name}'.")
 
             if isinstance(attrs, int):
                 if not attrs > 0:
@@ -110,7 +110,7 @@ class IOCore(MantaCore):
                     raise ValueError(f"No width specified for output probe '{name}'.")
 
                 if not isinstance(attrs["width"], int):
-                    raise ValueError(f"Output probe '{name}' must have integer width.")
+                    raise TypeError(f"Output probe '{name}' must have integer width.")
 
                 if not attrs["width"] > 0:
                     raise ValueError(f"Input probe '{name}' must have positive width.")
@@ -147,7 +147,7 @@ class IOCore(MantaCore):
         self._memory_map = {}
 
         # Add strobe register
-        self._memory_map["strobe"] = dict(signals=[self._strobe], addrs=[self.base_addr])
+        self._memory_map["strobe"] = {"signals": [self._strobe], "addrs": [self.base_addr]}
 
         # Assign memory to all inputs and outputs
         ios = self._inputs + self._outputs
@@ -159,7 +159,7 @@ class IOCore(MantaCore):
             signals = split_into_chunks(io_buf, 16)
             addrs = [i + last_used_addr + 1 for i in range(n_slices)]
 
-            self._memory_map[io.name] = dict(signals=signals, addrs=addrs)
+            self._memory_map[io.name] = {"signals": signals, "addrs": addrs}
 
             last_used_addr = addrs[-1]
 

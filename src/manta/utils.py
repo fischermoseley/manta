@@ -24,7 +24,6 @@ class MantaCore(ABC, Elaboratable):
         space used by the core extends from `base_addr` to the number returned
         by this function (including the endpoints).
         """
-        pass
 
     @property
     @abstractmethod
@@ -33,7 +32,6 @@ class MantaCore(ABC, Elaboratable):
         Return the Amaranth signals that should be included as ports in the
         top-level Manta module.
         """
-        pass
 
     @abstractmethod
     def to_config(self):
@@ -41,7 +39,6 @@ class MantaCore(ABC, Elaboratable):
         Return a dictionary containing the core's configuration (i.e., the
         content of the core's section of the `manta.yaml` file).
         """
-        pass
 
     @abstractmethod
     def elaborate(self, platform):
@@ -55,7 +52,6 @@ class MantaCore(ABC, Elaboratable):
         configuration file (as a Python dictionary) that contains the core's
         specification.
         """
-        pass
 
 
 class CoreContainer:
@@ -79,7 +75,7 @@ class CoreContainer:
             value.base_addr = self._last_used_addr
 
             if value.max_addr > (2**16) - 1:
-                raise ValueError(f"Ran out of address space while allocating core.")
+                raise ValueError("Ran out of address space while allocating core.")
 
             self._last_used_addr = value.max_addr + 1
 
@@ -287,7 +283,4 @@ def ice40_tools_installed():
     binaries = ["yosys", "nextpnr-ice40", "icepack", "iceprog"]
     from shutil import which
 
-    if all([which(b) for b in binaries]):
-        return True
-
-    return False
+    return all(which(b) for b in binaries)
