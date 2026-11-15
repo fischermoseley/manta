@@ -19,9 +19,7 @@ async def verify_receive(ctx, data):
             if ctx.get(uart_rx.data_o) != data:
                 a = ctx.get(uart_rx.data_o)
                 print(data_bits)
-                raise ValueError(
-                    f"Incorrect byte presented - gave {hex(a)} instead of {hex(data)}!"
-                )
+                raise ValueError(f"Incorrect byte presented - gave {a:#x} instead of {data:#x}!")
 
             if bit_index != 9:
                 print(bit_index)

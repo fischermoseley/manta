@@ -138,7 +138,8 @@ class UARTInterface(Elaboratable):
 
         if error > 5:
             raise ValueError(
-                "UART interface is unable to match targeted baudrate with specified clock frequency."
+                "UART interface is unable to match targeted baudrate with "
+                "specified clock frequency."
             )
 
     def _get_serial_device(self):
@@ -179,16 +180,12 @@ class UARTInterface(Elaboratable):
 
         if ports[0].serial_number != ports[1].serial_number:
             raise ValueError(
-                "Serial numbers should be the same on both FT2232 ports - probably somehow grabbed ports on two different devices."
+                "Serial numbers should be the same on both FT2232 ports. "
+                "Probably somehow grabbed ports on two different devices."
             )
 
-        if ports[0].location > ports[1].location:
-            chosen_port = ports[0].device
-
-        else:
-            chosen_port = ports[1].device
-
-        self._serial_device = Serial(chosen_port, self._baudrate, timeout=1)
+        chosen_port = ports[0] if ports[0].location > ports[1].location else ports[1]
+        self._serial_device = Serial(chosen_port.device, self._baudrate, timeout=1)
         return self._serial_device
 
     def get_top_level_ports(self):
@@ -222,7 +219,7 @@ class UARTInterface(Elaboratable):
         # buffer from overflowing and dropping bytes, as the FPGA will send
         # responses instantly after it's received a request.
 
-        set = self._get_serial_device()
+        ser = self._get_serial_device()
         addr_chunks = split_into_chunks(addrs, self._chunk_size)
         data = []
 
@@ -235,11 +232,11 @@ class UARTInterface(Elaboratable):
             bytes_out = split_into_chunks(bytes_out, 7 * self._stall_interval)
             bytes_out = "\n".join(bytes_out)
 
-            set.write(bytes_out.encode("ascii"))
+            ser.write(bytes_out.encode("ascii"))
 
             # Read responses have the same length as read requests
             bytes_expected = 7 * len(addr_chunk)
-            bytes_in = set.read(bytes_expected)
+            bytes_in = ser.read(bytes_expected)
 
             if len(bytes_in) != bytes_expected:
                 raise ValueError(f"Only got {len(bytes_in)} out of {bytes_expected} bytes.")
@@ -277,9 +274,9 @@ class UARTInterface(Elaboratable):
         # send the data as chunks as the to avoid overflowing the input buffer.
 
         # Encode addrs and data into write requests
-        bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, data)])
-        set = self._get_serial_device()
-        set.write(bytes_out.encode("ascii"))
+        bytes_out = "".join([f"W{a:04X}{d:04X}\r\n" for a, d in zip(addrs, data, strict=True)])
+        ser = self._get_serial_device()
+        ser.write(bytes_out.encode("ascii"))
 
     def _decode_read_response(self, response_bytes):
         """

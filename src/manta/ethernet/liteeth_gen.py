@@ -400,14 +400,14 @@ class MACCore(PHYCore):
         )
 
         if bus_standard == "wishbone":
-            # Wishbone Interface -----------------------------------------------------------------------
+            # Wishbone Interface -------------------------------------------------------------------
             wb_bus = wishbone.Interface()
             platform.add_extension(wb_bus.get_ios("wishbone"))
             self.comb += wb_bus.connect_to_pads(self.platform.request("wishbone"), mode="slave")
             self.bus.add_master(master=wb_bus)
 
         if bus_standard == "axi-lite":
-            # AXI-Lite Interface -----------------------------------------------------------------------
+            # AXI-Lite Interface -------------------------------------------------------------------
             axil_bus = axi.AXILiteInterface(address_width=32, data_width=32)
             platform.add_extension(axil_bus.get_ios("bus"))
             self.submodules += axi.Wishbone2AXILite(ethmac.bus, axil_bus)

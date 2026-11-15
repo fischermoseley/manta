@@ -50,5 +50,5 @@ build-backend = "setuptools.build_meta"
 line-length = 100
 
 [tool.ruff.lint]
-extend-select = ["I"]
-ignore = ["SIM117"]
+extend-select = ["A", "E", "F", "UP", "B", "I", "SIM"]
+ignore = ["SIM117", "F405", "F403"]

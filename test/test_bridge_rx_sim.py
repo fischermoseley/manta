@@ -4,7 +4,7 @@ from manta.utils import *
 bridge_rx = ReceiveBridge()
 
 
-async def verify_read_decoding(ctx, bytes, addr):
+async def verify_read_decoding(ctx, encoded_bytes, addr):
     """
     Send a series of bytes to the receive bridge, and verify that the bridge places
     a read request with the appropriate address on the internal bus.
@@ -13,7 +13,7 @@ async def verify_read_decoding(ctx, bytes, addr):
     valid_asserted = False
     ctx.set(bridge_rx.valid_i, True)
 
-    for i, byte in enumerate(bytes):
+    for i, byte in enumerate(encoded_bytes):
         ctx.set(bridge_rx.data_i, byte)
 
         if ctx.get(bridge_rx.valid_o) and (i > 0):
@@ -36,7 +36,7 @@ async def verify_read_decoding(ctx, bytes, addr):
         raise ValueError("Bridge failed to output valid message.")
 
 
-async def verify_write_decoding(ctx, bytes, addr, data):
+async def verify_write_decoding(ctx, encoded_bytes, addr, data):
     """
     Send a series of bytes to the receive bridge, and verify that the bridge places
     a write request with the appropriate address and data on the internal bus.
@@ -44,7 +44,7 @@ async def verify_write_decoding(ctx, bytes, addr, data):
     valid_asserted = False
     ctx.set(bridge_rx.valid_i, True)
 
-    for i, byte in enumerate(bytes):
+    for i, byte in enumerate(encoded_bytes):
         ctx.set(bridge_rx.data_i, byte)
 
         if ctx.get(bridge_rx.valid_o) and (i > 0):
@@ -67,14 +67,14 @@ async def verify_write_decoding(ctx, bytes, addr, data):
         raise ValueError("Bridge failed to output valid message.")
 
 
-async def verify_bad_bytes(ctx, bytes):
+async def verify_bad_bytes(ctx, encoded_bytes):
     """
     Send a series of bytes to the receive bridge, and verify that the bridge does not
     place any transaction on the internal bus.
     """
     ctx.set(bridge_rx.valid_i, True)
 
-    for byte in bytes:
+    for byte in encoded_bytes:
         ctx.set(bridge_rx.data_i, byte)
 
         if ctx.get(bridge_rx.valid_o):

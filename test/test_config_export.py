@@ -20,7 +20,7 @@ def test_io_core_dump(tmp_path):
     manta.export_config(path)
 
     # Parse the exported YAML
-    with open(path, "r") as f:
+    with open(path) as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -55,7 +55,7 @@ def test_memory_core_dump(tmp_path):
     manta.export_config(path)
 
     # Parse the exported YAML
-    with open(path, "r") as f:
+    with open(path) as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -89,7 +89,7 @@ def test_logic_analyzer_core_dump(tmp_path):
     manta.export_config(path)
 
     # Parse the exported YAML
-    with open(path, "r") as f:
+    with open(path) as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -116,7 +116,7 @@ def test_uart_interface_dump(tmp_path):
     manta.export_config(path)
 
     # Parse the exported YAML
-    with open(path, "r") as f:
+    with open(path) as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
@@ -155,7 +155,7 @@ def test_ethernet_interface_dump(tmp_path):
     manta.export_config(path)
 
     # Parse the exported YAML
-    with open(path, "r") as f:
+    with open(path) as f:
         data = yaml.safe_load(f)
 
     # Verify that exported YAML matches configuration
