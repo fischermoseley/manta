@@ -113,7 +113,7 @@ class IOCore(MantaCore):
                     raise TypeError(f"Output probe '{name}' must have integer width.")
 
                 if not attrs["width"] > 0:
-                    raise ValueError(f"Input probe '{name}' must have positive width.")
+                    raise ValueError(f"Output probe '{name}' must have positive width.")
 
                 width = attrs["width"]
 

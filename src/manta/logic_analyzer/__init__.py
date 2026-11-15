@@ -99,7 +99,7 @@ class LogicAnalyzerCore(MantaCore):
             raise ValueError("Logic Analyzer must have at least one probe specified.")
 
         for name, width in config["probes"].items():
-            if width < 0:
+            if width <= 0:
                 raise ValueError(f"Width of probe {name} must be positive.")
 
         # Check triggers are specified with strings
