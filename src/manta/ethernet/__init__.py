@@ -469,7 +469,7 @@ class EthernetInterface(Elaboratable):
 
         # In my limited testing this seems to be enough time.
 
-        with m.If(self._dhcp_timer < 0):
+        with m.If(self._dhcp_timer > 0):
             m.d.sync += self._dhcp_timer.eq(self._dhcp_timer - 1)
 
         m.d.sync += self._dhcp_start.eq(self._dhcp_timer == 1)
@@ -619,7 +619,6 @@ class EthernetInterface(Elaboratable):
             addr = list(f"{getrandbits(48):012x}")
             addr[1] = "2"
             liteeth_config["mac_address"] = int("".join(addr), 16)
-            print(liteeth_config["mac_address"])
 
         # Force use of DHCP
         liteeth_config["dhcp"] = True
