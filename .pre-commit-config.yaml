@@ -8,14 +8,22 @@ repos:
       - id: check-added-large-files
       - id: destroyed-symlinks
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.4
+  - repo: local
     hooks:
       - id: ruff-check
-        args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
+        name: ruff check
+        entry: uv run ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi, markdown]
 
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi, markdown]
+
       - id: shellcheck
+        name: shellcheck
+        entry: uv run shellcheck
+        language: system
+        types_or: [shell]
