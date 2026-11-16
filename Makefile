@@ -1,5 +1,8 @@
-.PHONY: build test format clean preview_site pre-commit
+# Load tool and device paths from .env
+include .env
+export
 
+.PHONY: build test format clean preview_site pre-commit
 build:
 	uv build
 
