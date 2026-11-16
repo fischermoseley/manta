@@ -28,23 +28,24 @@ classifiers = [
 keywords = ["fpga", "debugging", "logic analyzer", "amaranth", "verilog", "uart", "ethernet"]
 
 dependencies = [
-  "amaranth[builtin-yosys]>=0.5.0",
-  "PyYAML",
-  "pyserial",
-  "liteeth==2023.12",
-  "pyvcd",
+    "amaranth[builtin-yosys]>=0.5.0",
+    "PyYAML",
+    "pyserial",
+    "liteeth==2023.12",
+    "pyvcd",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest",
-  "pytest-cov",
-  "pre-commit",
-  "ruff",
-  "mkdocs-material",
-  "mkdocstrings[python]",
-  "mike",
-  "amaranth-boards~=0.0.0",
+    "amaranth-boards~=0.0.0",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "mike",
+    "pytest",
+    "pytest-cov",
+    "pre-commit",
+    "ruff",
+    "shellcheck-py",
 ]
 
 [project.urls]
@@ -66,6 +67,7 @@ module-name = "manta"
 
 [tool.ruff]
 line-length = 100
+force-exclude = true
 
 [tool.ruff.lint]
 extend-select = ["A", "E", "F", "UP", "B", "I", "SIM"]
