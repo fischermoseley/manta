@@ -3,7 +3,8 @@ from random import getrandbits
 from amaranth import *
 
 from manta import *
-from manta.utils import *
+from manta.utils import value_to_words
+from test.utils import simulate, verify_register, write_register
 
 probe0 = Signal(1)
 probe1 = Signal(2)

@@ -1,5 +1,5 @@
 from manta.ethernet import UDPSourceBridge
-from manta.utils import *
+from test.utils import simulate
 
 source_bridge = UDPSourceBridge()
 

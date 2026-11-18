@@ -7,7 +7,11 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from manta.utils import *
+from test.utils import (
+    ice40_tools_installed,
+    make_build_dir_if_it_does_not_exist_already,
+    xilinx_tools_installed,
+)
 
 
 class LogicAnalyzerCounterTest(Elaboratable):

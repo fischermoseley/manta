@@ -8,7 +8,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from manta.utils import *
+from test.utils import ice40_tools_installed, xilinx_tools_installed
 
 
 class UARTBaudrateMismatchTest(Elaboratable):

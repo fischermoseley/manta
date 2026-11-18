@@ -4,7 +4,8 @@ from random import choice, getrandbits, randint
 import pytest
 
 from manta.memory_core import MemoryCore
-from manta.utils import *
+from manta.utils import value_to_words, words_to_value
+from test.utils import jumble, simulate, verify_register, write_register
 
 
 class MemoryCoreTests:

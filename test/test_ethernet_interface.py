@@ -7,7 +7,7 @@ from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from manta.utils import *
+from test.utils import jumble, xilinx_tools_installed
 
 
 class EthernetMemoryCoreTest(Elaboratable):
