@@ -1,11 +1,13 @@
-import os
 import subprocess
-import sys
 
 import pytest
 from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
+from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
+from examples.amaranth.uart_io_core import UARTIOCoreExample
+from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
+from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
 from test.utils import check_tools
 
 verilog_root_dirs = [
@@ -24,25 +26,7 @@ def test_verilog_examples_build(root_dir, platform):
     subprocess.run(["./build.sh"], cwd=root_dir, capture_output=True, text=True, check=True)
 
 
-# Patch the PATH variable so imports from examples/ are possible
-# ruff: disable[E402]
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, parent_dir)
-
-# Import Platforms
-from amaranth_boards.icestick import ICEStickPlatform
-from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
-
-# Import Examples
-from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
-from examples.amaranth.uart_io_core import UARTIOCoreExample
-from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
-from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
-
-# ruff: enable[E402]
-
 # Manually specify a list of examples/platforms to test.
-
 # This is necessary as some examples don't work without some amount of onboard
 # IO - for instance, the UARTMemoryCore example requires switches and LEDs to
 # read out the memory provided by Manta, but the Icestick doesn't have any
