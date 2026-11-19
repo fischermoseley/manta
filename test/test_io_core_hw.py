@@ -1,4 +1,3 @@
-import os
 from random import getrandbits
 
 import pytest
@@ -8,7 +7,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from test.utils import ice40_tools_installed, xilinx_tools_installed
+from test.utils import check_tools
 
 
 class IOCoreLoopbackTest(Elaboratable):
@@ -106,13 +105,7 @@ class IOCoreLoopbackTest(Elaboratable):
         self.verify_probes_update()
 
 
-@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-def test_output_probe_initial_values_xilinx():
-    port = os.environ["NEXYS4DDR_PORT"]
-    IOCoreLoopbackTest(Nexys4DDRPlatform(), port).verify()
-
-
-@pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
-def test_output_probe_initial_values_ice40():
-    port = os.environ["ICESTICK_PORT"]
-    IOCoreLoopbackTest(ICEStickPlatform(), port).verify()
+@pytest.mark.parametrize("platform", [Nexys4DDRPlatform(), ICEStickPlatform()])
+def test_output_probe_initial_values(platform):
+    port = check_tools(platform)
+    IOCoreLoopbackTest(platform, port).verify()

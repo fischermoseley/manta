@@ -7,7 +7,7 @@ from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from test.utils import jumble, xilinx_tools_installed
+from test.utils import check_tools, jumble
 
 
 class EthernetMemoryCoreTest(Elaboratable):
@@ -105,6 +105,7 @@ class EthernetMemoryCoreTest(Elaboratable):
                 )
 
 
-@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-def test_mem_core_xilinx():
-    EthernetMemoryCoreTest(Nexys4DDRPlatform()).verify()
+@pytest.mark.parametrize("platform", [Nexys4DDRPlatform()])
+def test_mem_core(platform):
+    check_tools(platform, need_port=False)
+    EthernetMemoryCoreTest(platform).verify()

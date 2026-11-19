@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from amaranth import *
 from amaranth.lib import io
@@ -8,9 +6,8 @@ from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
 from test.utils import (
-    ice40_tools_installed,
+    check_tools,
     make_build_dir_if_it_does_not_exist_already,
-    xilinx_tools_installed,
 )
 
 
@@ -81,13 +78,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
                     raise ValueError("Bad counter!")
 
 
-@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-def test_logic_analyzer_core_xilinx():
-    port = os.environ["NEXYS4DDR_PORT"]
-    LogicAnalyzerCounterTest(Nexys4DDRPlatform(), port).verify()
-
-
-@pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
-def test_logic_analyzer_core_ice40():
-    port = os.environ["ICESTICK_PORT"]
-    LogicAnalyzerCounterTest(ICEStickPlatform(), port).verify()
+@pytest.mark.parametrize("platform", [Nexys4DDRPlatform(), ICEStickPlatform()])
+def test_logic_analyzer_core_xilinx(platform):
+    port = check_tools(platform)
+    LogicAnalyzerCounterTest(platform, port).verify()

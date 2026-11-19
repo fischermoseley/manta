@@ -71,4 +71,4 @@ force-exclude = true
 
 [tool.ruff.lint]
 extend-select = ["A", "E", "F", "UP", "B", "I", "SIM"]
-ignore = ["SIM117", "F405", "F403"]
+ignore = ["SIM117", "F405", "F403", "E501"]
