@@ -1,8 +1,42 @@
 import os
+import shutil
 from pathlib import Path
 from random import sample
 
+import pytest
 from amaranth.sim import Simulator
+from amaranth_boards.icestick import ICEStickPlatform
+from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
+
+_DEVBOARD_INVENTORY = {
+    Nexys4DDRPlatform: ("xc3sprog", "NEXYS4DDR_PORT"),
+    ICEStickPlatform: ("iceprog", "ICESTICK_PORT"),
+}
+
+
+def has_tool(tool: str) -> bool:
+    return tool.upper() in os.environ or shutil.which("vivado") is not None
+
+
+def check_tools(platform, need_prog_tool: bool = True, need_port: bool = True) -> str | None:
+    if not any(isinstance(platform, p) for p in _DEVBOARD_INVENTORY):
+        raise KeyError(f"Platform {platform} is not in devboard inventory!")
+
+    if not platform.has_required_tools():
+        pytest.skip(
+            f"Not all required build tools ({', '.join(platform.required_tools)}) are present!"
+        )
+
+    for cls, (prog_tool, port) in _DEVBOARD_INVENTORY.items():
+        if isinstance(platform, cls):
+            if need_prog_tool and not has_tool(prog_tool):
+                pytest.skip(f"Programming tool {prog_tool} not present!")
+
+            if need_port:
+                if port not in os.environ:
+                    pytest.skip(f"Serial port declared via {port} envvar is not present!")
+
+                return port
 
 
 def xilinx_tools_installed():

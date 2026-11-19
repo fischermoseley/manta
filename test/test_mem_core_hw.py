@@ -1,4 +1,3 @@
-import os
 from random import getrandbits
 
 import pytest
@@ -8,7 +7,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from test.utils import ice40_tools_installed, jumble, xilinx_tools_installed
+from test.utils import check_tools, jumble
 
 
 class MemoryCoreLoopbackTest(Elaboratable):
@@ -108,25 +107,13 @@ class MemoryCoreLoopbackTest(Elaboratable):
 modes = ["fpga_to_host", "host_to_fpga", "bidirectional"]
 widths = [1, 8, 14, 16, 33]
 depths = [2, 512, 1024]
-nexys4ddr_cases = [(m, w, d) for m in modes for w in widths for d in depths]
+nexys4ddr_cases = [(Nexys4DDRPlatform(), m, w, d) for m in modes for w in widths for d in depths]
 
-
-@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
-@pytest.mark.parametrize("mode, width, depth", nexys4ddr_cases)
-def test_mem_core_xilinx(mode, width, depth):
-    port = os.environ["NEXYS4DDR_PORT"]
-    MemoryCoreLoopbackTest(Nexys4DDRPlatform(), mode, width, depth, port).verify()
-
-
-# IceStick Tests
 modes = ["fpga_to_host", "host_to_fpga"]
-widths = [1, 8, 14, 16, 33]
-depths = [2, 512, 1024]
-ice40_cases = [(m, w, d) for m in modes for w in widths for d in depths]
+ice40_cases = [(ICEStickPlatform(), m, w, d) for m in modes for w in widths for d in depths]
 
 
-@pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
-@pytest.mark.parametrize("mode, width, depth", ice40_cases)
-def test_mem_core_ice40(mode, width, depth):
-    port = os.environ["ICESTICK_PORT"]
-    MemoryCoreLoopbackTest(ICEStickPlatform(), mode, width, depth, port).verify()
+@pytest.mark.parametrize("platform, mode, width, depth", nexys4ddr_cases + ice40_cases)
+def test_mem_core(platform, mode, width, depth):
+    port = check_tools(platform)
+    MemoryCoreLoopbackTest(platform, mode, width, depth, port).verify()

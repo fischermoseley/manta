@@ -1,4 +1,3 @@
-import os
 from random import getrandbits
 
 import pytest
@@ -8,7 +7,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from test.utils import ice40_tools_installed, xilinx_tools_installed
+from test.utils import check_tools
 
 
 class UARTBaudrateMismatchTest(Elaboratable):
@@ -88,12 +87,14 @@ nexys4ddr_pass_cases = [
 ]
 
 
-@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize("baudrate, percent_slowdown, stall_interval", nexys4ddr_pass_cases)
 def test_baudrate_mismatch_xilinx_passes(baudrate, percent_slowdown, stall_interval):
+    platform = Nexys4DDRPlatform()
+    port = check_tools(platform)
+
     UARTBaudrateMismatchTest(
-        platform=Nexys4DDRPlatform(),
-        port=os.environ["NEXYS4DDR_PORT"],
+        platform=platform,
+        port=port,
         baudrate=baudrate,
         percent_slowdown=percent_slowdown,
         stall_interval=stall_interval,
@@ -106,13 +107,15 @@ nexys4ddr_fail_cases = [
 ]
 
 
-@pytest.mark.skipif(not xilinx_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize("baudrate, percent_slowdown, stall_interval", nexys4ddr_fail_cases)
 def test_baudrate_mismatch_xilinx_fails(baudrate, percent_slowdown, stall_interval):
+    platform = Nexys4DDRPlatform()
+    port = check_tools(platform)
+
     with pytest.raises(ValueError, match="Only got"):
         UARTBaudrateMismatchTest(
-            platform=Nexys4DDRPlatform(),
-            port=os.environ["NEXYS4DDR_PORT"],
+            platform=platform,
+            port=port,
             baudrate=baudrate,
             percent_slowdown=percent_slowdown,
             stall_interval=stall_interval,
@@ -128,12 +131,14 @@ ice40_pass_cases = [
 ]
 
 
-@pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize("baudrate, percent_slowdown, stall_interval", ice40_pass_cases)
 def test_baudrate_mismatch_ice40_passes(baudrate, percent_slowdown, stall_interval):
+    platform = ICEStickPlatform()
+    port = check_tools(platform)
+
     UARTBaudrateMismatchTest(
-        platform=ICEStickPlatform(),
-        port=os.environ["ICESTICK_PORT"],
+        platform=platform,
+        port=port,
         baudrate=baudrate,
         percent_slowdown=percent_slowdown,
         stall_interval=stall_interval,
@@ -147,13 +152,15 @@ ice40_fail_cases = [
 ]
 
 
-@pytest.mark.skipif(not ice40_tools_installed(), reason="no toolchain installed")
 @pytest.mark.parametrize("baudrate, percent_slowdown, stall_interval", ice40_fail_cases)
 def test_baudrate_mismatch_ice40_fails(baudrate, percent_slowdown, stall_interval):
+    platform = ICEStickPlatform()
+    port = check_tools(platform)
+
     with pytest.raises(ValueError, match="Only got"):
         UARTBaudrateMismatchTest(
-            platform=ICEStickPlatform(),
-            port=os.environ["ICESTICK_PORT"],
+            platform=platform,
+            port=port,
             baudrate=baudrate,
             percent_slowdown=percent_slowdown,
             stall_interval=stall_interval,
