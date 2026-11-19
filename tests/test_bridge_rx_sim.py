@@ -1,5 +1,5 @@
 from manta.uart import ReceiveBridge
-from test.utils import simulate
+from tests.utils import simulate
 
 bridge_rx = ReceiveBridge()
 

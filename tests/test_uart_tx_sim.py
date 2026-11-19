@@ -1,5 +1,5 @@
 from manta.uart import UARTTransmitter
-from test.utils import jumble, simulate
+from tests.utils import jumble, simulate
 
 uart_tx = UARTTransmitter(clocks_per_baud=10)
 

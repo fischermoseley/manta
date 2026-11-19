@@ -5,7 +5,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from test.utils import (
+from tests.utils import (
     check_tools,
     make_build_dir_if_it_does_not_exist_already,
 )

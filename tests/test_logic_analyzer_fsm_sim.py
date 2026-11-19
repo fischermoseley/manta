@@ -1,6 +1,6 @@
 from manta.logic_analyzer import TriggerModes
 from manta.logic_analyzer.fsm import LogicAnalyzerFSM, States
-from test.utils import simulate
+from tests.utils import simulate
 
 sample_depth = 8
 fsm = LogicAnalyzerFSM(sample_depth, base_addr=0, interface=None)
