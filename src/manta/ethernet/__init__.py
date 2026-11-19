@@ -123,7 +123,7 @@ class EthernetInterface(Elaboratable):
 
     @classmethod
     def from_config(cls, config):
-        return EthernetInterface(**config)
+        return cls(**config)
 
     def to_config(self):
         config = {

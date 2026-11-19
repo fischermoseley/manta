@@ -53,7 +53,7 @@ class Manta(Elaboratable):
                 raise ValueError(f"Unrecognized core type specified for {name}.")
 
         # Make Manta object, and configure it
-        manta = Manta()
+        manta = cls()
 
         # Add interface
         if "uart" in config:
