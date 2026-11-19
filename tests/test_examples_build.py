@@ -8,7 +8,7 @@ from examples.amaranth.ethernet_io_core import EthernetIOCoreExample
 from examples.amaranth.uart_io_core import UARTIOCoreExample
 from examples.amaranth.uart_logic_analyzer import UARTLogicAnalyzerExample
 from examples.amaranth.uart_memory_core import UARTMemoryCoreExample
-from test.utils import check_tools
+from tests.utils import check_tools
 
 verilog_root_dirs = [
     ("examples/verilog/icestick/uart_io_core", ICEStickPlatform()),

@@ -1,5 +1,5 @@
 from manta.uart import UARTReceiver
-from test.utils import jumble, simulate
+from tests.utils import jumble, simulate
 
 uart_rx = UARTReceiver(clocks_per_baud=10)
 

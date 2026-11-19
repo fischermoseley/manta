@@ -2,7 +2,7 @@ from amaranth import *
 
 from manta.logic_analyzer import LogicAnalyzerCore
 from manta.logic_analyzer.trigger_block import Operations
-from test.utils import simulate, write_register
+from tests.utils import simulate, write_register
 
 larry = Signal(1)
 curly = Signal(3)
