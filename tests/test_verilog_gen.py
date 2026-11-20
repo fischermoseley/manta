@@ -1,6 +1,6 @@
 from manta.cli import gen, inst
 
-CONFIG_FILE = "test/test_verilog_gen.yaml"
+CONFIG_FILE = "tests/test_verilog_gen.yaml"
 
 
 def test_verilog_gen(tmp_path):
