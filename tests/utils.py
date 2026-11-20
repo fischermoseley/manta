@@ -15,7 +15,7 @@ _DEVBOARD_INVENTORY = {
 
 
 def has_tool(tool: str) -> bool:
-    return tool.upper() in os.environ or shutil.which("vivado") is not None
+    return tool.upper() in os.environ or shutil.which(tool) is not None
 
 
 def check_tools(platform, need_prog_tool: bool = True, need_port: bool = True) -> str | None:
@@ -36,7 +36,7 @@ def check_tools(platform, need_prog_tool: bool = True, need_port: bool = True) -
                 if port not in os.environ:
                     pytest.skip(f"Serial port declared via {port} envvar is not present!")
 
-                return port
+                return os.environ[port]
 
 
 def xilinx_tools_installed():
