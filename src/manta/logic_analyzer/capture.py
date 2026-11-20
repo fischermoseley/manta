@@ -1,5 +1,6 @@
 import math
 from datetime import datetime
+from importlib.metadata import version
 
 from vcd import VCDWriter
 
@@ -128,10 +129,12 @@ class LogicAnalyzerCapture:
         timescale = (timescale_exponent, timescale_unit)
 
         # Use the same datetime format that iVerilog uses
-        timestamp = datetime.now().strftime("%a %b %w %H:%M:%S %Y")
+        date = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         with (
             open(path, "w") as vcd_file,
-            VCDWriter(vcd_file, timescale, timestamp, "manta") as writer,
+            VCDWriter(
+                vcd_file, timescale, date, version=f"Manta v{version('manta-fpga')}"
+            ) as writer,
         ):
             # Each probe has a name, width, and writer associated with it
             signals = []
