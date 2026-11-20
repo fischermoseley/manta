@@ -69,24 +69,38 @@ Configuration is done by creating a Manta object in Python, adding cores to it, 
 
 ```python
 from amaranth import *
+from amaranth.lib import io
 from manta import *
 
 
 class ExampleDesign(Elaboratable):
     def __init__(self):
+        self.foo = Signal(8)
+        self.bar = Signal(8)
+
         self.manta = Manta()
-        self.manta.interface = UARTInterface("auto", 2e6, 12e6)
-        self.manta.cores.my_io_core = IOCore(inputs=[], outputs=[])
+        self.manta.interface = UARTInterface(port="auto", baudrate=2e6, clock_freq=12e6)
+        self.manta.cores.my_io_core = IOCore(inputs=[self.foo], outputs=[self.bar])
 
     def elaborate(self, platform):
         m = Module()
         m.submodules.manta = self.manta
 
+        # Loop bar back into foo, just for demonstration
+        m.d.comb += self.foo.eq(self.bar)
+
+        # Connect the UART interface to the board's UART pins
+        uart_pins = platform.request("uart", dir={"tx": "-", "rx": "-"})
+        m.submodules.uart_rx = uart_rx = io.Buffer("i", uart_pins.rx)
+        m.submodules.uart_tx = uart_tx = io.Buffer("o", uart_pins.tx)
+        m.d.comb += self.manta.interface.rx.eq(uart_rx.i)
+        m.d.comb += uart_tx.o.eq(self.manta.interface.tx)
+
         return m
 
     def operate(self):
-        self.manta.cores.my_io_core.set_probe("foo", 2)
-        self.manta.cores.my_io_core.get_probe(bar)
+        self.manta.cores.my_io_core.set_probe("bar", 2)
+        return self.manta.cores.my_io_core.get_probe("foo")
 ```
 
 Using this `ExampleDesign` in the configure-build-operate flow might look like the following:
@@ -94,9 +108,11 @@ Using this `ExampleDesign` in the configure-build-operate flow might look like t
 ```python
 >>> from amaranth_boards.icestick import ICEStickPlatform
 >>> design = ExampleDesign()
->>> ICEStickPlatform.build(design, do_program=True)
+>>> ICEStickPlatform().build(design, do_program=True)
 >>> design.operate()
->>> design.manta.cores.my_io_core.get_probe(bar)
+2
+>>> design.manta.cores.my_io_core.get_probe("bar") # Can also read from an output probe!
+2
 ```
 
 Here, Amaranth’s board definitions and build system are being used to build and program an iCEstick development board. More examples of Amaranth-based designs can be found in the [examples/amaranth](https://github.com/fischermoseley/manta/tree/main/examples/amaranth) folder of the repo.
