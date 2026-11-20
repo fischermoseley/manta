@@ -1,5 +1,5 @@
 import sys
-from importlib.metadata import distribution
+from importlib.metadata import version
 
 from manta.manta import Manta
 from manta.utils import *
@@ -26,7 +26,7 @@ logo = f"""
 
 
 Manta - A configurable and approachable tool for FPGA debugging and rapid prototyping
-Version {distribution("manta-fpga").version}
+Version {version("manta-fpga")}
 https://github.com/fischermoseley/manta
 """
 
@@ -59,7 +59,7 @@ def print_help():
     print(usage)
 
 
-def version():
+def print_version():
     print(logo)
 
 
@@ -147,7 +147,7 @@ def main():
         ports()
 
     elif sys.argv[1] == "version":
-        version()
+        print_version()
 
     else:
         wrong_args()
