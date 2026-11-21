@@ -1096,7 +1096,7 @@
 <p>Both the <a href="../use_cases">Use Cases</a> page and the repository's <a href="https://github.com/fischermoseley/manta/tree/main/examples">examples</a> folder contain examples of the Ethernet Interface for your reference.</p>
 <h2 id="configuration">Configuration</h2>
 <h3 id="verilog-based-workflows">Verilog-Based Workflows</h3>
-<p>The UART interface is used by adding a <code>ethernet</code> entry at the bottom of the configuration file. This is best shown by example:</p>
+<p>The Ethernet interface is used by adding a <code>ethernet</code> entry at the bottom of the configuration file. This is best shown by example:</p>
 <p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">ethernet</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">phy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LiteEthPHYRMII</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">vendor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xilinx</span>
@@ -1141,7 +1141,7 @@ Inside this configuration, the following parameters may be set:</p>
 <p>Although LitEth is built on Migen and LiteX which support PLLs and other clock generation primitives, I haven't seen it instantiate one to synthesize a suitable <code>refclk</code> at the appropriate frequency from the input clock. As a result, for now it's recommended to generate your <code>refclk</code> outside Manta, and then use it to clock your Manta instance.</p>
 </div>
 <h3 id="amaranth-native-designs">Amaranth-Native Designs</h3>
-<p>Since Amaranth modules are Python objects, the configuration of the IO Core is given by the arguments given during initialization. See the documentation for the <code>EthernetInterface</code> <a href="#manta.EthernetInterface">class constructor</a> below, as well as the Amaranth <a href="https://github.com/fischermoseley/manta/tree/main/examples/amaranth">examples</a> in the repo.</p>
+<p>Since Amaranth modules are Python objects, the configuration of the Ethernet interface is given by the arguments given during initialization. See the documentation for the <code>EthernetInterface</code> <a href="#manta.EthernetInterface">class constructor</a> below, as well as the Amaranth <a href="https://github.com/fischermoseley/manta/tree/main/examples/amaranth">examples</a> in the repo.</p>
 <div class="admonition note">
 <p class="admonition-title">Don't use <code>.eq()</code> when connecting to PHY IO pins!</p>
 <p>The <code>EthernetInterface</code> has its own class methods for connecting to the IO pins routed to the PHY. This is necessary as some variations of the Media-Independent Interface used by Ethernet PHYs include bidirectional (ie, <code>inout</code>) signals, which require some special provisions in Amaranth. As a result these methods is used to connect the <code>EthernetInterface</code> to the Ethernet PHY, instead of using Amaranth's <code>.eq()</code>, as is done on the UARTInterface.</p>
@@ -1951,12 +1951,6 @@ design.</p>
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
-      
-        <script src="../javascripts/mathjax.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

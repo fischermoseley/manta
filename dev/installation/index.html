@@ -365,6 +365,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#udev-rules-for-linux-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        udev Rules (for Linux users)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -889,6 +917,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#udev-rules-for-linux-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        udev Rules (for Linux users)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -911,32 +967,38 @@
 
   <h1>Installation</h1>
 
-<p>Before installing, make sure to upgrade your <code>pip</code> to the latest version:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
-</span></code></pre></div>
 <h2 id="latest-release-recommended">Latest Release (Recommended)</h2>
-<p>The latest release of Manta can be installed from PyPI with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>manta-fpga
+<p>The latest release of Manta can be installed from <a href="https://pypi.org/project/manta-fpga/">PyPI</a> with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>manta-fpga
 </span></code></pre></div>
 <h2 id="development-snapshot">Development Snapshot</h2>
 <p>The latest development snapshot of Manta can be installed with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>git+https://github.com/fischermoseley/manta.git
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>git+https://github.com/fischermoseley/manta.git
 </span></code></pre></div>
-<p>It's recommended to install Manta into a virtual environment, instead of your system Python. Among the many other benefits virtual environments offer, this will conveniently add the <code>manta</code> executable to your PATH. This allows you to invoke the tool with <code>manta</code>, rather than the more verbose <code>python3 -m manta</code>.</p>
+<p>The commands above reference pip, but if your project uses an alternative Python package manager like uv, Poetry, or PDM, then consult your tool's documentation for installation instructions.</p>
+<p>It's recommended to install Manta into a virtual environment instead of your system Python. Among the many other benefits virtual environments offer, this will conveniently add the <code>manta</code> executable to your PATH when the virtual environment is active. This allows you to invoke the tool with <code>manta</code>, rather than the more verbose <code>python3 -m manta</code>.</p>
 <h2 id="editable-development-install">Editable Development Install</h2>
-<p>If you're working on the source, you might want an editable installation with some extra dependencies used for development:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/fischermoseley/manta.git
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>manta
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>uv<span class="w"> </span>sync
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>pre-commit<span class="w"> </span>install
+<p>This project uses the <a href="https://docs.astral.sh/uv/">uv</a> package manager, which will need to be installed before working with the source. The following commands will create a venv with an editable installation of <code>manta</code>, along with some extra tools used for development:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/fischermoseley/manta.git
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>manta
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>uv<span class="w"> </span>sync
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w"> </span><span class="c1"># optional, but convenient!</span>
 </span></code></pre></div>
-<p>The build system also uses the open-source <code>xc3sprog</code> and <code>iceprog</code> tools for programming Xilinx and ice40 devices, respectively. If you'd like to run these tests locally, you may need to install these tools and have them available on your <code>PATH</code>.</p>
+<h2 id="running-tests">Running Tests</h2>
+<p>Manta is verified with a combination of functional simulation and hardware-in-the-loop tests. The functional simulation uses Amaranth's built-in simulator, and can be run with no additional hardware or tools. However, the hardware tests target the following boards and thus require the tools below:</p>
+<ul>
+<li><em>Digilent Nexys4DDR:</em> AMD/Xilinx Vivado, <code>xc3sprog</code></li>
+<li><em>Lattice iCEstick:</em> yosys, nextpnr-ice40, icepack, iceprog. Easily installable from <code>oss-cad-suite</code>.</li>
+</ul>
+<p>Hardware tests targeting a given board will be skipped unless the required tools are available on your <code>PATH</code> or are referenced via environment variable. See <code>.env</code> for an example.</p>
+<p>The tests may be invoked with <code>make test</code>, which will run both the simulation testbenches and the hardware-in-the-loop tests.</p>
+<h3 id="udev-rules-for-linux-users">udev Rules (for Linux users)</h3>
 <p>If you're on Linux, you may also need to add a new udev rule to give non-superuser accounts access to any connected FTDI devices. This can be done by making a new file at <code>/etc/udev/rules.d/99-ftdi-devices.rules</code>, which contains:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ACTION=="add", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="666"
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ACTION=="add", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE:="666"
 </span></code></pre></div>
 <p>Be sure to reload your udev rules after saving the file. On most distributions, this is accomplished with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>udevadm<span class="w"> </span>trigger
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sudo<span class="w"> </span>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>udevadm<span class="w"> </span>trigger
 </span></code></pre></div>
 
 
@@ -991,12 +1053,6 @@
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
-      
-        <script src="../javascripts/mathjax.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>

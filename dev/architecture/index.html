@@ -1124,14 +1124,14 @@
 
 <ul>
 <li>The <em>Finite State Machine (FSM)</em>, which controls the operation of the core. The FSM's operation is driven by its associated registers, which are placed in a separate module. This permits simple CDC between the bus and user clock domains.</li>
-<li>The <em>Trigger Block</em>, which generates the core's trigger condition. The trigger block contains a trigger for each input probe, and the registers necessary to configure them. It also contains the <span class="arithmatex">\(N\)</span>-logic gate (either AND or OR) that generates the core's trigger from the individual probe triggers. CDC is performed in exactly the same manner as the FSM. If an external trigger is specified, the trigger block is omitted from the Logic Analyzer Core, and the external trigger is routed to the FSM's <code>trig</code> input.</li>
+<li>The <em>Trigger Block</em>, which generates the core's trigger condition. The trigger block contains a trigger for each input probe, and the registers necessary to configure them. It also contains the <em>N</em>-logic gate (either AND or OR) that generates the core's trigger from the individual probe triggers. CDC is performed in exactly the same manner as the FSM. If an external trigger is specified, the trigger block is omitted from the Logic Analyzer Core, and the external trigger is routed to the FSM's <code>trig</code> input.</li>
 <li>The <em>Sample Memory</em>, which stores the states of the probes during a capture. This is implemented as a dual-port, dual-clock block memory, with the bus on one port and the probes on the other. The probe-connected port only writes to the memory, with the address and enable pins managed by the FSM. CDC is performed in the block RAM primitive itself.</li>
 </ul>
 <h2 id="memory-core">Memory Core</h2>
 <p>Each Memory core is actually a set of 16-bit wide BRAMs with their ports concatenated together, with any spare bits masked off. Here's a diagram:</p>
 <center><img src="../assets/memory_architecture.drawio.svg" width="85%"></center>
 
-<p>Since each <span class="arithmatex">\(n\)</span>-bit wide block memory is actually <span class="arithmatex">\(ceil(n/16)\)</span> BRAMs under the hood, addressing the BRAMs correctly from Manta's internal bus is important. BRAMs are organized such that each 16-bit slice of a <span class="arithmatex">\(N\)</span>-bit word in the Block Memory core are placed next to each other in bus address space. For instance, a 34-bit wide block memory would exist on Manta's internal bus as:</p>
+<p>Since each <em>n</em>-bit wide block memory is actually <em>ceil(n/16)</em> BRAMs under the hood, addressing the BRAMs correctly from Manta's internal bus is important. BRAMs are organized such that each 16-bit slice of a <em>N</em>-bit word in the Block Memory core are placed next to each other in bus address space. For instance, a 34-bit wide block memory would exist on Manta's internal bus as:</p>
 <table>
 <thead>
 <tr>
@@ -1244,12 +1244,6 @@
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
-      
-        <script src="../javascripts/mathjax.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>
