@@ -1,4 +1,4 @@
-import sys
+import argparse
 from importlib.metadata import version
 
 from manta.manta import Manta
@@ -29,43 +29,6 @@ Manta - A configurable and approachable tool for FPGA debugging and rapid protot
 Version {version("manta-fpga")}
 https://github.com/fischermoseley/manta
 """
-
-
-usage = """
-Usage:
-    gen [config_file] [verilog_file]
-            Generate a verilog file specifying the Manta module from a given
-            configuration file, and save to the provided path.
-
-    inst [config_file]
-            Generate a copy-pasteable Verilog snippet to instantiate Manta
-            in your design.
-
-    capture [config_file] [la_core_name] [output path] [[additional output paths]...]
-            Start a capture on the specified core, and save the results to a .vcd,
-            .csv, or .v file at the provided path(s).
-
-    ports
-            List all available serial ports.
-
-    help
-            Display this help menu.
-
-    version
-            Display the currently installed version."""
-
-
-def print_help():
-    print(usage)
-
-
-def print_version():
-    print(logo)
-
-
-def wrong_args():
-    print('Wrong number of arguments, run "manta help" for usage.')
-    sys.exit(1)
 
 
 def gen(config_path, output_path):
@@ -123,34 +86,77 @@ def ports():
         print(f" -> desc: {port.description}\n")
 
 
+class PrintVersion(argparse.Action):  # needed so ASCII art prints correctly
+    def __init__(self, option_strings, dest, **kwargs):
+        super().__init__(option_strings, dest, nargs=0, default=argparse.SUPPRESS, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(logo)
+        parser.exit()
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        prog="manta",
+        description="Manta - A configurable and approachable tool for FPGA debugging and rapid prototyping",
+    )
+    parser.add_argument(
+        "--version",
+        action=PrintVersion,
+        help="show version info and exit",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", metavar="command")
+
+    # gen
+    p = subparsers.add_parser("gen", help="generate Verilog for the Manta module")
+    p.add_argument("config", help="path to the Manta config file")
+    p.add_argument("output", help="path to write the generated Verilog to")
+
+    # inst
+    p = subparsers.add_parser(
+        "inst",
+        help="print a Verilog snippet to instantiate Manta",
+    )
+    p.add_argument("config", help="path to the Manta config file")
+
+    # capture
+    p = subparsers.add_parser(
+        "capture",
+        help="capture data from a logic analyzer core",
+    )
+    p.add_argument("config", help="path to the Manta config file")
+    p.add_argument("core", help="name of the logic analyzer core")
+    p.add_argument(
+        "outputs",
+        nargs="+",
+        help="output path(s), .vcd, .csv, or .v",
+    )
+
+    # ports
+    subparsers.add_parser("ports", help="list available serial ports")
+
+    return parser
+
+
 def main():
-    if len(sys.argv) == 1 or sys.argv[1] in ["help", "-h", "-help", "--help", "ray"]:
-        print_help()
+    parser = build_parser()
+    args = parser.parse_args()
 
-    elif sys.argv[1] == "gen":
-        if len(sys.argv) != 4:
-            wrong_args()
-        gen(sys.argv[2], sys.argv[3])
+    if args.command is None:
+        parser.print_help()
 
-    elif sys.argv[1] == "inst":
-        if len(sys.argv) != 3:
-            wrong_args()
+    elif args.command == "gen":
+        gen(args.config, args.output)
 
-        print(inst(sys.argv[2]))
+    elif args.command == "inst":
+        print(inst(args.config))
 
-    elif sys.argv[1] == "capture":
-        if len(sys.argv) < 5:
-            wrong_args()
-        capture(sys.argv[2], sys.argv[3], sys.argv[4:])
+    elif args.command == "capture":
+        capture(args.config, args.core, args.outputs)
 
-    elif sys.argv[1] == "ports":
+    elif args.command == "ports":
         ports()
-
-    elif sys.argv[1] == "version":
-        print_version()
-
-    else:
-        wrong_args()
 
 
 if __name__ == "__main__":
