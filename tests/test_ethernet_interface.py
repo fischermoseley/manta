@@ -7,7 +7,7 @@ from amaranth.lib import io
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from tests.utils import check_tools, jumble
+from tests.utils import check_tools, get_build_dir, jumble
 
 
 class EthernetMemoryCoreTest(Elaboratable):
@@ -88,7 +88,7 @@ class EthernetMemoryCoreTest(Elaboratable):
         return m
 
     def verify(self):
-        self.platform.build(self, do_program=True)
+        self.platform.build(self, do_program=True, build_dir=get_build_dir())
 
         # Wait for the FPGA to acquire IP address
         time.sleep(5)

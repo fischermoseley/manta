@@ -164,3 +164,18 @@ def simulate(top):
         return wrapper
 
     return decorator
+
+
+def get_build_dir():
+    """
+    Return a build directory under build/ named after the currently running pytest test.
+    """
+
+    # test_name is of the form "tests/test_io_core_hw.py::test_foo[platform0] (call)"
+    test_name = os.environ.get("PYTEST_CURRENT_TEST")
+    if test_name is None:
+        return Path("build")
+
+    dir_name = test_name.split(" ")[0].split("::")[-1]
+    dir_name = dir_name.replace("[", "_").replace("]", "_")
+    return Path("build") / dir_name

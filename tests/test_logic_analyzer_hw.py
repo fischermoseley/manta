@@ -7,6 +7,7 @@ from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 from manta import *
 from tests.utils import (
     check_tools,
+    get_build_dir,
     make_build_dir_if_it_does_not_exist_already,
 )
 
@@ -50,7 +51,7 @@ class LogicAnalyzerCounterTest(Elaboratable):
         return m
 
     def build_and_program(self):
-        self.platform.build(self, do_program=True)
+        self.platform.build(self, do_program=True, build_dir=get_build_dir())
 
     def verify(self):
         self.build_and_program()

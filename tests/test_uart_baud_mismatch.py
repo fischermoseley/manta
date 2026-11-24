@@ -7,7 +7,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from tests.utils import check_tools
+from tests.utils import check_tools, get_build_dir
 
 
 class UARTBaudrateMismatchTest(Elaboratable):
@@ -52,7 +52,7 @@ class UARTBaudrateMismatchTest(Elaboratable):
         return m
 
     def build_and_program(self):
-        self.platform.build(self, do_program=True)
+        self.platform.build(self, do_program=True, build_dir=get_build_dir())
 
     def fill_memory(self):
         self.addrs = list(range(1024))

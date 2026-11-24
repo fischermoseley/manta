@@ -7,7 +7,7 @@ from amaranth_boards.icestick import ICEStickPlatform
 from amaranth_boards.nexys4ddr import Nexys4DDRPlatform
 
 from manta import *
-from tests.utils import check_tools, jumble
+from tests.utils import check_tools, get_build_dir, jumble
 
 
 class MemoryCoreLoopbackTest(Elaboratable):
@@ -59,7 +59,7 @@ class MemoryCoreLoopbackTest(Elaboratable):
         return m
 
     def build_and_program(self):
-        self.platform.build(self, do_program=True)
+        self.platform.build(self, do_program=True, build_dir=get_build_dir())
 
     def write_user_side(self, addr, data):
         self.manta.cores.io.set_probe("user_write_enable", 0)
