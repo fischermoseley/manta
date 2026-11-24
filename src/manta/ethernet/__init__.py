@@ -542,29 +542,29 @@ class EthernetInterface(Elaboratable):
             raise TypeError("Read address must be an integer or list of integers.")
 
         # Send read requests, and get responses
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((self._host_ip_addr, self._udp_port))
-        chunk_size = 64  # 128
-        addr_chunks = split_into_chunks(addrs, chunk_size)
-        datas = []
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.bind((self._host_ip_addr, self._udp_port))
+            chunk_size = 64  # 128
+            addr_chunks = split_into_chunks(addrs, chunk_size)
+            datas = []
 
-        for addr_chunk in addr_chunks:
-            bytes_out = b""
-            for addr in addr_chunk:
-                bytes_out += (0).to_bytes(4, byteorder="little")
-                bytes_out += int(addr).to_bytes(2, byteorder="little")
-                bytes_out += (0).to_bytes(2, byteorder="little")
+            for addr_chunk in addr_chunks:
+                bytes_out = b""
+                for addr in addr_chunk:
+                    bytes_out += (0).to_bytes(4, byteorder="little")
+                    bytes_out += int(addr).to_bytes(2, byteorder="little")
+                    bytes_out += (0).to_bytes(2, byteorder="little")
 
-            sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
-            data, addr = sock.recvfrom(4 * chunk_size)
+                sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
+                data, addr = sock.recvfrom(4 * chunk_size)
 
-            # Split into groups of four bytes
-            datas += [int.from_bytes(d, "little") for d in split_into_chunks(data, 4)]
+                # Split into groups of four bytes
+                datas += [int.from_bytes(d, "little") for d in split_into_chunks(data, 4)]
 
-        if len(datas) != len(addrs):
-            raise ValueError("Got less data than expected from FPGA.")
+            if len(datas) != len(addrs):
+                raise ValueError("Got less data than expected from FPGA.")
 
-        return datas
+            return datas
 
     def write(self, addrs, datas):
         """
@@ -598,8 +598,8 @@ class EthernetInterface(Elaboratable):
             bytes_out += int(addr).to_bytes(2, byteorder="little")
             bytes_out += int(data).to_bytes(2, byteorder="little")
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.sendto(bytes_out, (self._fpga_ip_addr, self._udp_port))
 
     def generate_liteeth_core(self):
         """
