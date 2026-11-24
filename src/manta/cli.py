@@ -1,4 +1,5 @@
 import argparse
+import logging
 from importlib.metadata import version
 
 from manta.manta import Manta
@@ -63,7 +64,7 @@ def capture(config_path, logic_analyzer_name, export_paths):
         elif ".v" in path:
             cap.export_playback_verilog(path)
         else:
-            warn(f"Unrecognized file type, skipping {path}.")
+            raise TypeError(f"Unrecognized file type for {path}.")
 
 
 def ports():
@@ -140,6 +141,7 @@ def build_parser():
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = build_parser()
     args = parser.parse_args()
 

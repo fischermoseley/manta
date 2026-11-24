@@ -62,11 +62,10 @@ class IOCore(MantaCore):
         if not inputs and not outputs:
             raise ValueError("Must specify at least one input or output port.")
 
-        # Warn about unrecognized options
         valid_options = ["type", "inputs", "outputs"]
         for option in config:
             if option not in valid_options:
-                warn(f"Ignoring unrecognized option '{option}' in IO core.'")
+                raise TypeError(f"Unrecognized option '{option}' in IO core.")
 
         # Define input signals
         input_signals = []
@@ -103,7 +102,7 @@ class IOCore(MantaCore):
                 valid_options = ["width", "initial_value"]
                 for option in attrs:
                     if option not in valid_options:
-                        warn(f"Ignoring unrecognized option '{option}' in IO core.")
+                        raise TypeError(f"Unrecognized option '{option}' in IO core.")
 
                 # Check that widths are appropriate
                 if "width" not in attrs:

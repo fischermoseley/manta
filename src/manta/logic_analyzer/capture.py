@@ -1,3 +1,4 @@
+import logging
 import math
 from datetime import datetime
 from importlib.metadata import version
@@ -7,6 +8,8 @@ from vcd import VCDWriter
 from manta.logic_analyzer.fsm import TriggerModes
 from manta.logic_analyzer.playback import LogicAnalyzerPlayback
 from manta.utils import *
+
+logger = logging.getLogger(__name__)
 
 
 class LogicAnalyzerCapture:
@@ -124,7 +127,7 @@ class LogicAnalyzerCapture:
         timescale_integer = round(timescale_exact)
 
         if abs(timescale_exact - timescale_integer) > 1e-3:
-            warn("VCD file timescale will differ slightly from exact clock frequency.")
+            logger.warning("VCD file timescale will differ slightly from exact clock frequency.")
 
         timescale = (timescale_exponent, timescale_unit)
 

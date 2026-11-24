@@ -1,3 +1,5 @@
+import logging
+
 from amaranth import *
 
 from manta.logic_analyzer.capture import LogicAnalyzerCapture
@@ -5,6 +7,8 @@ from manta.logic_analyzer.fsm import LogicAnalyzerFSM, TriggerModes
 from manta.logic_analyzer.trigger_block import LogicAnalyzerTriggerBlock
 from manta.memory_core import MemoryCore
 from manta.utils import *
+
+logger = logging.getLogger(__name__)
 
 
 class LogicAnalyzerCore(MantaCore):
@@ -84,7 +88,7 @@ class LogicAnalyzerCore(MantaCore):
         ]
         for option in config:
             if option not in valid_options:
-                warn(f"Ignoring unrecognized option '{option}' in Logic Analyzer.")
+                raise TypeError(f"Unrecognized option '{option}' in Logic Analyzer.")
 
         # Check sample depth is provided and positive
         sample_depth = config.get("sample_depth")
@@ -234,11 +238,13 @@ class LogicAnalyzerCore(MantaCore):
         if mode == TriggerModes.IMMEDIATE:
             # Warn on triggers
             if triggers:
-                warn("Ignoring provided triggers as trigger mode is set to Immediate.")
+                logger.warning("Ignoring provided triggers as trigger mode is set to Immediate.")
 
             # Warn on trigger location
             if trigger_location:
-                warn("Ignoring provided trigger_location as trigger mode is set to Immediate.")
+                logger.warning(
+                    "Ignoring provided trigger_location as trigger mode is set to Immediate."
+                )
 
             self._trigger_mode = mode
             self._triggers = []
@@ -247,7 +253,9 @@ class LogicAnalyzerCore(MantaCore):
         elif mode == TriggerModes.INCREMENTAL:
             # Warn on trigger location
             if trigger_location:
-                warn("Ignoring provided trigger_location as trigger mode is set to Incremental.")
+                logger.warning(
+                    "Ignoring provided trigger_location as trigger mode is set to Incremental."
+                )
 
             # Validate triggers
             self._validate_triggers(triggers)
@@ -284,31 +292,31 @@ class LogicAnalyzerCore(MantaCore):
                 containing the capture and its metadata.
         """
 
-        print(" -> Resetting core...")
+        logger.info("Resetting core...")
         self._fsm.stop_capture()
 
-        print(" -> Setting triggers...")
+        logger.info("Setting triggers...")
         self._trig_blk.set_triggers(self._triggers)
 
-        print(" -> Setting trigger mode...")
+        logger.info("Setting trigger mode...")
         self._fsm.write_register("trigger_mode", self._trigger_mode)
 
-        print(" -> Setting trigger location...")
+        logger.info("Setting trigger location...")
         self._fsm.write_register("trigger_location", self._trigger_location)
 
-        print(" -> Starting capture...")
+        logger.info("Starting capture...")
         self._fsm.start_capture()
 
-        print(" -> Waiting for capture to complete...")
+        logger.info("Waiting for capture to complete...")
         self._fsm.wait_for_capture()
 
-        print(" -> Reading sample memory contents...")
+        logger.info("Reading sample memory contents...")
         addrs = list(range(self._sample_depth))
         raw_capture = self._sample_mem.read(addrs)
 
         # Revolve the memory around the read_pointer, such that all the beginning
         # of the capture is at the first element
-        print(" -> Checking read pointer and revolving memory...")
+        logger.info("Checking read pointer and revolving memory...")
         read_pointer = self._fsm.read_register("read_pointer")
 
         data = raw_capture[read_pointer:] + raw_capture[:read_pointer]

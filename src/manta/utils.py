@@ -94,16 +94,6 @@ class InternalBus(data.StructLayout):
         )
 
 
-def warn(message):
-    """
-    Prints a warning to the user's terminal. Originally the warn() method
-    from the builtin warnings module was used for this, but I don't think the
-    way it outputs on the command line is the most helpful for the users.
-    (ie, Users don't care about the stacktrace or the filename/line number.)
-    """
-    print("Warning: " + message)
-
-
 def words_to_value(data):
     """
     Takes a list of integers, interprets them as 16-bit integers, and

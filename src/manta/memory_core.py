@@ -106,7 +106,7 @@ class MemoryCore(MantaCore):
         valid_options = ["type", "depth", "width", "mode"]
         for option in config:
             if option not in valid_options:
-                warn(f"Ignoring unrecognized option '{option}' in memory core.")
+                raise TypeError(f"Unrecognized option '{option}' in memory core.")
 
         # Check depth is provided and positive
         depth = config.get("depth")

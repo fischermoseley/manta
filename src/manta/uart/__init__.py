@@ -100,7 +100,7 @@ class UARTInterface(Elaboratable):
                 sanitized_config[option] = config[option]
 
             else:
-                warn(f"Ignoring unrecognized option '{option}' in UART interface config.")
+                raise TypeError(f"Unrecognized option '{option}' in UART interface config.")
 
         return cls(**sanitized_config)
 
